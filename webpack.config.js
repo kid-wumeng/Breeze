@@ -21,12 +21,15 @@ module.exports = {
    module: {
       rules: [{
          test: /\.coffee?$/,
-         loader: "coffee-loader"
+         loader: 'coffee-loader'
+      },{
+         test: /\.less?$/,
+         loader: "style-loader!css-loader!less-loader"
       }]
    },
 
    resolve: {
-      extensions: [".js", ".coffee"]
+      extensions: ['.js', '.coffee', '.less']
    },
 
    devServer: {

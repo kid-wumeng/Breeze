@@ -1,0 +1,103 @@
+*{
+   margin: 0;
+   padding: 0;
+}
+
+li{
+  list-style: none;
+}
+
+
+app,
+side,
+main,
+section,
+content,
+example,
+name,
+type,
+desc{
+  display: block;
+}
+
+
+
+@side-width:         15%;
+@main-content-width: 45%;
+@main-example-width: 55%;
+
+
+@side-bgColor:         #FAFCFC;
+@main-content-bgColor: #FFFFFF;
+@main-example-bgColor: #2D3134;
+
+
+
+
+app {
+  position: relative;
+  box-sizing: border-box;
+  font-size: 14px;
+}
+
+app > side {
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  width: @side-width;
+  height: 100%;
+  overflow: scroll;
+  background-color: @side-bgColor;
+}
+
+app > main {
+  margin-left: @side-width;
+  position: relative;
+  &:before{
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: -1;
+    box-sizing: border-box;
+    width: @main-content-width;
+    height: 100%;
+    background-color: @main-content-bgColor;
+  }
+  &:after{
+    content: "";
+    display: block;
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: -1;
+    box-sizing: border-box;
+    width: @main-example-width;
+    height: 100%;
+    background-color: @main-example-bgColor;
+  }
+}
+
+
+
+
+section {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+section > content {
+  float: left;
+  box-sizing: border-box;
+  width: @main-content-width;
+  padding: 40px;
+}
+
+section > example {
+  float: right;
+  box-sizing: border-box;
+  width: @main-example-width;
+  padding: 40px;
+}

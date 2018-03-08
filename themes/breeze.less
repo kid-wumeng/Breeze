@@ -1,0 +1,46 @@
+@side-width:         15%;
+@main-content-width: 45%;
+@main-example-width: 55%;
+
+
+@side-bgColor:         #FAFCFC;
+@main-content-bgColor: #FFFFFF;
+@main-example-bgColor: #2D3134;
+
+
+app {
+  font-size: 14px;
+}
+
+app > side {
+  width: @side-width;
+  background-color: @side-bgColor;
+}
+
+
+app > main {
+  margin-left: @side-width;
+}
+
+
+app > main::before {
+  width:            @main-content-width;
+  background-color: @main-content-bgColor;
+}
+
+
+app > main::after {
+  width:            @main-example-width;
+  background-color: @main-example-bgColor;
+}
+
+
+section > content {
+  width: @main-content-width;
+  padding: 40px;
+}
+
+section > example {
+  width: @main-example-width;
+  padding: 40px;
+}

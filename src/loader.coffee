@@ -1,14 +1,6 @@
 exports.get = ( path, done, fail ) =>
 
-   try
-      xhr = new XMLHttpRequest()
-
-   catch e
-      try
-         xhr = new ActiveXObject("Msxml2.XMLHTTP")    # IE 7+
-      catch e
-         xhr = new ActiveXObject("Microsoft.XMLHTTP") # IE 5+
-
+   xhr = new XMLHttpRequest
 
    xhr.onreadystatechange = ->
 

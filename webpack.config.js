@@ -1,8 +1,6 @@
 const path = require('path')
 
 
-console.log();
-
 
 module.exports = {
 
@@ -13,7 +11,7 @@ module.exports = {
    output: {
       path: path.resolve(__dirname, 'dist'),
       publicPath: '/dist/',
-      filename: 'breeze.js',
+      filename: 'breeze-webpack.js',
       library: 'Breeze',
       libraryTarget: 'window'
    },
@@ -23,13 +21,20 @@ module.exports = {
          test: /\.coffee?$/,
          loader: 'coffee-loader'
       },{
-         test: /\.less?$/,
-         loader: "style-loader!css-loader!less-loader"
+         test: /\.css?$/,
+         use: [{
+           loader: 'style-loader'
+         },{
+           loader: 'css-loader',
+           options: {
+              minimize: true
+           }
+         }]
       }]
    },
 
    resolve: {
-      extensions: ['.js', '.coffee', '.less']
+      extensions: ['.js', '.coffee', '.css']
    },
 
    devServer: {

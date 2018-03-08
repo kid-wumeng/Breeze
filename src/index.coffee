@@ -1,9 +1,8 @@
-require('./style.less')
+style = require('./style')
 router  = require('./router')
 loader  = require('./loader')
 dom     = require('./dom')
 Article = require('./Article')
-
 
 
 

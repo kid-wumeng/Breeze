@@ -1,8 +1,10 @@
-style = require('./style')
-router  = require('./router')
-loader  = require('./loader')
-dom     = require('./dom')
-Article = require('./Article')
+style     = require('./style')
+dom       = require('./dom')
+Article   = require('./Article')
+Navigator = require('./Navigator')
+util      = require('./util')
+
+
 
 
 
@@ -13,15 +15,20 @@ window.onload = =>
 
    dom.init()
 
-   path = router.formatPath( location.pathname )
+   path = util.formatPath( location.pathname )
 
-   loader.get( path, done, dom.render404 )
-
+   util.read( path, done, dom.render404 )
 
 
 
 
 
 done = ( text ) =>
+
    article = new Article( text )
-   dom.renderArticle( article.html )
+   summary = article.summary()
+
+   navigator = new Navigator( summary )
+
+   dom.renderMain( article )
+   dom.renderSide( navigator )

@@ -12,13 +12,19 @@ li{
 
 
 
+a{
+  text-decoration: none;
+}
+
+
+
 app, side, main, content, example, name, type, desc{
   display: block;
 }
 
 
 
-side {
+side{
   position: fixed;
   left: 0;
   top: 0;
@@ -27,8 +33,13 @@ side {
 }
 
 
+side a[level="3"]{
+  display: none;
+}
 
-main {
+
+
+main{
   position: relative;
 }
 
@@ -44,23 +55,28 @@ main::after{
   height: 100%;
 }
 
-main::before { left: 0 }
-main::after { right: 0 }
+main::before{ left: 0 }
+main::after{ right: 0 }
 
 
 
-section {
+section{
   overflow: hidden;
 }
 
 
 
-content {
+content{
   float: left;
 }
 
 
 
-example {
+example{
   float: right;
+}
+
+
+pre{
+  overflow: scroll;
 }

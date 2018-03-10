@@ -1,6 +1,6 @@
-@side-width:         15%;
-@main-content-width: 45%;
-@main-example-width: 55%;
+@side-width:         200px;
+@main-content-width: 50%;
+@main-example-width: 50%;
 
 
 @side-bgColor:         #FAFCFC;
@@ -8,13 +8,76 @@
 @main-example-bgColor: #2D3134;
 
 
+@side-item-padding-x: 24px;
+@side-item-indent:    14px;
+
+
+@gap: 20px;
+
+
 app {
+  font-family: "Helvetica Neue", "Arial", "Verdana", "Roboto", "PingFang SC", "Hiragino Sans GB", sans-serif;
   font-size: 14px;
+  line-height: 26px;
+  white-space: 0.75px;
+  -webkit-font-smoothing: antialiased;
 }
 
-app > side {
-  width: @side-width;
-  background-color: @side-bgColor;
+
+side {
+   padding-top: 40px;
+   width: @side-width;
+   background-color: @side-bgColor;
+   border-right: 1px solid #f0f4f7;
+
+   a {
+     display: block;
+     padding: 0 @side-item-padding-x;
+     line-height: 36px;
+     font-family: "Futura", "Ubuntu", "Helvetica", "Arial", sans-serif;
+     cursor: pointer;
+     overflow: hidden;
+     text-overflow:ellipsis;
+     white-space: nowrap;
+     border-top: 1px solid transparent;
+     border-bottom: 1px solid transparent;
+     transition: all 0.2s ease;
+   }
+   a.lv1 {
+     padding-left: @side-item-padding-x;
+     font-weight: 500;
+     font-size: 14px;
+     color: #4c555a;
+   }
+   a.lv2 {
+     padding-left: @side-item-padding-x + @side-item-indent;
+     font-weight: 500;
+     font-size: 14px;
+     color: #A2AEBA;
+   }
+   a.lv3 {
+     padding-left: @side-item-padding-x + @side-item-indent * 2;
+     font-weight: 500;
+     font-size: 14px;
+     color: #A2AEBA;
+     &::before {
+       content: "-";
+       margin-right: 8px;
+     }
+   }
+   a.active{
+      color: #FFF;
+      background-color: #69c0ff;
+   }
+
+   ul.lv3{
+      height: 0;
+      overflow: hidden;
+   }
+   li.lv2.active ul,
+   ul.lv3.active {
+      height: auto;
+   }
 }
 
 
@@ -38,9 +101,61 @@ app > main::after {
 section > content {
   width: @main-content-width;
   padding: 40px;
+  border-top: 1px solid #f0f4f7;
 }
 
 section > example {
   width: @main-example-width;
   padding: 40px;
+  border-top: 1px solid #33383b;
+}
+
+
+content {
+  color: #273340;
+
+  > * {
+    margin-bottom: @gap;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Futura", "Ubuntu";
+    font-weight: 400;
+    color: #273340;
+    margin-bottom: @gap + 12px;
+  }
+
+  h1 { font-size: 24px }
+  h2 { font-size: 20px }
+  h3 { font-size: 16px }
+  h4 { font-size: 15px }
+  h5 { font-size: 15px }
+  h6 { font-size: 15px }
+
+  a {
+    font-weight: 600;
+    color: #5C7CAA;
+    text-decoration: underline;
+  }
+}
+
+
+example {
+  color: #DDD;
+
+  > * {
+    margin-bottom: @gap;
+  }
+
+  pre {
+    padding: 30px 36px;
+    line-height: 20px;
+    background-color: #272B2D;
+    border-radius: 4px;
+  }
+
+  code {
+    font-family: "Monaco", "Ubuntu Mono", "Monofur";
+    font-size: 12px;
+  }
 }

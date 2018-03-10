@@ -1,7 +1,3 @@
-bus = require('./bus')
-
-
-
 exports.formatPath = ( path = '' ) =>
 
    ########################################
@@ -25,3 +21,33 @@ exports.formatPath = ( path = '' ) =>
       path += 'README'
 
    return path += '.md'
+
+
+
+
+
+exports.read = ( path, done, fail ) =>
+
+   xhr = new XMLHttpRequest
+
+   xhr.onreadystatechange = ->
+
+      if xhr.readyState is 4
+
+         if xhr.status is 200
+            done( xhr.responseText )
+
+         else
+            fail( xhr.status )
+
+
+   xhr.open('GET', path, true)
+   xhr.send(null)
+
+
+
+
+
+exports.hash = ( text ) =>
+
+   return text.replace(/\s+/g, '-')

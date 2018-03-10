@@ -1,4 +1,6 @@
 marked = require('marked')
+Prism  = require('prismjs/components/prism-core')
+util   = require('./util')
 
 
 
@@ -13,6 +15,10 @@ module.exports = class Article
       #|  @params {string}
       #|
       ########################################
+
+      marked.setOptions({
+         highlight: ( code ) => Prism.highlight( code, Prism.languages.javascript )
+      })
 
       @text = text
       @html = ''
@@ -75,9 +81,7 @@ module.exports = class Article
 
       @text = @text.replace reg, ( match, inner ) =>
 
-         inner = marked(inner, {
-            renderer: @_rendererDefault
-         })
+         inner = marked(inner)
 
          @allExamples.push( inner )
 
@@ -115,7 +119,7 @@ module.exports = class Article
 
          @_createSection()  # create last section.
 
-         html = @_rendererDefault.heading( text, level, raw )
+         html = "<h#{level} id=\"#{util.hash(text)}\">#{text}</h#{level}>"
 
          @allHeadings.push({ text, level, raw })
 
@@ -163,18 +167,16 @@ module.exports = class Article
       content = @_createContent()
       example = @_createExample()
 
-      if content and example
+      sectionClass = @_createSectionClass()
 
-        sectionClass = @_createSectionClass()
+      section = """
+         <section class=\"#{sectionClass}\">
+            #{content}
+            #{example}
+         </section>
+      """
 
-        section = """
-           <section class=\"#{sectionClass}\">
-              #{content}
-              #{example}
-           </section>
-        """
-
-        @html += section
+      @html += section
 
 
 
@@ -185,9 +187,10 @@ module.exports = class Article
       if @_contents.length
         content = "<content>#{@_contents.join('')}</content>"
       else
-        content = ""
+        content = "<content></content>"
 
       @_contents = []
+
       return content
 
 
@@ -199,9 +202,10 @@ module.exports = class Article
       if @_examples.length
         example = "<example>#{@_examples.join('')}</example>"
       else
-        example = ""
+        example = "<example></example>"
 
       @_examples = []
+
       return example
 
 
@@ -214,3 +218,59 @@ module.exports = class Article
       level   = heading?.level ? 0
 
       return 'h' + level + '-section'
+
+
+
+
+
+   summary: =>
+
+      ########################################
+      #|
+      #|  Create the article's summary by markdown format,
+      #|  for example:
+      #|
+      #|    * [lv1](#lv1)
+      #|      * [lv2](#lv2)
+      #|    * [lv1](#lv1)
+      #|      * [lv2](#lv2)
+      #|        * [lv3](#lv3)
+      #|      * [lv2](#lv2)
+      #|
+      #|  @return {string} summary
+      #|
+      ########################################
+
+      summary = ''
+
+      for heading in @allHeadings
+
+         { level, text } = heading
+
+         summary += @_summaryItem( level, text )
+
+      return summary
+
+
+
+
+
+   _summaryItem: ( lv, text ) =>
+
+      ########################################
+      #|
+      #|  @params {number} heading's lv
+      #|  @params {string} heading's text
+      #|
+      #|  @return {string} item
+      #|
+      ########################################
+
+      count = lv
+      space = ''
+
+      while count > 1
+         space += '  '
+         count--
+
+      return "#{space}* [#{text}](##{util.hash(text)})\n"

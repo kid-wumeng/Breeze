@@ -1,10 +1,23 @@
 style     = require('./style')
 dom       = require('./dom')
+JadeLike  = require('./JadeLike')
 Article   = require('./Article')
 Navigator = require('./Navigator')
 util      = require('./util')
 
 
+
+text = """
+   item1
+      name
+   desc will convert to string
+   item2
+      age len
+"""
+
+
+
+jadeLike = new JadeLike(text)
 
 
 

@@ -18,7 +18,7 @@ a{
 
 
 
-app, side, main, content, example, name, type, desc{
+app, side, main, content, example, params, item, name, type, desc{
   display: block;
 }
 
@@ -80,3 +80,12 @@ example{
 pre{
   overflow: scroll;
 }
+
+
+
+
+
+
+
+
+

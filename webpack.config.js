@@ -20,16 +20,6 @@ module.exports = {
       rules: [{
          test: /\.coffee?$/,
          loader: 'coffee-loader'
-      },{
-         test: /\.css?$/,
-         use: [{
-           loader: 'style-loader'
-         },{
-           loader: 'css-loader',
-           options: {
-              minimize: true
-           }
-         }]
       }]
    },
 

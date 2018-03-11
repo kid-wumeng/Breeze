@@ -16,33 +16,26 @@
 </params>
 
 
-<params>
-  item
-    name value
-    desc will convert to string
-  item
-    name len
-    type number
-    desc optional, default is *10*, expected overall-length.
-  item
-    name char
-    type string
-    desc the monocase used to padding.
-<params>
+
+<example>
+```js
+sss = 6
+```
+</example>
 
 
 
 <jade>
-   params
+   params( title="ATTRIBUTES" )
       item
-        name value
-        desc will convert to string
+         name value
+         desc will convert to string
       item
-        name len
-        type number
-        desc optional, default is *10*, expected overall-length.
+         name len
+         type number
+         desc optional, default is *10*, expected overall-length.
       item
-        name char
-        type string
-        desc the monocase used to padding.
+         name char
+         type string
+         desc the monocase used to padding.
 </jade>

@@ -1,4 +1,3 @@
-style     = require('./style')
 dom       = require('./dom')
 JadeLike  = require('./JadeLike')
 Article   = require('./Article')
@@ -15,9 +14,6 @@ text = """
       age len
 """
 
-
-
-jadeLike = new JadeLike(text)
 
 
 

@@ -3,6 +3,7 @@ module.exports = class ObservableObject
 
 
    constructor: ->
+
       @__events = {}
 
 

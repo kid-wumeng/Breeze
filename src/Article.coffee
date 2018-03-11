@@ -1,6 +1,7 @@
-marked = require('marked')
-Prism  = require('prismjs/components/prism-core')
-util   = require('./util')
+marked   = require('marked')
+Prism    = require('prismjs/components/prism-core')
+JadeLike = require('./JadeLike')
+util     = require('./util')
 
 
 
@@ -16,12 +17,12 @@ module.exports = class Article
       #|
       ########################################
 
-      marked.setOptions({
-         highlight: ( code ) => Prism.highlight( code, Prism.languages.javascript )
-      })
+      # marked.setOptions({
+      #    highlight: ( code ) => Prism.highlight( code, Prism.languages.javascript )
+      # })
 
-      @text = text
-      @html = ''
+      @_text = text
+      @_html = ''
 
       @allHeadings = []  # [{ text, level, raw }]
       @allContents = []
@@ -33,7 +34,8 @@ module.exports = class Article
       @_renderer        = new marked.Renderer({ headerPrefix: '' })
       @_rendererDefault = new marked.Renderer({ headerPrefix: '' })
 
-      @_parseExamples()
+      @_jadeParse()
+      @_exampleParse()
 
       @_wrapRenderer('code')
       @_wrapRenderer('blockquote')
@@ -51,13 +53,33 @@ module.exports = class Article
 
 
 
-   _parseExamples: =>
+   _jadeParse: =>
+
+      ########################################
+      #|
+      #|  Parse the jade-like block and replace to html.
+      #|
+      ########################################
+
+      reg = /<jade>((?:.|\n)*?)<\/jade>/g
+
+      @_text = @_text.replace reg, ( match, inner ) =>
+
+         jade = new JadeLike(inner)
+
+         return jade.html()
+
+
+
+
+
+   _exampleParse: =>
 
       ########################################
       #|
       #|  For example,
       #|
-      #|  @text =
+      #|  @_text =
       #|     a paragraph.
       #|     <example>
       #|        hello, *world*
@@ -66,7 +88,7 @@ module.exports = class Article
       #|
       #|  =>
       #|
-      #|  @text =
+      #|  @_text =
       #|     a paragraph.
       #|     <example>0<example>
       #|
@@ -79,7 +101,7 @@ module.exports = class Article
 
       reg = /<example>\s*((?:.|\n)*?)\s*<\/example>/g
 
-      @text = @text.replace reg, ( match, inner ) =>
+      @_text = @_text.replace reg, ( match, inner ) =>
 
          inner = marked(inner)
 
@@ -135,10 +157,8 @@ module.exports = class Article
 
       @_renderer.html = ( html ) =>
 
-         isExample = /^\s*<example>\d+<\/example>\s*$/.test( html )
-
-         if isExample
-            i = html.replace /(?:^\s*<example>)|(?:<\/example>\s*$)/g, ''
+         if @_isTag('example', html)
+            i = @_getTagContent('example', html)
             @_examples.push( @allExamples[i] )
 
          else
@@ -150,9 +170,31 @@ module.exports = class Article
 
 
 
+
+   _isTag: ( tag, html ) =>
+
+      regStart = new RegExp("^\\s*<#{tag}>")
+      regEnd   = new RegExp("<\\/#{tag}>\\s*$")
+
+      return regStart.test( html ) and regEnd.test( html )
+
+
+
+
+
+   _getTagContent: ( tag, html ) =>
+
+      reg = new RegExp("(^\\s*<#{tag}>)|(<\\/#{tag}>\\s*$)", 'g')
+
+      return html.replace(reg, '')
+
+
+
+
+
    _compile: =>
 
-      marked(@text, {
+      marked(@_text, {
          renderer: @_renderer
       })
 
@@ -176,7 +218,7 @@ module.exports = class Article
          </section>
       """
 
-      @html += section
+      @_html += section
 
 
 
@@ -218,6 +260,20 @@ module.exports = class Article
       level   = heading?.level ? 0
 
       return 'h' + level + '-section'
+
+
+
+
+
+   html: =>
+
+      ########################################
+      #|
+      #|  @return {string} html
+      #|
+      ########################################
+
+      return @_html
 
 
 

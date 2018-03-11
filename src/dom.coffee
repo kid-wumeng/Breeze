@@ -39,7 +39,7 @@ exports.render404 = =>
 
 exports.renderMain = ( article ) =>
 
-   $main.innerHTML = article.html
+   $main.innerHTML = article.html()
 
    initHeadingTops()
 

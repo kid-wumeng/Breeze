@@ -1,15 +1,29 @@
 module.exports = class JadeLike
 
-
-  ########################################
-  #|
-  #|  Be responsible for parsing the jade-like text to html.
-  #|
-  ########################################
+   ########################################
+   #|
+   #|  Be responsible for parsing the jade-like text to html.
+   #|  For example,
+   #|
+   #|  item        =>  <item>
+   #|    name ...  =>    <name>...</name>
+   #|    type ...  =>    <type>...</type>
+   #|    desc ...  =>    <desc>...</desc>
+   #|              =>  </item>
+   #|
+   #|  @public {string} html()
+   #|
+   ########################################
 
 
 
    constructor: ( text ) ->
+
+     ########################################
+     #|
+     #|  @params {string} text
+     #|
+     ########################################
 
       @_text = text
       @_tree = {}
@@ -20,13 +34,31 @@ module.exports = class JadeLike
       @_treeParse()
       @_htmlParse()
 
-      console.log @_html
-      console.log @_tree
+
+
+
+
+   html: =>
+
+      ########################################
+      #|
+      #|  @return {string} html
+      #|
+      ########################################
+
+      return @_html
+
 
 
 
 
    _htmlParse: =>
+
+      ########################################
+      #|
+      #|  Parse the tree to html.
+      #|
+      ########################################
 
       each = ( node ) =>
 
@@ -54,6 +86,12 @@ module.exports = class JadeLike
 
    _treeParse: =>
 
+      ########################################
+      #|
+      #|  Parse the text to tree.
+      #|
+      ########################################
+
       tree = @_tree
       deep = -1
 
@@ -64,9 +102,13 @@ module.exports = class JadeLike
          if node.deep > deep
             tree.children ?= []
             tree.children.push(node)
+            node.parent = tree
+            tree = node
+            deep = node.deep
 
          else if node.deep is deep
             tree.parent.children.push(node)
+            node.parent = tree
 
          else if node.deep < deep
 
@@ -74,10 +116,9 @@ module.exports = class JadeLike
                tree = tree.parent
 
             tree.children.push(node)
-
-         node.parent = tree
-         tree = node
-         deep = node.deep
+            node.parent = tree
+            tree = node
+            deep = node.deep
 
 
 
@@ -129,6 +170,7 @@ module.exports = class JadeLike
 
 
 
+
    _deepParse: =>
 
       ########################################
@@ -144,6 +186,7 @@ module.exports = class JadeLike
          return ''
 
       return deep
+
 
 
 

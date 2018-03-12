@@ -1,6 +1,6 @@
 marked   = require('marked')
 Prism    = require('prismjs/components/prism-core')
-JadeLike = require('./JadeLike')
+jade     = require('./jade')
 util     = require('./util')
 
 
@@ -33,6 +33,8 @@ module.exports = class Article
 
       @_renderer        = new marked.Renderer({ headerPrefix: '' })
       @_rendererDefault = new marked.Renderer({ headerPrefix: '' })
+
+      @_$article = null
 
       @_jadeParse()
       @_exampleParse()
@@ -265,7 +267,7 @@ module.exports = class Article
 
 
 
-   html: =>
+   innerHTML: =>
 
       ########################################
       #|
@@ -274,6 +276,24 @@ module.exports = class Article
       ########################################
 
       return @_html
+
+
+
+
+   dom: =>
+
+      ########################################
+      #|
+      #|  @return {HTMLElement}
+      #|
+      ########################################
+
+      $article = document.createElement('article')
+      $article.innerHTML = @innerHTML()
+
+      @_$article = $article
+
+      return $article
 
 
 

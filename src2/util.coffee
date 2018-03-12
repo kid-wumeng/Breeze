@@ -41,7 +41,10 @@ exports.read = ( path, done, fail ) =>
 
    xhr = new XMLHttpRequest
 
-   xhr.onreadystatechange = ->
+   xhr.open('GET', path, true)
+   xhr.send(null)
+
+   xhr.onreadystatechange = =>
 
       if xhr.readyState is 4
 
@@ -50,10 +53,6 @@ exports.read = ( path, done, fail ) =>
 
          else
             fail( xhr.status )
-
-
-   xhr.open('GET', path, true)
-   xhr.send(null)
 
 
 

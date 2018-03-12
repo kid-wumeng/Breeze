@@ -17,33 +17,6 @@ navigator = null
 
 
 
-exports.init = =>
-
-   $main.style['min-height'] = window.innerHeight + 'px'
-
-   document.body.appendChild($app)
-
-   $app.appendChild($side)
-   $app.appendChild($main)
-
-
-
-
-exports.render404 = =>
-
-   $app.innerHTML = "<not-found>404</not-found>"
-
-
-
-
-
-exports.renderMain = ( article ) =>
-
-   $main.innerHTML = article.html()
-
-   initHeadingTops()
-
-
 
 
 
@@ -60,27 +33,6 @@ exports.renderSide = ( navigato ) =>
       $side.scrollBy(0, distance)
 
 
-
-
-
-
-initHeadingTops = =>
-
-   headings = []
-
-   $headings = document.querySelectorAll('content h1, content h2, content h3')
-
-   for $heading in $headings
-
-      text = $heading.innerText
-      top  = $heading.offsetTop
-
-      hash = util.hash( text )
-
-      headings.push({
-         hash: hash
-         top:  top
-      })
 
 
 

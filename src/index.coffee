@@ -1,43 +1,85 @@
-dom       = require('./dom')
-JadeLike  = require('./JadeLike')
-Article   = require('./Article')
-Navigator = require('./Navigator')
-util      = require('./util')
+formatPath     = require('./formatPath')
+ajax           = require('./ajax')
+redirect       = require('./redirect')
+compileArticle = require('./compileArticle')
+compileSummary = require('./compileSummary')
+renderArticle  = require('./renderArticle')
+getArticleHash = require('./getArticleHash')
 
 
 
-text = """
-   item1
-      name
-   desc will convert to string
-   item2
-      age len
-"""
+$app     = null
+$side    = null
+$main    = null
+$summary = null
+$article = null
 
+
+
+router =
+   hash: if location.hash then location.hash.slice(1) else ''
 
 
 
 window.onload = =>
 
-
-   window.Breeze ?= {}
-
-   dom.init()
-
-   path = util.formatPath( location.pathname )
-
-   util.read( path, done, dom.render404 )
+   if document.querySelector('body > app')
+      start()
+   else
+      ready()
 
 
 
+window.onscroll = (e) =>
+
+   hash = getArticleHash($article)
+
+   if router.hash isnt hash
+      router.hash = hash
+      redirect( hash )
+
+   e.preventDefault()
 
 
-done = ( text ) =>
 
-   article = new Article( text )
-   summary = article.summary()
+ready = =>
 
-   navigator = new Navigator( summary )
+   createElement()
 
-   dom.renderMain( article )
-   dom.renderSide( navigator )
+   path = formatPath( location.pathname )
+
+   ajax( path, compile, => )
+
+
+
+compile = ( markdown ) =>
+
+   { html, headings } = compileArticle({ markdown })
+
+   # { html } = compileSummary({ headings })
+
+   renderArticle({ $article, html })
+
+
+
+
+
+createElement = =>
+
+   $app     = document.createElement('app')
+   $side    = document.createElement('side')
+   $main    = document.createElement('main')
+   $summary = document.createElement('summary')
+   $article = document.createElement('article')
+
+   $app.appendChild($main)
+   $app.appendChild($side)
+
+   $side.appendChild($summary)
+   $main.appendChild($article)
+
+   document.body.appendChild($app)
+
+
+
+start = =>

@@ -8,8 +8,22 @@ formatHash = require('./formatHash')
 
 renderer = new marked.Renderer
 
+
 renderer.heading = ( text, lv ) =>
-   return "<h#{lv} id=\"#{formatHash(text, '')}\">#{text}</h#{lv}>"
+
+   ########################################
+   #|
+   #|  Let the heading-renderer to use our hash format.
+   #|
+   #|  @params {string} text
+   #|  @params {number} lv
+   #|  @return {string} html
+   #|
+   ########################################
+
+   id = formatHash(text).slice(1)
+
+   return "<h#{lv} id=\"#{id}\">#{text}</h#{lv}>"
 
 
 

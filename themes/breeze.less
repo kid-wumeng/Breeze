@@ -32,6 +32,10 @@ a {
   text-decoration: none;
 }
 
+html{
+   background-color: @main-example-bgColor;
+}
+
 app, side, main, content, example, params, item, name, type, desc {
   display: block;
 }
@@ -144,14 +148,18 @@ section > content {
   float: left;
   width: @main-content-width;
   padding: 40px;
-  border-top: 1px solid #f0f4f7;
-
 }
-
 section > example {
   float: right;
   width: @main-example-width;
   padding: 40px;
+}
+section:not(:first-child) > content {
+  border-top: 1px solid #f0f4f7;
+
+}
+
+section:not(:first-child) > example {
   border-top: 1px solid #33383b;
 }
 

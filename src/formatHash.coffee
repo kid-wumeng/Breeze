@@ -1,4 +1,4 @@
-module.exports = ( text, prefix = '#' ) =>
+module.exports = ( text ) =>
 
    ########################################
    #|
@@ -10,4 +10,4 @@ module.exports = ( text, prefix = '#' ) =>
    #|
    ########################################
 
-   return prefix + text.replace(/\s+/g, '-')
+   return '#' + text.replace(/\s+/g, '-')

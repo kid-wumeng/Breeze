@@ -63,6 +63,8 @@ compile = ( markdown ) =>
 
    renderSummary($summary, html)
 
+   redirect( router.hash )
+
 
 
 

@@ -4,6 +4,7 @@ redirect       = require('./redirect')
 compileArticle = require('./compileArticle')
 compileSummary = require('./compileSummary')
 renderArticle  = require('./renderArticle')
+renderSummary  = require('./renderSummary')
 getArticleHash = require('./getArticleHash')
 
 
@@ -17,7 +18,7 @@ $article = null
 
 
 router =
-   hash: if location.hash then location.hash.slice(1) else ''
+   hash: if location.hash then location.hash else ''
 
 
 
@@ -56,9 +57,12 @@ compile = ( markdown ) =>
 
    { html, headings } = compileArticle({ markdown })
 
-   # { html } = compileSummary({ headings })
-
    renderArticle({ $article, html })
+
+   { html } = compileSummary({ headings })
+
+   renderSummary($summary, html)
+
 
 
 

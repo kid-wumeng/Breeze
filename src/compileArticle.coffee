@@ -4,6 +4,17 @@ formatHash = require('./formatHash')
 
 
 
+
+
+renderer = new marked.Renderer
+
+renderer.heading = ( text, lv ) =>
+   return "<h#{lv} id=\"#{formatHash(text, '')}\">#{text}</h#{lv}>"
+
+
+
+
+
 module.exports = ({ markdown }) =>
 
    ########################################
@@ -159,7 +170,7 @@ compileSection = ( section ) =>
 
    { content, example } = parseContentAndExample( section )
 
-   content = marked(content)
+   content = marked(content, { renderer })
    example = marked(example)
 
    return """

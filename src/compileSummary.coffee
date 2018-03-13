@@ -74,4 +74,4 @@ createItem = ( lv, text ) =>
       space += '  '
       count--
 
-   return "#{space}* [#{text}](##{formatHash(text)})\n"
+   return "#{space}* [#{text}](#{formatHash(text)})\n"

@@ -1,12 +1,13 @@
-module.exports = ( text ) =>
+module.exports = ( text, prefix = '#' ) =>
 
    ########################################
    #|
    #|  @params {string} text
-   #|  @params {string} hash
+   #|  @params {string} prefix
+   #|  @return {string} hash
    #|
-   #|  'Quick Start' => 'Quick-Start'
+   #|  'Quick Start' => '#Quick-Start'
    #|
    ########################################
 
-   return text.replace(/\s+/g, '-')
+   return prefix + text.replace(/\s+/g, '-')

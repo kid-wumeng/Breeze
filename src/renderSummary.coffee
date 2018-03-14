@@ -2,11 +2,11 @@ redirect = require('./redirect')
 
 
 
-module.exports = ( $summary, html)  =>
+module.exports = ( $summary, html ) =>
 
    ########################################
    #|
-   #|  Render summary dom.
+   #|  Render $summary.
    #|
    #|  @params {HTTPElement} $summary
    #|  @params {string}      html
@@ -83,6 +83,8 @@ bindEvent = ( $summary ) =>
 
    for $link in $links
        $link.addEventListener('click', click)
+
+
 
 
 

@@ -77,7 +77,7 @@ parseSections = ( markdown ) =>
 
    for line in allLines
 
-      isHeading = /^#{1,6}/.test(line)
+      isHeading = /^\s*#{1,6}/.test(line)
 
       if isHeading
          section = lines.join('\n')
@@ -269,7 +269,7 @@ getHeadings = ( $article ) =>
 
       text = $heading.innerText
       top  = $heading.offsetTop
-      
+
       hash = util.hash( text )
 
       return { text, hash, top }

@@ -6,7 +6,7 @@ module.exports = ({ $article, html }) =>
 
    ########################################
    #|
-   #|  Render article dom.
+   #|  Render $article.
    #|
    #|  @params { $article, html }
    #|

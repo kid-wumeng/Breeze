@@ -4,6 +4,7 @@ redirect       = require('./redirect')
 compileArticle = require('./compileArticle')
 compileSummary = require('./compileSummary')
 renderArticle  = require('./renderArticle')
+renderSearch   = require('./renderSearch')
 renderSummary  = require('./renderSummary')
 getArticleHash = require('./getArticleHash')
 
@@ -12,6 +13,7 @@ getArticleHash = require('./getArticleHash')
 $app     = null
 $side    = null
 $main    = null
+$search  = null
 $summary = null
 $article = null
 
@@ -55,13 +57,14 @@ ready = =>
 
 compile = ( markdown ) =>
 
-   { html, headings } = compileArticle({ markdown })
+   { html, headings, sections } = compileArticle({ markdown })
 
    renderArticle({ $article, html })
 
    { html } = compileSummary({ headings })
 
    renderSummary($summary, html)
+   renderSearch($search, sections)
 
    redirect( router.hash )
 
@@ -75,12 +78,14 @@ createElement = =>
    $app     = document.createElement('app')
    $side    = document.createElement('side')
    $main    = document.createElement('main')
+   $search  = document.createElement('search')
    $summary = document.createElement('summary')
    $article = document.createElement('article')
 
    $app.appendChild($main)
    $app.appendChild($side)
 
+   $side.appendChild($search)
    $side.appendChild($summary)
    $main.appendChild($article)
 

@@ -36,7 +36,7 @@ module.exports = ({ markdown }) =>
    #|  Compile article-markdown to html.
    #|
    #|  @params { markdown }
-   #|  @return { html, headings }
+   #|  @return { html, headings, sections }
    #|
    ########################################
 
@@ -48,7 +48,7 @@ module.exports = ({ markdown }) =>
 
    html = compile(sections)
 
-   return { html, headings }
+   return { html, headings, sections }
 
 
 
@@ -92,7 +92,7 @@ parseSections = ( markdown ) =>
 
    for line in allLines
 
-      isHeading = /^#{1,6}/.test(line)
+      isHeading = /^\s*#{1,6}/.test(line)
 
       if isHeading
          section = lines.join('\n')

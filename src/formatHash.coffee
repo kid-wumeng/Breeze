@@ -10,4 +10,7 @@ module.exports = ( text ) =>
    #|
    ########################################
 
-   return '#' + text.replace(/\s+/g, '-')
+   if text
+      return '#' + text.replace(/\s+/g, '-')
+   else
+      return '/'

@@ -1,7 +1,6 @@
 asdfgh
 
 
-
 this is a document.
 this is a document.
 this is a document.
@@ -38,6 +37,7 @@ this is a document.
    <params>
       <item>
          <name>value</name>
+         <type>number</type>
          <desc>will convert to string.</desc>
       </item>
       <item>
@@ -64,13 +64,16 @@ this is a document.
 
 
 
-# Examples
-## Examples2
-## Examples3
-## Examples4
-## Examples5
-## Examples6
-## Examples7
+# Getting started
+## Quick start
+### el
+### repo
+### maxlevel
+## 初始化
+## Writing content
+## Preview your site
+## Manual initialization
+## Loading dialog
 ## Examples8
 ## Examples9
 ## Examples10

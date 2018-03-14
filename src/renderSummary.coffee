@@ -1,4 +1,6 @@
-redirect = require('./redirect')
+redirect      = require('./redirect')
+scrollMain    = require('./scrollMain')
+activeSummary = require('./activeSummary')
 
 
 
@@ -91,4 +93,9 @@ bindEvent = ( $summary ) =>
 click = ( event ) =>
 
    href = event.target.getAttribute('href')
+
    redirect( href )
+   scrollMain( href )
+   activeSummary( href )
+
+   event.preventDefault()

@@ -1,11 +1,3 @@
-active = require('./active')
-
-
-
-currentHash = ''
-
-
-
 module.exports = ( href ) =>
 
    ########################################
@@ -15,8 +7,6 @@ module.exports = ( href ) =>
    ########################################
 
    if !href
-      href = '/'
+       href = '/'
 
    history.replaceState( null, null, href )
-
-   active( href )

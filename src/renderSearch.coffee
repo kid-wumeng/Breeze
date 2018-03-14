@@ -1,3 +1,9 @@
+formatHash = require('./formatHash')
+redirect   = require('./redirect')
+scrollMain = require('./scrollMain')
+
+
+
 module.exports = ( $search, sections )  =>
 
    ########################################
@@ -10,7 +16,7 @@ module.exports = ( $search, sections )  =>
 
    $search.innerHTML = """
       <input-box>
-         <input placeholder="search..."/>
+         <input spellcheck="false"/>
       </input-box>
       <ul></ul>
    """
@@ -92,6 +98,8 @@ input = ( sections, event ) =>
       if results.length
          results = sortResults(results)
          showResults(results, key)
+      else
+         hideResults()
 
    else
       hideResults()
@@ -112,10 +120,10 @@ match = ( section, key ) =>
 
    { heading, content } = section
 
-   if heading = matchHeading( heading, key )
+   if matchHeading( heading, key )
       return { type: 'heading', heading, content }
 
-   if content = matchContent( content, key )
+   else if content = matchContent( content, key )
       return { type: 'content', heading, content }
 
 
@@ -128,16 +136,12 @@ matchHeading = ( heading, key ) =>
    #|
    #|  @params {string} heading
    #|  @params {string} key
-   #|  @return {string} heading
    #|
    ########################################
 
    reg = new RegExp(key, 'i')
 
-   if reg.test( heading )
-      return heading
-   else
-      return ''
+   return reg.test( heading )
 
 
 
@@ -196,6 +200,8 @@ showResults = ( results, key ) =>
    $ul = document.querySelector('search > ul')
    $ul.innerHTML = html
 
+   bindResultEvent( $ul )
+
    $ul.style.display = 'block'
 
 
@@ -241,26 +247,31 @@ createResult = ( result, key ) =>
 
    if type is 'heading'
 
+      hash    = formatHash( heading )
+
       heading = heading.replace('<', '&lt;')
       heading = heading.replace('>', '&gt;')
 
       heading = heading.replace keyReg, ( match ) => "<em>#{match}</em>"
 
       return """
-         <li>
+         <li type="heading" hash=\"#{hash}\">
             <heading>#{ heading }</heading>
          </li>
       """
 
    else
 
-      content = content.replace('<', '&lt;')
-      content = content.replace('>', '&gt;')
+      hash    = formatHash( heading )
+
+      content = content.replace(/(\s+)|(\n+)/g, '')
+      content = content.replace(/</g, '&lt;')
+      content = content.replace(/>/g, '&gt;')
 
       content = content.replace keyReg, ( match ) => "<em>#{match}</em>"
 
       return """
-         <li>
+         <li hash=\"#{hash}\">
             <heading>#{ heading }</heading>
             <content>#{ content }</content>
          </li>
@@ -273,4 +284,20 @@ createResult = ( result, key ) =>
 hideResults = =>
 
    $ul = document.querySelector('search > ul')
-   $ul.style.display = 'none'
+
+   if $ul
+      $ul.style.display = 'none'
+
+
+
+
+
+bindResultEvent = ( $ul ) =>
+
+   $lis = $ul.querySelectorAll('ul > li')
+
+   for $li in $lis
+      do ($li) =>
+         $li.addEventListener 'click', (e) =>
+            hash = $li.getAttribute('hash')
+            scrollMain( hash )

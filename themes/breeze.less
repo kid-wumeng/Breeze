@@ -1,15 +1,18 @@
-@side-width:         200px;
+@side-width:         240px;
 @main-content-width: 50%;
 @main-example-width: 50%;
 
 
-@side-bgColor:         #FAFCFC;
+@side-bgColor:         #FFFFFF;
 @main-content-bgColor: #FFFFFF;
 @main-example-bgColor: #2D3134;
 
 
 @side-item-padding-x: 24px;
-@side-item-indent:    14px;
+@side-item-indent:    20px;
+
+
+@border: 1px solid #F6F6F6;
 
 
 @gap: 20px;
@@ -33,11 +36,12 @@ a {
 }
 
 html{
-   background-color: @main-example-bgColor;
+  background-color: @main-example-bgColor;
 }
 
-app, side, main, content, example, params, item, name, type, desc {
+app, side, main, search, input-box, heading, content, example, params, item, left, right, name, type, desc {
   display: block;
+  box-sizing: border-box;
 }
 
 
@@ -51,77 +55,125 @@ app {
 
 
 side {
-   position: fixed;
-   left: 0;
-   top: 0;
-   width: @side-width;
-   height: 100%;
-   padding-top: 40px;
-   background-color: @side-bgColor;
-   border-right: 1px solid #f0f4f7;
-   overflow: scroll;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: @side-width;
+  height: 100%;
+  background-color: @side-bgColor;
+  border-right: @border;
+  overflow: scroll;
 
-   a {
-     display: block;
-     padding: 0 @side-item-padding-x;
-     line-height: 36px;
-     font-family: "Futura", "Ubuntu", "Helvetica", "Arial", sans-serif;
-     cursor: pointer;
-     overflow: hidden;
-     text-overflow:ellipsis;
-     white-space: nowrap;
-     border-top: 1px solid transparent;
-     border-bottom: 1px solid transparent;
-     transition: all 0.2s ease;
-   }
-   a.lv1 {
+  summary {
+    margin-top: 16px;
+  }
+
+  a {
+    display: block;
+    padding: 0 @side-item-padding-x;
+    line-height: 36px;
+    font-family: "PT Sans";
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+    border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    transition: all 0.2s ease;
+  }
+  a.lv1 {
      padding-left: @side-item-padding-x;
+     font-family: "Futura";
      font-weight: 500;
-     font-size: 14px;
-     color: #4c555a;
+     font-size: 16px;
+     color: #364149;
    }
-   a.lv2 {
-     padding-left: @side-item-padding-x + @side-item-indent;
-     font-weight: 500;
-     font-size: 14px;
-     color: #A2AEBA;
-   }
-   a.lv3 {
-     padding-left: @side-item-padding-x + @side-item-indent * 2;
-     font-weight: 500;
-     font-size: 14px;
-     color: #A2AEBA;
-     &::before {
-       content: "-";
-       margin-right: 8px;
-     }
-   }
-   a.active{
-      color: #FFF;
-      background-color: #69c0ff;
-   }
+  a.lv2 {
+    padding-left: @side-item-padding-x + @side-item-indent;
+    font-weight: 400;
+    font-size: 14px;
+    color: #505d6b;
+  }
+  a.lv3 {
+    padding-left: @side-item-padding-x + @side-item-indent * 2;
+    font-weight: 400;
+    font-size: 14px;
+    color: #505d6b;
+    &::before {
+      content: "-";
+      margin-right: 8px;
+    }
+  }
+  a.active{
+    color: #FFF;
+    background-color: #69c0ff;
+  }
 
-   ul.lv3{
-      height: 0;
-      overflow: hidden;
-   }
-   li.lv2.active ul,
-   ul.lv3.active {
-      height: auto;
-   }
+  ul.lv3{
+    height: 0;
+    overflow: hidden;
+  }
+  li.lv2.active ul,
+  ul.lv3.active {
+    height: auto;
+  }
 }
 
 
 
 
 search {
+  border-bottom: @border;
+  input-box{
+    padding: 6px 16px;
+    input{
+      padding: 12px 16px;
+      padding-left: 32px;
+      display: block;
+      width: 100%;
+      font-family: "Helvetica Neue", "Arial", sans-serif;
+      font-size: 14px;
+      color: #A2AEBA;
+      border: 0;
+      outline: 0;
+      background-color: transparent;
+      background-image: url(data:image/svg+xml;utf8;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/Pgo8IS0tIEdlbmVyYXRvcjogQWRvYmUgSWxsdXN0cmF0b3IgMTkuMC4wLCBTVkcgRXhwb3J0IFBsdWctSW4gLiBTVkcgVmVyc2lvbjogNi4wMCBCdWlsZCAwKSAgLS0+CjxzdmcgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB4bWxuczp4bGluaz0iaHR0cDovL3d3dy53My5vcmcvMTk5OS94bGluayIgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDUyLjk2NiA1Mi45NjYiIHN0eWxlPSJlbmFibGUtYmFja2dyb3VuZDpuZXcgMCAwIDUyLjk2NiA1Mi45NjY7IiB4bWw6c3BhY2U9InByZXNlcnZlIiB3aWR0aD0iMjRweCIgaGVpZ2h0PSIyNHB4Ij4KPHBhdGggZD0iTTUxLjcwNCw1MS4yNzNMMzYuODQ1LDM1LjgyYzMuNzktMy44MDEsNi4xMzgtOS4wNDEsNi4xMzgtMTQuODJjMC0xMS41OC05LjQyLTIxLTIxLTIxcy0yMSw5LjQyLTIxLDIxczkuNDIsMjEsMjEsMjEgIGM1LjA4MywwLDkuNzQ4LTEuODE3LDEzLjM4NC00LjgzMmwxNC44OTUsMTUuNDkxYzAuMTk2LDAuMjA1LDAuNDU4LDAuMzA3LDAuNzIxLDAuMzA3YzAuMjUsMCwwLjQ5OS0wLjA5MywwLjY5My0wLjI3OSAgQzUyLjA3NCw1Mi4zMDQsNTIuMDg2LDUxLjY3MSw1MS43MDQsNTEuMjczeiBNMjEuOTgzLDQwYy0xMC40NzcsMC0xOS04LjUyMy0xOS0xOXM4LjUyMy0xOSwxOS0xOXMxOSw4LjUyMywxOSwxOSAgUzMyLjQ1OSw0MCwyMS45ODMsNDB6IiBmaWxsPSIjMDAwMDAwIi8+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+CjxnPgo8L2c+Cjwvc3ZnPgo=);
+      background-repeat: no-repeat;
+      background-position: 0 center;
+      background-size: 16px;
+    }
+  }
   ul {
     display: none;
     li {
-      em{
-        font-weight: 600;
-        color: green;
+      border-top: @border;
+      width: 100%;
+      padding: 12px 16px;
+      cursor: pointer;
+      &:hover {
+        background-color: rgba(250, 250, 250, 0.93);
       }
+      heading{
+        font-family: "PT Sans", "Helvetica Neue", "Arial", "Verdana", "Roboto", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        font-weight: 600;
+        font-size: 16px;
+        color: #505d6b;
+        margin-bottom: 12px;
+      }
+      content{
+        line-height: 1.4;
+        font-family: "PT Sans", "Helvetica Neue", "Arial", "Verdana", "Roboto", "PingFang SC", "Hiragino Sans GB", sans-serif;
+        font-size: 14px;
+        color: #A2AEBA;
+      }
+      em {
+        font-weight: 600;
+        font-style: normal;
+        color: #0099e5;
+      }
+    }
+    li[type="heading"] {
+      heading: 0;
     }
   }
 }
@@ -160,7 +212,7 @@ main::after {
 
 
 section {
-   overflow: hidden;
+  overflow: hidden;
 }
 section > content {
   float: left;
@@ -173,8 +225,7 @@ section > example {
   padding: 40px;
 }
 section:not(:first-child) > content {
-  border-top: 1px solid #f0f4f7;
-
+  border-top: @border;
 }
 
 section:not(:first-child) > example {
@@ -235,7 +286,6 @@ example {
 
 
 
-// <PARAMS>
 params {
   item {
     overflow: hidden;

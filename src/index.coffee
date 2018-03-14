@@ -1,6 +1,7 @@
 formatPath     = require('./formatPath')
 ajax           = require('./ajax')
 redirect       = require('./redirect')
+activeSummary  = require('./activeSummary')
 compileArticle = require('./compileArticle')
 compileSummary = require('./compileSummary')
 renderArticle  = require('./renderArticle')
@@ -35,13 +36,15 @@ window.onload = =>
 
 window.onscroll = (e) =>
 
-   hash = getArticleHash($article)
-
-   if router.hash isnt hash
-      router.hash = hash
-      redirect( hash )
-
-   e.preventDefault()
+   # hash = getArticleHash($article)
+   #
+   # if router.hash isnt hash
+   #    router.hash = hash
+   #
+   #    redirect( hash )
+   #    activeSummary( hash )
+   #
+   # e.preventDefault()
 
 
 
@@ -72,7 +75,6 @@ compile = ( markdown ) =>
 
 
 
-
 createElement = =>
 
    $app     = document.createElement('app')
@@ -82,8 +84,8 @@ createElement = =>
    $summary = document.createElement('summary')
    $article = document.createElement('article')
 
-   $app.appendChild($main)
    $app.appendChild($side)
+   $app.appendChild($main)
 
    $side.appendChild($search)
    $side.appendChild($summary)

@@ -18,6 +18,8 @@ module.exports = ( $search, sections )  =>
    bindSections( $search, sections )
    bindEvent( $search, sections )
 
+   $search.querySelector('input').focus()
+
 
 
 
@@ -77,6 +79,7 @@ input = ( sections, event ) =>
    ########################################
 
    key = event.target.value.trim()
+   key = key.replace('\\', '\\\\')
 
    if key.length >= 2
 

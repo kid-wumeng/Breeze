@@ -1,13 +1,16 @@
 marked = require('marked')
-jade   = require('./jade')
-util   = require('./util')
+Page   = require('./Page')
+Jade   = require('./Jade')
+Router = require('./Router')
+Helper = require('./Helper')
 
 
 
 ########################################
 #|
-#|  @public {object} compile(markdown)
-#|  @public {HTTPElement} dom(html)
+#|  @public compile( markdown )
+#|  @public dom( html )
+#|  @public getTops( $article )
 #|
 ########################################
 
@@ -25,7 +28,7 @@ renderer.heading = ( text, lv ) =>
    #|
    ########################################
 
-   return "<h#{lv} id=\"#{util.id(text)}\">#{text}</h#{lv}>"
+   return "<h#{lv} id=\"#{Helper.id(text)}\">#{text}</h#{lv}>"
 
 
 
@@ -39,7 +42,7 @@ exports.compile = ( markdown ) =>
    #|
    #|  @params {string}   markdown
    #|  @return {object}   result
-   #|          {string}   result.html
+   #|          {string}   result.article
    #|          {object[]} result.sections - [{
    #|                                          heading: { lv, text }
    #|                                          content: { html }
@@ -53,9 +56,9 @@ exports.compile = ( markdown ) =>
 
    trimFirst(sections)
 
-   { html, sections } = compileSections(sections)
+   { article, sections } = compileSections(sections)
 
-   return { html, sections }
+   return { article, sections }
 
 
 
@@ -75,7 +78,7 @@ parseJade = ( markdown ) =>
    jadeReg = /<jade>((?:.|\n)*?)<\/jade>/g
 
    return markdown.replace jadeReg, ( _, inner ) =>
-      return jade.compile( inner )
+      return Jade.compile( inner )
 
 
 
@@ -140,21 +143,21 @@ compileSections = ( sections ) =>
    ########################################
    #|
    #|  @params {string[]} sections
-   #|  @return {object} - { html, sections }
+   #|  @return {object} - { article, sections }
    #|
    ########################################
 
-   html = ''
+   article = ''
 
    sections = sections.map (section) =>
 
       { section, heading, content, example } = compileSection(section)
 
-      html += section
+      article += section
 
       return { heading, content, example }
 
-   return { html, sections }
+   return { article, sections }
 
 
 
@@ -208,26 +211,6 @@ parseContentAndExample = ( section ) =>
    example = examples.join('')
 
    return { content, example }
-
-
-
-
-
-parseHeading = ( content ) =>
-
-   ########################################
-   #|
-   #|  @params {string} content
-   #|  @return {object} heading - { lv, text }
-   #|
-   ########################################
-
-   if result = content.match(/^(#{1,6})(.*)$/m)
-      return
-         lv:   result[1].length
-         text: result[2].trim()
-   else
-      return null
 
 
 
@@ -302,3 +285,126 @@ delExamples = ( section, indexes = [] ) =>
    rest += section.slice(start+1)
 
    return rest
+
+
+
+
+
+parseHeading = ( content ) =>
+
+   ########################################
+   #|
+   #|  @params {string} content
+   #|  @return {object} heading - { lv, text }
+   #|
+   ########################################
+
+   if result = content.match(/^(#{1,6})(.*)$/m)
+      return
+         lv:   result[1].length
+         text: result[2].trim()
+   else
+      return null
+
+
+
+
+
+exports.dom = ( html ) =>
+
+   ########################################
+   #|
+   #|  @params {string} html
+   #|
+   ########################################
+
+   $article = document.createElement('article')
+   $article.innerHTML = html
+
+   wrapParams( $article )
+   bindScrollEvent( $article )
+
+   return $article
+
+
+
+
+
+wrapParams = ( $article ) =>
+
+   ########################################
+   #|
+   #|  @params {HTMLElement} $article
+   #|
+   ########################################
+
+   $items = $article.querySelectorAll('params > item')
+
+   for $item in $items
+
+        $left  = document.createElement('left')
+        $right = document.createElement('right')
+
+        $left.appendChild($child)  for $child in $item.querySelectorAll('item > :not(desc)')
+        $right.appendChild($child) for $child in $item.querySelectorAll('item > desc')
+
+        $item.appendChild($left)
+        $item.appendChild($right)
+
+
+
+
+
+bindScrollEvent = ( $article ) =>
+
+   ########################################
+   #|
+   #|  @params {HTMLElement} $article
+   #|
+   ########################################
+
+   lastID = ''
+
+   window.addEventListener 'scroll', ->
+
+      stats = getSectionStats( $article )
+
+      for stat, i in stats
+         if stat.top > 0
+            break
+
+      stat = stats[i-1]
+
+      if lastID isnt stat.id
+         lastID = stat.id
+         Router.redirect('#' + stat.id)
+         Page.active('#' + stat.id)
+
+
+
+
+
+getSectionStats = ( $article ) =>
+
+   ########################################
+   #|
+   #|  @params {HTMLElement} $article
+   #|  @params {object[]} sectionStats
+   #|
+   ########################################
+
+   $sections = $article.querySelectorAll('section')
+   stats     = []
+
+   for $section in $sections
+
+      if $heading = $section.querySelector('h1, h2, h3')
+         id = Helper.id( $heading.innerText )
+      else
+         id = ''
+
+      top = $section.getBoundingClientRect().top
+
+      stats.push({ id, top })
+
+   return stats

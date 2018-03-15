@@ -1,5 +1,5 @@
-page = require('./page')
+Page = require('./Page')
 
 
 
-window.onload = => page.load()
+window.onload = Page.init

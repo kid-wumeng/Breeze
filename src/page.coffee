@@ -1,31 +1,67 @@
-article = require('./article')
-summary = require('./summary')
+Article = require('./Article')
+Summary = require('./Summary')
 Prism   = require('prismjs')
 
 
 
 
-pages = {}
+
+$app     = null
+$side    = null
+$main    = null
+$search  = null
+$summary = null
+$article = null
+
+
+
+
+exports.active = (href) =>
+   console.log 'active: ' + href
 
 
 
 
 
-exports.load = =>
+exports.init = =>
 
-   path = getPath()
+   read ( article ) =>
 
-   if page = pages[path]
-      return page
-   else
-      ajax path, ( markdown ) =>
-         create( markdown )
+      { article, summary, sections } = compile( article )
 
+      { $root, $main, $side, $article, $summary } = dom( article, summary )
 
+      render( $root )
 
 
 
-getPath = =>
+
+
+
+read = ( done ) =>
+
+   ########################################
+   #|
+   #|  @params {string}   path
+   #|  @params {function} done( markdown )
+   #|
+   ########################################
+
+   xhr = new XMLHttpRequest
+
+   xhr.open('GET', path(), true)
+   xhr.send(null)
+
+   xhr.onreadystatechange = =>
+      if xhr.readyState is 4
+         if xhr.status is 200
+            done( xhr.responseText )
+
+
+
+
+
+path = =>
 
    ########################################
    #|
@@ -59,39 +95,62 @@ getPath = =>
 
 
 
-ajax = ( path, done ) =>
+compile = ( article ) =>
 
    ########################################
    #|
-   #|  @params {string}   path
-   #|  @params {function} done( markdown )
+   #|  @params {string} article
+   #|  @return {object} { article, summary, sections }
    #|
    ########################################
 
-   xhr = new XMLHttpRequest
+   { article, sections } = Article.compile(article)
 
-   xhr.open('GET', path, true)
-   xhr.send(null)
+   summary = Summary.parse(sections)
+   summary = Summary.compile(summary)
 
-   xhr.onreadystatechange = =>
-      if xhr.readyState is 4
-         if xhr.status is 200
-            done( xhr.responseText )
+   return { article, summary, sections }
 
 
 
 
 
-create = ( markdown ) =>
+dom = ( article, summary ) =>
 
    ########################################
    #|
-   #|  @params {string} markdown
+   #|  @params {string} article
+   #|  @params {string} summary
+   #|  @return {object} { $root, $main, $side, $article, $summary }
    #|
    ########################################
 
-   { html, sections } = article.compile( markdown )
+   $root = document.createElement('root')
+   $main = document.createElement('main')
+   $side = document.createElement('side')
 
-   html = summary.compile(summary.parse( sections ))
+   $article = Article.dom( article )
+   $summary = Summary.dom( summary )
 
-   console.log html
+   $main.appendChild( $article )
+   $side.appendChild( $summary )
+
+   $root.appendChild( $side )
+   $root.appendChild( $main )
+
+   $main.style.minHeight = window.innerHeight + 'px'
+
+   return { $root, $main, $side, $article, $summary }
+
+
+
+
+
+render = ( $root ) =>
+
+   $rootCurrent = document.querySelector('body > root')
+
+   if $rootCurrent
+      document.body.replaceChild( $root, $rootCurrent )
+   else
+      document.body.appendChild( $root )

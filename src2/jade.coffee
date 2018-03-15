@@ -1,36 +1,27 @@
-########################################
-#|
-#|  Be responsible for compile the jade-like text to html.
-#|  For example,
-#|
-#|  item        =>  <item>
-#|    name ...  =>    <name>...</name>
-#|    type ...  =>    <type>...</type>
-#|    desc ...  =>    <desc>...</desc>
-#|              =>  </item>
-#|
-#|  @public
-#|     compile( jade )
-#|
-########################################
-
-
-
-
-
-exports.compile = ( jade ) =>
+module.exports = ( jade ) =>
 
    ########################################
+   #|
+   #|  Compile the jade-like to html.
+   #|  For example,
+   #|
+   #|
+   #|  item        =>  <item>
+   #|    name ...  =>    <name>...</name>
+   #|    type ...  =>    <type>...</type>
+   #|    desc ...  =>    <desc>...</desc>
+   #|              =>  </item>
+   #|
    #|
    #|  @params {string} jade
-   #|  @return {string} html
+   #|  @return {object} html
    #|
    ########################################
 
-   lines = linesParse(jade)
-   nodes = nodesParse(lines)
-   tree  = treeParse(nodes)
-   html  = htmlParse(tree)
+   lines = parseLines(jade)
+   nodes = parseNodes(lines)
+   tree  = parseTree(nodes)
+   html  = parseHTML(tree)
 
    return html
 
@@ -38,7 +29,7 @@ exports.compile = ( jade ) =>
 
 
 
-linesParse = ( jade ) =>
+parseLines = ( jade ) =>
 
    ########################################
    #|
@@ -53,7 +44,7 @@ linesParse = ( jade ) =>
 
 
 
-nodesParse = ( lines ) =>
+parseNodes = ( lines ) =>
 
    ########################################
    #|
@@ -69,7 +60,7 @@ nodesParse = ( lines ) =>
       isEmpty = /^\s*$/.test( line )
 
       if !isEmpty
-         node = nodeParse( line )
+         node = parseNode( line )
          nodes.push( node )
 
    return nodes
@@ -78,7 +69,7 @@ nodesParse = ( lines ) =>
 
 
 
-nodeParse = ( line ) =>
+parseNode = ( line ) =>
 
    ########################################
    #|
@@ -87,10 +78,10 @@ nodeParse = ( line ) =>
    #|
    ########################################
 
-   { deep, rest } = deepParse( line )
-   { tag,  rest } = tagParse( rest )
-   { attr, rest } = attrParse( rest )
-   { text, rest } = textParse( rest )
+   { deep, rest } = parseDeep( line )
+   { tag,  rest } = parseTag( rest )
+   { attr, rest } = parseAttr( rest )
+   { text, rest } = parseText( rest )
 
    return { deep, tag, attr, text }
 
@@ -98,7 +89,7 @@ nodeParse = ( line ) =>
 
 
 
-deepParse = ( line ) =>
+parseDeep = ( line ) =>
 
    ########################################
    #|
@@ -122,7 +113,7 @@ deepParse = ( line ) =>
 
 
 
-tagParse = ( rest ) =>
+parseTag = ( rest ) =>
 
    ########################################
    #|
@@ -151,7 +142,7 @@ tagParse = ( rest ) =>
 
 
 
-attrParse = ( rest ) =>
+parseAttr = ( rest ) =>
 
    ########################################
    #|
@@ -174,8 +165,7 @@ attrParse = ( rest ) =>
 
 
 
-
-textParse = ( rest ) =>
+ parseText = ( rest ) =>
 
    ########################################
    #|
@@ -195,7 +185,7 @@ textParse = ( rest ) =>
 
 
 
-treeParse = ( nodes ) =>
+parseTree = ( nodes ) =>
 
    ########################################
    #|
@@ -237,7 +227,7 @@ treeParse = ( nodes ) =>
 
 
 
-htmlParse = ( tree ) =>
+parseHTML = ( tree ) =>
 
    ########################################
    #|

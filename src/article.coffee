@@ -1,16 +1,33 @@
-########################################
-#|
-#|  Be responsible for compile and create article.
-#|
-#|  @public
-#|     compile( markdown )
-#|     dom( html )
-#|
-########################################
-
 marked = require('marked')
 jade   = require('./jade')
 util   = require('./util')
+
+
+
+########################################
+#|
+#|  @public {object} compile(markdown)
+#|  @public {HTTPElement} dom(html)
+#|
+########################################
+
+
+
+renderer = new marked.Renderer
+
+renderer.heading = ( text, lv ) =>
+
+   ########################################
+   #|
+   #|  @params {string} text
+   #|  @params {number} lv
+   #|  @return {string} html
+   #|
+   ########################################
+
+   return "<h#{lv} id=\"#{util.id(text)}\">#{text}</h#{lv}>"
+
+
 
 
 
@@ -18,8 +35,16 @@ exports.compile = ( markdown ) =>
 
    ########################################
    #|
-   #|  @params {string} markdown
-   #|  @return {string} html
+   #|  Compile article-markdown to html.
+   #|
+   #|  @params {string}   markdown
+   #|  @return {object}   result
+   #|          {string}   result.html
+   #|          {object[]} result.sections - [{
+   #|                                          heading: { lv, text }
+   #|                                          content: { html }
+   #|                                          example: { html }
+   #|                                       }, ...]
    #|
    ########################################
 
@@ -28,12 +53,9 @@ exports.compile = ( markdown ) =>
 
    trimFirst(sections)
 
-   html = ''
+   { html, sections } = compileSections(sections)
 
-   for section in sections
-      html += compileSection(section)
-
-   return html
+   return { html, sections }
 
 
 
@@ -101,7 +123,7 @@ trimFirst = ( sections ) =>
    #|
    #|  @params {string[]} sections
    #|
-   #|  Delete the first section if hasn't actual words.
+   #|  Delete the first section if empty.
    #|
    ########################################
 
@@ -113,26 +135,57 @@ trimFirst = ( sections ) =>
 
 
 
-compileSection = ( section ) =>
+compileSections = ( sections ) =>
 
    ########################################
    #|
-   #|  @params {string} section
-   #|  @return {string} html
+   #|  @params {string[]} sections
+   #|  @return {object} - { html, sections }
+   #|
+   ########################################
+
+   html = ''
+
+   sections = sections.map (section) =>
+
+      { section, heading, content, example } = compileSection(section)
+
+      html += section
+
+      return { heading, content, example }
+
+   return { html, sections }
+
+
+
+
+
+compileSection = ( section ) =>
+
+   #######################################
+   #|
+   #|  @params {string} section-markdown
+   #|
+   #|  @return {object} - {string} section-html
+   #|                     {string} content-html
+   #|                     {string} example-html
    #|
    ########################################
 
    { content, example } = parseContentAndExample( section )
 
-   content = marked(content)
+   heading = parseHeading(content)
+   content = marked(content, { renderer })
    example = marked(example)
 
-   return """
+   section = """
       <section>
          <content>#{content}</content>
          <example>#{example}</example>
       </section>
    """
+
+   return { section, heading, content, example }
 
 
 
@@ -142,8 +195,10 @@ parseContentAndExample = ( section ) =>
 
    ########################################
    #|
-   #|  @params {string} section
-   #|  @return {object} { content, example }
+   #|  @params {string} section-markdown
+   #|
+   #|  @return {string} content-markdown
+   #|          {string} example-markdown
    #|
    ########################################
 
@@ -153,6 +208,26 @@ parseContentAndExample = ( section ) =>
    example = examples.join('')
 
    return { content, example }
+
+
+
+
+
+parseHeading = ( content ) =>
+
+   ########################################
+   #|
+   #|  @params {string} content
+   #|  @return {object} heading - { lv, text }
+   #|
+   ########################################
+
+   if result = content.match(/^(#{1,6})(.*)$/m)
+      return
+         lv:   result[1].length
+         text: result[2].trim()
+   else
+      return null
 
 
 
@@ -227,49 +302,3 @@ delExamples = ( section, indexes = [] ) =>
    rest += section.slice(start+1)
 
    return rest
-
-
-
-
-
-exports.dom = ( html ) =>
-
-   ########################################
-   #|
-   #|  @web-only
-   #|  @params {string}      html
-   #|  @return {HTMLElement} $article
-   #|
-   ########################################
-
-   $article = document.createElement('article')
-   $article.innerHTML = html
-
-   return $article
-
-
-
-
-
-getHeadings = ( $article ) =>
-
-   ########################################
-   #|
-   #|  @web-only
-   #|  @params {HTMLElement} $article
-   #|  @return {object[]}    headings { text, hash, top }
-   #|
-   #|  Redirect to a new page or hash.
-   #|
-   ########################################
-
-   $headings = $article.querySelectorAll('h1, h2, h3')
-
-   return $headings.map ( $heading ) =>
-
-      text = $heading.innerText
-      top  = $heading.offsetTop
-
-      hash = util.hash( text )
-
-      return { text, hash, top }

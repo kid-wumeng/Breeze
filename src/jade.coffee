@@ -1,4 +1,4 @@
-module.exports = ( jade ) =>
+exports.compile = ( jade ) =>
 
    ########################################
    #|

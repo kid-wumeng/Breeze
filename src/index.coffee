@@ -2,4 +2,6 @@ Page = require('./Page')
 
 
 
-window.onload = Page.init
+window.onload = =>
+
+   page = new Page()

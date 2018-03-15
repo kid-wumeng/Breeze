@@ -1,18 +1,8 @@
 marked = require('marked')
-Page   = require('./Page')
 Jade   = require('./Jade')
-Router = require('./Router')
-Helper = require('./Helper')
+util   = require('./util')
 
 
-
-########################################
-#|
-#|  @public compile( markdown )
-#|  @public dom( html )
-#|  @public getTops( $article )
-#|
-########################################
 
 
 
@@ -28,383 +18,349 @@ renderer.heading = ( text, lv ) =>
    #|
    ########################################
 
-   return "<h#{lv} id=\"#{Helper.id(text)}\">#{text}</h#{lv}>"
+   return "<h#{lv} id=\"#{util.id(text)}\">#{text}</#h{lv}>"
 
 
 
 
 
-exports.compile = ( markdown ) =>
+module.exports = class Article
 
-   ########################################
-   #|
-   #|  Compile article-markdown to html.
-   #|
-   #|  @params {string}   markdown
-   #|  @return {object}   result
-   #|          {string}   result.article
-   #|          {object[]} result.sections - [{
-   #|                                          heading: { lv, text }
-   #|                                          content: { html }
-   #|                                          example: { html }
-   #|                                       }, ...]
-   #|
-   ########################################
 
-   markdown = parseJade(markdown)
-   sections = parseSections(markdown)
 
-   trimFirst(sections)
+   constructor: ( markdown ) ->
 
-   { article, sections } = compileSections(sections)
+      @markdown = markdown
+      @html     = ''
+      @sections = []
+      @summary  = ''
 
-   return { article, sections }
+      @compile()
+      @createSummary()
 
 
 
 
 
-parseJade = ( markdown ) =>
+   compile: =>
 
-   ########################################
-   #|
-   #|  @params {string} markdown
-   #|  @return {string} markdown
-   #|
-   #|  Parse and replace the jade-block to html.
-   #|
-   ########################################
+      ########################################
+      #|
+      #|  Compile article-markdown to html.
+      #|
+      #|  @params {string}   markdown
+      #|  @return {object}   result
+      #|          {string}   result.article
+      #|          {object[]} result.sections - [{
+      #|                                          heading: { lv, text }
+      #|                                          content: { html }
+      #|                                          example: { html }
+      #|                                       }, ...]
+      #|
+      ########################################
 
-   jadeReg = /<jade>((?:.|\n)*?)<\/jade>/g
+      markdown = @parseJade(@markdown)
+      sections = @parseSections(markdown)
 
-   return markdown.replace jadeReg, ( _, inner ) =>
-      return Jade.compile( inner )
+      @trimFirst(sections)
 
+      { html, sections } = @compileSections(sections)
 
+      @html     = html
+      @sections = sections
 
 
 
-parseSections = ( markdown ) =>
 
-   ########################################
-   #|
-   #|  @params {string}   markdown
-   #|  @return {string[]} sections
-   #|
-   #|  Split each section from article.
-   #|
-   ########################################
 
-   sections = []
+   parseJade: ( markdown ) =>
 
-   allLines = markdown.split('\n')
-   lines    = []
+      ########################################
+      #|
+      #|  @params {string} markdown
+      #|  @return {string} markdown
+      #|
+      #|  Parse and replace the jade-block to html.
+      #|
+      ########################################
 
-   for line in allLines
+      jadeReg = /<jade>((?:.|\n)*?)<\/jade>/g
 
-      isHeading = /^\s*#{1,6}/.test(line)
+      return markdown.replace jadeReg, ( _, inner ) =>
+         jade = new Jade( inner )
+         return jade.html
 
-      if isHeading
-         section = lines.join('\n')
-         sections.push(section)
-         lines = []
 
-      lines.push(line)
 
-   section = lines.join('\n')
-   sections.push(section)
 
-   return sections
 
+   parseSections: ( markdown ) =>
 
+      ########################################
+      #|
+      #|  @params {string}   markdown
+      #|  @return {string[]} sections
+      #|
+      #|  Split each section from article.
+      #|
+      ########################################
 
+      sections = []
 
+      allLines = markdown.split('\n')
+      lines    = []
 
-trimFirst = ( sections ) =>
+      for line in allLines
 
-   ########################################
-   #|
-   #|  @params {string[]} sections
-   #|
-   #|  Delete the first section if empty.
-   #|
-   ########################################
+         isHeading = /^\s*#{1,6}/.test(line)
 
-   if sections[0]?
-      if sections[0].match /^(?:\s|\n)*$/
-         sections.shift()
+         if isHeading
+            section = lines.join('\n')
+            sections.push(section)
+            lines = []
 
+         lines.push(line)
 
+      section = lines.join('\n')
+      sections.push(section)
 
+      return sections
 
 
-compileSections = ( sections ) =>
 
-   ########################################
-   #|
-   #|  @params {string[]} sections
-   #|  @return {object} - { article, sections }
-   #|
-   ########################################
 
-   article = ''
 
-   sections = sections.map (section) =>
+   trimFirst: ( sections ) =>
 
-      { section, heading, content, example } = compileSection(section)
+      ########################################
+      #|
+      #|  @params {string[]} sections
+      #|
+      #|  Delete the first section if empty.
+      #|
+      ########################################
 
-      article += section
+      if sections[0]?
+         if sections[0].match /^(?:\s|\n)*$/
+            sections.shift()
 
-      return { heading, content, example }
 
-   return { article, sections }
 
 
 
+   compileSections: ( sections ) =>
 
+      ########################################
+      #|
+      #|  @params {string[]} sections
+      #|  @return {object} - { article, sections }
+      #|
+      ########################################
 
-compileSection = ( section ) =>
+      html = ''
 
-   #######################################
-   #|
-   #|  @params {string} section-markdown
-   #|
-   #|  @return {object} - {string} section-html
-   #|                     {string} content-html
-   #|                     {string} example-html
-   #|
-   ########################################
+      sections = sections.map (section) =>
 
-   { content, example } = parseContentAndExample( section )
+         { section, heading, content, example } = @compileSection(section)
 
-   heading = parseHeading(content)
-   content = marked(content, { renderer })
-   example = marked(example)
+         html += section
 
-   section = """
-      <section>
-         <content>#{content}</content>
-         <example>#{example}</example>
-      </section>
-   """
+         return { heading, content, example }
 
-   return { section, heading, content, example }
+      return { html, sections }
 
 
 
 
 
-parseContentAndExample = ( section ) =>
+   compileSection: ( section ) =>
 
-   ########################################
-   #|
-   #|  @params {string} section-markdown
-   #|
-   #|  @return {string} content-markdown
-   #|          {string} example-markdown
-   #|
-   ########################################
+      #######################################
+      #|
+      #|  @params {string} section-markdown
+      #|
+      #|  @return {object} - {string} section-html
+      #|                     {string} content-html
+      #|                     {string} example-html
+      #|
+      ########################################
 
-   { examples, indexes } = parseExamples(section)
+      { content, example } = @parseContentAndExample( section )
 
-   content = delExamples(section, indexes)
-   example = examples.join('')
+      heading = @parseHeading(content)
+      content = marked(content, { renderer })
+      example = marked(example)
 
-   return { content, example }
+      section = """
+         <section>
+            <content>#{content}</content>
+            <example>#{example}</example>
+         </section>
+      """
 
+      return { section, heading, content, example }
 
 
 
 
-parseExamples = ( section ) =>
 
-   ########################################
-   #|
-   #|  @params {string} section
-   #|  @return {object} { examples, indexes }
-   #|
-   ########################################
+   parseContentAndExample: ( section ) =>
 
-   stack    = []
-   indexes  = []
-   examples = []
+      ########################################
+      #|
+      #|  @params {string} section-markdown
+      #|
+      #|  @return {string} content-markdown
+      #|          {string} example-markdown
+      #|
+      ########################################
 
-   reg = /(<example>)|(<\/example>)/g
+      { examples, indexes } = @parseExamples(section)
 
-   while result = reg.exec(section)
+      content = @delExamples(section, indexes)
+      example = examples.join('')
 
-      index     = result.index
-      isOpenTag = result[0] is '<example>'
+      return { content, example }
 
-      if isOpenTag
-         stack.push(index)
 
-      else
-         start = stack.pop()
-         end   = index + '</example>'.length
 
-         if stack.length is 0
 
-            example = section.slice(start, end)
-            example = example.replace(/(^<example>)|(<\/example>$)/g, '')
-            examples.push(example)
 
-            indexes.push(start)
-            indexes.push(end)
+   parseExamples: ( section ) =>
 
-   return { examples, indexes }
+      ########################################
+      #|
+      #|  @params {string} section
+      #|  @return {object} { examples, indexes }
+      #|
+      ########################################
 
+      stack    = []
+      indexes  = []
+      examples = []
 
+      reg = /(<example>)|(<\/example>)/g
 
+      while result = reg.exec(section)
 
+         index     = result.index
+         isOpenTag = result[0] is '<example>'
 
-delExamples = ( section, indexes = [] ) =>
+         if isOpenTag
+            stack.push(index)
 
-   ########################################
-   #|
-   #|  @params {string}   section
-   #|  @params {number[]} indexes
-   #|  @return {string}   section (rest)
-   #|
-   #|  Delete all examples from section.
-   #|
-   #|  123<example>456</example>789 => 123789
-   #|
-   ########################################
+         else
+            start = stack.pop()
+            end   = index + '</example>'.length
 
-   rest = ''
+            if stack.length is 0
 
-   indexes.unshift(-1)
+               example = section.slice(start, end)
+               example = example.replace(/(^<example>)|(<\/example>$)/g, '')
+               examples.push(example)
 
-   while indexes.length > 1
+               indexes.push(start)
+               indexes.push(end)
+
+      return { examples, indexes }
+
+
+
+
+
+   delExamples: ( section, indexes = [] ) =>
+
+      ########################################
+      #|
+      #|  @params {string}   section
+      #|  @params {number[]} indexes
+      #|  @return {string}   section (rest)
+      #|
+      #|  Delete all examples from section.
+      #|
+      #|  123<example>456</example>789 => 123789
+      #|
+      ########################################
+
+      rest = ''
+
+      indexes.unshift(-1)
+
+      while indexes.length > 1
+         start = indexes.shift()
+         end   = indexes.shift()
+         rest += section.slice(start+1, end)
+
       start = indexes.shift()
-      end   = indexes.shift()
-      rest += section.slice(start+1, end)
+      rest += section.slice(start+1)
 
-   start = indexes.shift()
-   rest += section.slice(start+1)
-
-   return rest
+      return rest
 
 
 
 
 
-parseHeading = ( content ) =>
+   parseHeading: ( content ) =>
 
-   ########################################
-   #|
-   #|  @params {string} content
-   #|  @return {object} heading - { lv, text }
-   #|
-   ########################################
+      ########################################
+      #|
+      #|  @params {string} content
+      #|  @return {object} heading - { lv, text }
+      #|
+      ########################################
 
-   if result = content.match(/^(#{1,6})(.*)$/m)
-      return
-         lv:   result[1].length
-         text: result[2].trim()
-   else
-      return null
-
-
-
-
-
-exports.dom = ( html ) =>
-
-   ########################################
-   #|
-   #|  @params {string} html
-   #|
-   ########################################
-
-   $article = document.createElement('article')
-   $article.innerHTML = html
-
-   wrapParams( $article )
-   bindScrollEvent( $article )
-
-   return $article
-
-
-
-
-
-wrapParams = ( $article ) =>
-
-   ########################################
-   #|
-   #|  @params {HTMLElement} $article
-   #|
-   ########################################
-
-   $items = $article.querySelectorAll('params > item')
-
-   for $item in $items
-
-        $left  = document.createElement('left')
-        $right = document.createElement('right')
-
-        $left.appendChild($child)  for $child in $item.querySelectorAll('item > :not(desc)')
-        $right.appendChild($child) for $child in $item.querySelectorAll('item > desc')
-
-        $item.appendChild($left)
-        $item.appendChild($right)
-
-
-
-
-
-bindScrollEvent = ( $article ) =>
-
-   ########################################
-   #|
-   #|  @params {HTMLElement} $article
-   #|
-   ########################################
-
-   lastID = ''
-
-   window.addEventListener 'scroll', ->
-
-      stats = getSectionStats( $article )
-
-      for stat, i in stats
-         if stat.top > 0
-            break
-
-      stat = stats[i-1]
-
-      if lastID isnt stat.id
-         lastID = stat.id
-         Router.redirect('#' + stat.id)
-         Page.active('#' + stat.id)
-
-
-
-
-
-getSectionStats = ( $article ) =>
-
-   ########################################
-   #|
-   #|  @params {HTMLElement} $article
-   #|  @params {object[]} sectionStats
-   #|
-   ########################################
-
-   $sections = $article.querySelectorAll('section')
-   stats     = []
-
-   for $section in $sections
-
-      if $heading = $section.querySelector('h1, h2, h3')
-         id = Helper.id( $heading.innerText )
+      if result = content.match(/^(#{1,6})(.*)$/m)
+         return
+            lv:   result[1].length
+            text: result[2].trim()
       else
-         id = ''
+         return null
 
-      top = $section.getBoundingClientRect().top
 
-      stats.push({ id, top })
 
-   return stats
+
+
+   createSummary: =>
+
+      ########################################
+      #|
+      #|  Create the article's summary by headings.
+      #|
+      #|  @params {object[]} sections
+      #|  @return {string}   summary-markdown
+      #|
+      ########################################
+
+      headings = @sections.map ( section ) => section.heading
+      headings = headings.filter ( heading ) => heading
+
+      for heading in headings
+         @summary += @createSummaryItem( heading )
+
+
+
+
+
+   createSummaryItem: ( heading ) =>
+
+      ########################################
+      #|
+      #|  @params {object} heading - { lv, text }
+      #|  @return {string} markdown-item
+      #|
+      #|  { lv:2, text: 'Quick Start' }
+      #|
+      #|  => '  * [Quick Start](#Quick-Start)'
+      #|
+      ########################################
+
+      { lv, text } = heading
+
+      count = lv
+      space = ''
+
+      while count > 1
+         space += '  '
+         count--
+
+      return "#{space}* [#{text}](##{util.id(text)})\n"

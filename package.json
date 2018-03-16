@@ -18,6 +18,7 @@
     "rollup-plugin-coffee2": "^0.1.13",
     "rollup-plugin-commonjs": "^9.0.0",
     "rollup-plugin-embed-css": "^0.1.10",
+    "rollup-plugin-image": "^1.0.2",
     "rollup-plugin-node-resolve": "^3.2.0",
     "rollup-plugin-uglify": "^3.0.0",
     "serve": "^6.5.2",

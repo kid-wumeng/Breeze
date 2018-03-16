@@ -14,6 +14,11 @@ module.exports = class Search extends ObservableObject
       @sections = @parseSections( $sections )
       @$dom     = @render()
 
+      @$search = @$dom
+      @$input  = @$search.querySelector('input')
+      @$clear  = @$search.querySelector('clear')
+      @$ul     = @$search.querySelector('ul')
+
 
 
 
@@ -83,7 +88,7 @@ module.exports = class Search extends ObservableObject
 
       $dom.innerHTML = """
          <input-box>
-            <input spellcheck="false"/>
+            <input autofocus spellcheck="false"/>
             <clear/>
          </input-box>
          <ul></ul>
@@ -126,14 +131,18 @@ module.exports = class Search extends ObservableObject
       key     = e.target.value.trim().replace('\\', '\\\\')
       results = []
 
-      if key.length >= 2
-
+      if key
          for section in @sections
-            if result = @match( section, key )
-               results.push( result )
+            if result = @match(section, key)
+               results.push(result)
 
-      @sortResults(results)
-      @showResults(results)
+         @sortResults(results)
+         @showResults(results)
+         @showClear(results)
+
+      else
+         @hideResults()
+         @hideClear()
 
 
 
@@ -148,8 +157,9 @@ module.exports = class Search extends ObservableObject
       ########################################
 
       @$dom.querySelector('input').value = ''
-      
+
       @hideResults()
+      @hideClear()
 
 
 
@@ -308,3 +318,19 @@ module.exports = class Search extends ObservableObject
 
       id = $item.getAttribute('id')
       @emit('select', id)
+
+
+
+
+
+   showClear: =>
+
+      @$clear.style.display = 'block'
+
+
+
+
+
+   hideClear: =>
+
+      @$clear.style.display = 'none'

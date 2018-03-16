@@ -45,8 +45,6 @@ module.exports = class Page extends ObservableObject
 
 
 
-
-
    formatPath: =>
 
       path = location.search

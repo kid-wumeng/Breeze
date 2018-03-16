@@ -1,6 +1,7 @@
 ObservableObject = require('./ObservableObject')
 Article          = require('./Article')
 Summary          = require('./Summary')
+Search           = require('./Search')
 
 
 
@@ -12,17 +13,35 @@ module.exports = class Page extends ObservableObject
 
       super()
 
+      @isOverMain = false
+
+      @$root = document.createElement('root')
+      @$side = document.createElement('side')
+      @$main = document.createElement('main')
+
       @path = @formatPath()
 
       @load ( markdown ) =>
 
          @markdown = markdown
+         @article  = new Article(markdown)
+         @summary  = new Summary(@article.summary)
+         @search   = new Search(@article.$sections)
 
-         @article  = new Article( markdown )
-         
-         @summary  = new Summary( @article.summary )
+         @article.on('scroll', @rehash)
+         @article.on('scroll', @summary.active)
+         @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
 
-         console.log @summary.html
+         @summary.on('select', @rehash)
+         @summary.on('select', @article.scroll)
+
+         @search.on('select',  @rehash)
+         @search.on('select',  @article.scroll)
+
+         @ready()
+         @render()
+
+
 
 
 
@@ -73,3 +92,51 @@ module.exports = class Page extends ObservableObject
          if xhr.readyState is 4
             if xhr.status is 200
                done( xhr.responseText )
+
+
+
+
+
+   ready: =>
+
+      @$main.appendChild( @article.$dom )
+      @$side.appendChild( @search.$dom )
+      @$side.appendChild( @summary.$dom )
+
+      @$root.appendChild( @$side )
+      @$root.appendChild( @$main )
+
+      @$main.addEventListener('mouseenter', => @isOverMain = true)
+      @$main.addEventListener('mouseleave', => @isOverMain = false)
+
+      @$main.style.minHeight = window.innerHeight + 'px'
+
+
+
+
+
+   render: =>
+
+      $rootCurrent = document.querySelector('body > root')
+
+      if $rootCurrent
+         document.body.replaceChild( @$root, $rootCurrent )
+      else
+         document.body.appendChild( @$root )
+
+
+
+
+
+   rehash: ( id ) =>
+
+      ########################################
+      #|
+      #|  @params {string} id
+      #|
+      ########################################
+
+      if id
+         history.replaceState(null, null, '#' + id)
+      else
+         history.replaceState(null, null, '/')

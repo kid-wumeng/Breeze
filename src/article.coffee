@@ -1,42 +1,32 @@
-marked = require('marked')
-Jade   = require('./Jade')
-util   = require('./util')
+marked           = require('marked')
+ObservableObject = require('./ObservableObject')
+Jade             = require('./Jade')
+util             = require('./util')
 
 
 
-
-
-renderer = new marked.Renderer
-
-renderer.heading = ( text, lv ) =>
-
-   ########################################
-   #|
-   #|  @params {string} text
-   #|  @params {number} lv
-   #|  @return {string} html
-   #|
-   ########################################
-
-   return "<h#{lv} id=\"#{util.id(text)}\">#{text}</#h{lv}>"
-
-
-
-
-
-module.exports = class Article
+module.exports = class Article extends ObservableObject
 
 
 
    constructor: ( markdown ) ->
 
-      @markdown = markdown
-      @html     = ''
-      @sections = []
-      @summary  = ''
+      super()
+
+      @markdown  = markdown
+      @html      = ''
+      @sections  = []
+      @$dom      = null
+      @$sections = []
+      @summary   = ''
+      @lastID    = ''
 
       @compile()
-      @createSummary()
+      @render()
+
+      @$sections = @$dom.querySelectorAll('article > section')
+
+      @createSummary(@sections)
 
 
 
@@ -188,11 +178,13 @@ module.exports = class Article
       { content, example } = @parseContentAndExample( section )
 
       heading = @parseHeading(content)
-      content = marked(content, { renderer })
+      content = marked(content)
       example = marked(example)
 
+      id = util.id( heading?.text )
+
       section = """
-         <section>
+         <section id=\"#{id}\">
             <content>#{content}</content>
             <example>#{example}</example>
          </section>
@@ -320,7 +312,7 @@ module.exports = class Article
 
 
 
-   createSummary: =>
+   createSummary: ( sections ) =>
 
       ########################################
       #|
@@ -331,11 +323,9 @@ module.exports = class Article
       #|
       ########################################
 
-      headings = @sections.map ( section ) => section.heading
-      headings = headings.filter ( heading ) => heading
-
-      for heading in headings
-         @summary += @createSummaryItem( heading )
+      for section in sections
+         if section.heading
+            @summary += @createSummaryItem( section.heading )
 
 
 
@@ -364,3 +354,91 @@ module.exports = class Article
          count--
 
       return "#{space}* [#{text}](##{util.id(text)})\n"
+
+
+
+
+
+   render: =>
+
+      @$dom = document.createElement('article')
+      @$dom.innerHTML = @html
+
+      @wrapParams()
+      @bindScrollEvent()
+
+
+
+
+
+   wrapParams: =>
+
+      $items = @$dom.querySelectorAll('params > item')
+
+      for $item in $items
+
+           $left  = document.createElement('left')
+           $right = document.createElement('right')
+
+           $left.appendChild($child)  for $child in $item.querySelectorAll('item > :not(desc)')
+           $right.appendChild($child) for $child in $item.querySelectorAll('item > desc')
+
+           $item.appendChild($left)
+           $item.appendChild($right)
+
+
+
+
+
+   bindScrollEvent: =>
+
+      window.addEventListener 'scroll', =>
+
+         stats = @getSectionStats()
+
+         for stat, i in stats
+            if stat.top > 0
+               break
+
+         id = stats[i-1].id
+
+         if @lastID isnt id
+            @lastID = id
+            @emit('scroll', id)
+
+
+
+
+
+   getSectionStats: =>
+
+      ########################################
+      #|
+      #|  @params {object[]} sectionStats
+      #|
+      ########################################
+
+      stats = []
+
+      for $section in @$sections
+
+         id  = $section.getAttribute('id')
+         top = $section.getBoundingClientRect().top
+
+         stats.push({ id, top })
+
+      return stats
+
+
+
+
+
+   scroll: ( id ) =>
+
+      $section = @$dom.querySelector("section[id=\"#{id}\"]")
+
+      if $section
+         top = $section.getBoundingClientRect().top
+         window.scrollBy(0, top)
+      else
+         window.scrollTo(0, 0)

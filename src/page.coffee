@@ -31,10 +31,11 @@ module.exports = class Page extends ObservableObject
          @search   = new Search(@article.$sections)
 
          @article.on('scroll', @rehash)
-         @article.on('scroll', @summary.active)
+         @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
          @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
 
          @summary.on('select', @rehash)
+         @summary.on('select', @summary.active)
          @summary.on('select', @article.scroll)
 
          @search.on('select',  @rehash)

@@ -1,7 +1,18 @@
 marked           = require('marked')
+Prism            = require('prismjs')
 ObservableObject = require('./ObservableObject')
 Jade             = require('./Jade')
 util             = require('./util')
+
+
+
+marked.setOptions({
+   highlight: ( code, lang ) =>
+      if lang = Prism.languages[lang]
+         return Prism.highlight(code, lang)
+      else
+         return code
+})
 
 
 
@@ -96,18 +107,25 @@ module.exports = class Article extends ObservableObject
       ########################################
 
       sections = []
-
       allLines = markdown.split('\n')
       lines    = []
+      inCode   = false
 
       for line in allLines
 
+         isCode    = /^\s*```/.test(line)
          isHeading = /^\s*#{1,6}/.test(line)
 
-         if isHeading
+         if isCode
+            inCode = !inCode
+
+         if isHeading and !inCode
+
             section = lines.join('\n')
             sections.push(section)
             lines = []
+
+            line = @formatHeading( line )
 
          lines.push(line)
 
@@ -115,6 +133,20 @@ module.exports = class Article extends ObservableObject
       sections.push(section)
 
       return sections
+
+
+
+
+
+   formatHeading: ( heading ) =>
+
+      heading = heading.trim()
+      results = heading.match /^(#+)\s*(.*)$/
+
+      lv   = results[1].length
+      text = results[2]
+
+      return "<h#{lv}>#{text}</h#{lv}>"
 
 
 
@@ -181,10 +213,11 @@ module.exports = class Article extends ObservableObject
       content = marked(content)
       example = marked(example)
 
+      lv = heading?.lv ? ''
       id = util.id( heading?.text )
 
       section = """
-         <section id=\"#{id}\">
+         <section lv="#{lv}" id=\"#{id}\">
             <content>#{content}</content>
             <example>#{example}</example>
          </section>
@@ -301,10 +334,10 @@ module.exports = class Article extends ObservableObject
       #|
       ########################################
 
-      if result = content.match(/^(#{1,6})(.*)$/m)
+      if results = content.match /^<h([1-6])>(.*)<\/h[1-6]>$/m
          return
-            lv:   result[1].length
-            text: result[2].trim()
+            lv:   parseInt( results[1] )
+            text: results[2]
       else
          return null
 
@@ -324,8 +357,11 @@ module.exports = class Article extends ObservableObject
       ########################################
 
       for section in sections
-         if section.heading
-            @summary += @createSummaryItem( section.heading )
+
+         { heading } = section
+
+         if heading and heading.lv <= 3
+            @summary += @createSummaryItem( heading )
 
 
 
@@ -422,10 +458,13 @@ module.exports = class Article extends ObservableObject
 
       for $section in @$sections
 
-         id  = $section.getAttribute('id')
-         top = $section.getBoundingClientRect().top
+         lv = $section.getAttribute('lv')
 
-         stats.push({ id, top })
+         if parseInt( lv ) <= 3
+            id  = $section.getAttribute('id')
+            top = $section.getBoundingClientRect().top
+
+            stats.push({ id, top })
 
       return stats
 

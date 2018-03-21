@@ -1,12 +1,16 @@
-exports.id = ( text = '' ) =>
+exports.id = ( order, text = '' ) =>
 
    ########################################
    #|
+   #|  @params {string} order
    #|  @params {string} text
-   #|  @return {string} hash
-   #|
-   #|  'Quick Start' => 'Quick-Start'
+   #|  @return {string} id
    #|
    ########################################
 
-   return text.replace(/\s+/g, '-')
+   text = text.replace(/\s+/g, '-')
+
+   if text
+      return order + '-' + text
+   else
+      return order

@@ -30,9 +30,9 @@ module.exports = class Page extends ObservableObject
          @summary  = new Summary(@article.summary)
          @search   = new Search(@article.$sections)
 
-         @article.on('scroll', @rehash)
-         @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
+         @article.on('scroll', ( id ) => if @isOverMain then @rehash( id ))
          @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
+         @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
 
          @summary.on('select', @rehash)
          @summary.on('select', @summary.active)
@@ -43,6 +43,11 @@ module.exports = class Page extends ObservableObject
 
          @ready()
          @render()
+
+         if @query.id
+            @article.scroll(@query.id)
+            @summary.scroll(@query.id)
+            @summary.active(@query.id)
 
 
 
@@ -83,7 +88,7 @@ module.exports = class Page extends ObservableObject
       ########################################
 
       query = {}
-      hash  = location.hash
+      hash  = decodeURI( location.hash )
       index = hash.indexOf('?')
 
       if index > -1

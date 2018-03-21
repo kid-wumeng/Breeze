@@ -51,26 +51,54 @@ module.exports = class Search extends ObservableObject
       #|
       ########################################
 
-      $heading = $section.querySelector('h1, h2, h3')
+      id = $section.id
+
+      heading = @parseHeading( $section )
+      content = @parseContent( $section )
+
+      return { id, heading, content }
+
+
+
+
+
+   parseHeading: ( $section ) =>
+
+      ########################################
+      #|
+      #|  @params {HTTPElement} $section
+      #|  @params {string}      heading
+      #|
+      ########################################
+
+      $heading = $section.querySelector('h1, h2, h3, h4, h5, h6')
 
       if $heading
-
-         heading = $heading.innerText
-         content = $section.innerText.trim()
-
-         if from = content.indexOf('\n') + 1
-            content = content.slice(from)
-         else
-            content = ''
-
+         return $heading.innerText.trim()
       else
-         heading = ''
-         content = $section.innerText
+         return ''
 
-      content = content.trim()
-      content = content.replace(/(?:\n+)|(?:\s+)/g, ' ')
 
-      return { heading, content }
+
+
+
+   parseContent: ( $section ) =>
+
+      ########################################
+      #|
+      #|  @params {HTTPElement} $section
+      #|  @params {string}      content
+      #|
+      ########################################
+
+      content = $section.querySelector('content').innerText.trim()
+
+      if from = content.indexOf('\n') + 1
+         content = content.slice(from)
+      else
+         content = ''
+
+      return content.replace(/(?:\n+)|(?:\s+)/g, ' ')
 
 
 
@@ -134,6 +162,7 @@ module.exports = class Search extends ObservableObject
       if key
          for section in @sections
             if result = @match(section, key)
+               result.id = section.id
                results.push(result)
 
          @sortResults(results)
@@ -177,11 +206,11 @@ module.exports = class Search extends ObservableObject
 
       { heading, content } = section
 
-      if @matchHeading( heading, key )
-         return { heading }
+      if text = @matchHeading( heading, key )
+         return { heading: text }
 
-      if content = @matchContent( content, key )
-         return { heading, content }
+      if text = @matchContent( content, key )
+         return { heading, content: text }
 
 
 
@@ -191,7 +220,12 @@ module.exports = class Search extends ObservableObject
 
       reg = new RegExp( key, 'i' )
 
-      return reg.test( heading )
+      if reg.test( heading )
+
+         heading = heading.replace /</g, '&lt;'
+         heading = heading.replace />/g, '&gt;'
+
+         return heading
 
 
 
@@ -231,21 +265,19 @@ module.exports = class Search extends ObservableObject
 
       ########################################
       #|
-      #|  @params {object[]} results - { type, heading, content }
-      #|  @return {object[]} results - { type, heading, content }
+      #|  @params {object[]} results - { id, heading, content }
       #|
       ########################################
 
-      headingResults = []
-      contentResults = []
+      results.sort ( r1, r2 ) =>
 
-      for result in results
-         if result.type is 'heading'
-            headingResults.push(result)
-         else
-            contentResults.push(result)
+         if !r1.content and r2.content
+            return -1
 
-      return headingResults.concat(contentResults)
+         if !r2.content and r1.content
+            return 1
+
+         return 0
 
 
 
@@ -271,21 +303,19 @@ module.exports = class Search extends ObservableObject
 
    createResult: ( result ) =>
 
-      { heading, content } = result
-
-      id = util.id( heading )
+      { id, heading, content } = result
 
       if content
          return """
-            <li id=\"#{ id }\" type="content">
-               <heading>#{ heading }</heading>
-               <content>#{ content }</content>
+            <li id=\"#{id}\" type="content">
+               <heading>#{heading}</heading>
+               <content>#{content}</content>
             </li>
          """
       else
          return """
-            <li id=\"#{ id }\" type="heading">
-               <heading>#{ heading }</heading>
+            <li id=\"#{id}\">
+               <heading>#{heading}</heading>
             </li>
          """
 

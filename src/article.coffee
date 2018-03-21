@@ -2,11 +2,14 @@ marked           = require('marked')
 Prism            = require('prismjs')
 ObservableObject = require('./ObservableObject')
 Jade             = require('./Jade')
-util             = require('./util')
 
 
 
 marked.setOptions({
+
+   gfm:    true
+   tables: true
+
    highlight: ( code, lang ) =>
       if lang = Prism.languages[lang]
          return Prism.highlight(code, lang)
@@ -26,6 +29,7 @@ module.exports = class Article extends ObservableObject
 
       @markdown  = markdown
       @html      = ''
+      @lastOrder = '0'
       @sections  = []
       @$dom      = null
       @$sections = []
@@ -213,8 +217,11 @@ module.exports = class Article extends ObservableObject
       content = marked(content)
       example = marked(example)
 
-      lv = heading?.lv ? ''
-      id = util.id( heading?.text )
+      lv    = heading?.lv    ? ''
+      order = heading?.order ? ''
+      text  = heading?.text  ? ''
+
+      id = @getID( order, text )
 
       section = """
          <section lv="#{lv}" id=\"#{id}\">
@@ -281,7 +288,7 @@ module.exports = class Article extends ObservableObject
             if stack.length is 0
 
                example = section.slice(start, end)
-               example = example.replace(/(^<example>)|(<\/example>$)/g, '')
+               example = example.replace(/(<example>)|(<\/example>)/g, '')
                examples.push(example)
 
                indexes.push(start)
@@ -335,11 +342,44 @@ module.exports = class Article extends ObservableObject
       ########################################
 
       if results = content.match /^<h([1-6])>(.*)<\/h[1-6]>$/m
-         return
-            lv:   parseInt( results[1] )
-            text: results[2]
+
+         lv    = parseInt(results[1])
+         order = @getOrder(lv)
+         text  = results[2]
+
+         return { lv, order, text }
+
       else
          return null
+
+
+
+
+
+   getOrder: ( lv ) =>
+
+      ########################################
+      #|
+      #|  @params {number} lv
+      #|  @return {string} order
+      #|
+      ########################################
+
+      parts = @lastOrder.split('.')
+      i = lv - 1
+
+      part = parts[i] ? '0'
+      part = parseInt(part)
+      part = part + 1
+
+      parts[i] = part
+      parts = parts.slice(0, i+1)
+
+      for _, i in parts
+         if !parts[i]
+             parts[i] = '0'
+
+      return @lastOrder = parts.join('.')
 
 
 
@@ -380,7 +420,7 @@ module.exports = class Article extends ObservableObject
       #|
       ########################################
 
-      { lv, text } = heading
+      { lv, order, text } = heading
 
       count = lv
       space = ''
@@ -389,7 +429,28 @@ module.exports = class Article extends ObservableObject
          space += '  '
          count--
 
-      return "#{space}* [#{text}](##{util.id(text)})\n"
+      return "#{space}* [#{text}](##{@getID(order, text)})\n"
+
+
+
+
+
+   getID: ( order, text = '' ) =>
+
+      ########################################
+      #|
+      #|  @params {string} order
+      #|  @params {string} text
+      #|  @return {string} id
+      #|
+      ########################################
+
+      text = text.replace(/\s+/g, '-')
+
+      if text
+         return order + '-' + text
+      else
+         return order
 
 
 
@@ -409,18 +470,27 @@ module.exports = class Article extends ObservableObject
 
    wrapParams: =>
 
-      $items = @$dom.querySelectorAll('params > item')
+      $paramses = @$dom.querySelectorAll('params')
 
-      for $item in $items
+      for $params in $paramses
 
-           $left  = document.createElement('left')
-           $right = document.createElement('right')
+          $newParams = document.createElement('params')
 
-           $left.appendChild($child)  for $child in $item.querySelectorAll('item > :not(desc)')
-           $right.appendChild($child) for $child in $item.querySelectorAll('item > desc')
+          for $item in $params.querySelectorAll('params > item')
 
-           $item.appendChild($left)
-           $item.appendChild($right)
+              $newItem = document.createElement('item')
+              $left    = document.createElement('left')
+              $right   = document.createElement('right')
+
+              $left.appendChild( $child )  for $child in $item.querySelectorAll('item > :not(desc):not(br)')
+              $right.appendChild( $child ) for $child in $item.querySelectorAll('item > desc')
+
+              $newItem.appendChild( $left )
+              $newItem.appendChild( $right )
+
+              $newParams.appendChild( $newItem )
+
+          $params.parentNode.replaceChild( $newParams, $params )
 
 
 
@@ -457,14 +527,9 @@ module.exports = class Article extends ObservableObject
       stats = []
 
       for $section in @$sections
-
-         lv = $section.getAttribute('lv')
-
-         if parseInt( lv ) <= 3
-            id  = $section.getAttribute('id')
-            top = $section.getBoundingClientRect().top
-
-            stats.push({ id, top })
+         id  = $section.getAttribute('id')
+         top = $section.getBoundingClientRect().top
+         stats.push({ id, top })
 
       return stats
 

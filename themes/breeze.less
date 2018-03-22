@@ -8,7 +8,6 @@
 @default-line-height: 26px;
 
 
-
 @side-width:         240px;
 @main-content-width: 50%;
 @main-example-width: 50%;
@@ -226,8 +225,7 @@ search > input-box > clear
 }
 
 
-search > ul
-{
+search > ul {
   display: none;
 }
 
@@ -275,8 +273,7 @@ search > ul > li > content
 }
 
 
-search > ul > li > heading:not(:empty) + content
-{
+search > ul > li > heading:not(:empty) + content {
   margin-top: 6px;
 }
 
@@ -285,63 +282,85 @@ search > ul > li > heading:not(:empty) + content
 
 
 /* ----------------------------------------
-   < Summary >
+
+   << Summary >>
+
+   summary
+     ul.lv1
+       li.lv1
+         a.lv1
+         ul.lv2
+           li.lv2
+             a.lv2
+             ul.lv3
+               li.lv3
+                 a.lv3
+
 ---------------------------------------- */
 
 summary {
   margin-top: 16px;
+}
 
-  a {
-    display: block;
-    padding: 0 @side-item-padding-x;
-    line-height: 36px;
-    font-family: "PT Sans";
-    cursor: pointer;
-    overflow: hidden;
-    text-overflow:ellipsis;
-    white-space: nowrap;
-  }
-  a.lv1 {
-     padding-left: @side-item-padding-x;
-     font-family: "Futura";
-     font-weight: 500;
-     font-size: 16px;
-     color: #364149;
-   }
-  a.lv2 {
-    padding-left: @side-item-padding-x + @side-item-indent;
-    font-weight: 400;
-    font-size: 14px;
-    color: #505d6b;
-  }
-  a.lv3 {
-    padding-left: @side-item-padding-x + @side-item-indent * 2;
-    font-weight: 400;
-    font-size: 14px;
-    color: #505d6b;
-    &::before {
-      content: "-";
-      margin-right: 8px;
-    }
-  }
-  a:hover {
-    font-weight: 500;
-    color: #69c0ff;
-  }
-  a.active {
-    font-weight: 500;
-    color: #FFF;
-    background-color: #69c0ff;
-  }
+summary a {
+  display: block;
+  padding: 0 @side-item-padding-x;
+  line-height: 36px;
+  font-family: "PT Sans";
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow:ellipsis;
+  white-space: nowrap;
+}
 
-  ul.lv3 {
-    height: 0;
-    overflow: hidden;
+summary a.lv1 {
+  padding-left: @side-item-padding-x;
+  font-family: "Futura";
+  font-weight: 500;
+  font-size: 16px;
+  color: #364149;
+}
+
+summary a.lv2 {
+  padding-left: @side-item-padding-x + @side-item-indent;
+  font-weight: 400;
+  font-size: 14px;
+  color: #505d6b;
+}
+
+summary a.lv3 {
+  padding-left: @side-item-padding-x + @side-item-indent * 2;
+  font-weight: 400;
+  font-size: 14px;
+  color: #505d6b;
+
+  &::before {
+    content: "-";
+    margin-right: 8px;
   }
-  li.lv2.active ul,
-  ul.lv3.active {
-    height: auto;
-  }
+}
+
+summary a:hover {
+  font-weight: 500;
+  color: #69c0ff;
+}
+
+summary a.active {
+  font-weight: 500;
+  color: #FFF;
+  background-color: #69c0ff;
+}
+
+
+summary ul.lv3 {
+  height: 0;
+  overflow: hidden;
+}
+
+
+summary li.lv2.active ul,
+summary ul.lv3.active {
+  height: auto;
 }
 
 
@@ -349,7 +368,13 @@ summary {
 
 
 /* ----------------------------------------
-   < Section >
+
+   << Section >>
+
+   section
+     content
+     example
+
 ---------------------------------------- */
 
 section {
@@ -360,6 +385,7 @@ section > content {
   float:   left;
   padding: 40px;
   width:   @main-content-width;
+
 }
 
 section > example {
@@ -390,14 +416,41 @@ section[lv="6"] > example {
 }
 
 section:first-child > content,
-section:first-child > example{
+section:first-child > example {
   margin-top: 0;
   border-top: none;
+}
+
+section h1,
+section h2,
+section h3,
+section h4,
+section h5,
+section h6 {
+  font-family: @heading-font-family;
+  font-weight: 500;
+}
+
+section h1 { font-size: 24px }
+section h2 { font-size: 20px }
+section h3 { font-size: 16px }
+section h4 { font-size: 15px }
+section h5 { font-size: 15px }
+section h6 { font-size: 15px }
+
+section blockquote {
+  padding: 0 2em;
+  font-style: italic;
 }
 
 section li {
   list-style-type: disc;
   list-style-position: inside;
+}
+
+section a {
+  font-weight: 600;
+  text-decoration: underline;
 }
 
 section table {
@@ -416,76 +469,76 @@ section table {
   }
 }
 
+section p {
+  code {
+    margin: 0 4px;
+    padding: 3px 6px;
+    font-size: 12px;
+    border-radius: 2px;
+  }
+}
+
+section pre {
+  padding: 30px 36px;
+  line-height: 20px;
+  border-radius: 4px;
+  overflow: scroll;
+  code {
+    font-family: @code-font-family;
+    font-size: 12px;
+  }
+}
 
 
 
 
 /* ----------------------------------------
-   < Content >
+
+   << Content >>
+
 ---------------------------------------- */
 
 content {
   color: #273340;
+}
 
-  > *{
-    margin-bottom: @gap;
-  }
-  > *:empty,
-  > *:last-child {
-    margin-bottom: 0;
-  }
+content > * {
+  margin-bottom: @gap;
+}
 
-  h1, h2, h3, h4, h5, h6 {
-    font-family: @heading-font-family;
-    font-weight: 500;
-    color: #273340;
-  }
-  h1, h2, h3 {
-    margin-bottom: @gap;
-  }
+content > *:empty,
+content > *:last-child {
+  margin-bottom: 0;
+}
 
-  h1 { font-size: 24px }
-  h2 { font-size: 20px }
-  h3 { font-size: 16px }
-  h4 { font-size: 15px }
-  h5 { font-size: 15px }
-  h6 { font-size: 15px }
+content h1,
+content h2,
+content h3,
+content h4,
+content h5,
+content h6 {
+  color: #273340;
+}
 
-  a {
-    font-weight: 600;
-    color: #5C7CAA;
-    text-decoration: underline;
-  }
+content blockquote {
+  color: #A2AEBA;
+}
 
-  p {
-    code {
-      margin: 0 4px;
-      padding: 3px 6px;
-      font-size: 12px;
-      color: #1890ff;
-      background-color: #F9F9F9;
-      border-radius: 2px;
-    }
-  }
+content a {
+  color: #5C7CAA;
+}
 
-  pre {
-    padding: 30px 36px;
-    line-height: 20px;
-    color: #E3E3E3;
-    background-color: #272B2D;
-    border-radius: 4px;
-    overflow: scroll;
-  }
-
+content p {
   code {
-    font-family: @code-font-family;
-    font-size: 12px;
+    color: #1890ff;
+    background-color: #F9F9F9;
   }
+}
 
-  blockquote {
-    padding: 0 2em;
-    font-style: italic;
-    color: #A2AEBA;
+content pre {
+  background-color: #272B2D;
+  code {
+    color: #E3E3E3;
   }
 }
 
@@ -494,27 +547,52 @@ content {
 
 
 /* ----------------------------------------
+
    < Example >
+
 ---------------------------------------- */
 
 example {
   color: #E3E3E3;
+}
 
-  > * {
-    margin-bottom: @gap;
-  }
+example > * {
+  margin-bottom: @gap;
+}
 
-  pre {
-    padding: 30px 36px;
-    line-height: 20px;
-    background-color: #272B2D;
-    border-radius: 4px;
-    overflow: scroll;
-  }
+example > *:empty,
+example > *:last-child {
+  margin-bottom: 0;
+}
 
+example h1,
+example h2,
+example h3,
+example h4,
+example h5,
+example h6 {
+  color: #273340;
+}
+
+example blockquote {
+  color: #A2AEBA;
+}
+
+example a {
+  color: #5C7CAA;
+}
+
+example p {
   code {
-    font-family: @code-font-family;
-    font-size: 12px;
+    color: #1890ff;
+    background-color: #F9F9F9;
+  }
+}
+
+example pre {
+  background-color: #272B2D;
+  code {
+    color: #E3E3E3;
   }
 }
 
@@ -536,10 +614,8 @@ example {
 
 ---------------------------------------- */
 
-
-
-params > item {
-
+params > item
+{
   line-height: 21px;
   overflow: hidden;
   padding: 20px 0;
@@ -550,10 +626,8 @@ params > item {
   }
 }
 
-
-
-params > item > left {
-
+params > item > left
+{
   float: left;
   width: 50%;
   padding-right: 20px;
@@ -571,10 +645,8 @@ params > item > left {
   }
 }
 
-
-
-params > item > right {
-
+params > item > right
+{
   float: right;
   width: 50%;
 

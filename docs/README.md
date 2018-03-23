@@ -8,7 +8,7 @@
   <item>multiple themes</item>
 
   <button href="https://github.com/kid-wumeng/Breeze">Github</button>
-  <button active href="zh-Hans">Get Started</button>
+  <button active href="#">Get Started</button>
 
   <free></free>
 </cover>

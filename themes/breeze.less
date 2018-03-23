@@ -152,8 +152,6 @@ main {
          li
        ul.buttons
          li: a
-       ul.langs
-         li: a
 
 ---------------------------------------- */
 
@@ -168,7 +166,6 @@ main {
   display: flex;
   justify-content: center;
   align-items: center;
-
   > .wrap {
     display: flex;
     flex-direction: column;
@@ -176,20 +173,16 @@ main {
   }
 }
 
-
 .cover .logo {
   user-select: none;
 }
 
-
 .cover .title {
   margin-top: 48px;
   position: relative;
-
   .name {
     font-size: 40px;
   }
-
   .version {
     position: absolute;
     right: -30px;
@@ -203,25 +196,21 @@ main {
   }
 }
 
-
-.cover ul.descs {
+.cover .descs {
   margin-top: 48px;
-
   li {
     text-align: center;
     font-weight: 300;
     font-size: 20px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     &:last-child{
       margin-bottom: 0;
     }
   }
 }
 
-
-.cover ul.items {
+.cover .items {
   margin-top: 48px;
-
   li {
     text-align: center;
     font-weight: 300;
@@ -229,22 +218,16 @@ main {
   }
 }
 
-
-
-
-
-.cover ul.buttons {
-  margin-top: 54px;
+.cover .buttons {
+  margin-top: 56px;
   user-select: none;
   display: flex;
   align-items: center;
-
   li {
     margin-right: 32px;
-    &:last-child{
+    &:last-child {
       margin-right: 0;
     }
-
     a {
       padding: 13px 32px;
       font-size: 16px;
@@ -253,7 +236,6 @@ main {
       border-radius: 32px;
     }
   }
-
   li.active {
     a {
       color: #FFF;
@@ -262,14 +244,6 @@ main {
   }
 }
 
-
-.cover ul.langs {
-  display: none;
-  li {
-    a {
-    }
-  }
-}
 
 
 

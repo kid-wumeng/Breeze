@@ -19,6 +19,8 @@ load = =>
       pages[ href ] = page
 
       page.on 'reload', ( hash ) =>
+         hash = '#/' + hash
+         hash = hash.replace(/\/+/, '/')
          history.pushState(null, null, hash)
          load()
 

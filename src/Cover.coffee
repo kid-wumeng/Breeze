@@ -1,12 +1,15 @@
-util = require('./util')
+ObservableObject = require('./ObservableObject')
+util             = require('./util')
 
 
 
-module.exports = class Cover
+module.exports = class Cover extends ObservableObject
 
 
 
    constructor: ( html ) ->
+
+      super()
 
       @html = html
       @$dom = null
@@ -128,8 +131,20 @@ module.exports = class Cover
 
              if href = $button.getAttribute('href')
                 $a.setAttribute('href', href)
+                $a.addEventListener('click', @onClickButton)
 
              $li.appendChild($a)
              $ul.appendChild($li)
 
          $wrap.appendChild($ul)
+
+
+
+
+
+   onClickButton: ( e ) =>
+
+      href = e.target.getAttribute('href')
+
+      if href[0] is '#'
+         @$dom.style.display = 'none'

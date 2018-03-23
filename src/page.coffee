@@ -36,6 +36,8 @@ module.exports = class Page extends ObservableObject
          @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
          @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
 
+         @cover.on('select', @rehash)
+
          @summary.on('select', @rehash)
          @summary.on('select', @summary.active)
          @summary.on('select', @article.scroll)
@@ -176,7 +178,7 @@ module.exports = class Page extends ObservableObject
       @$side.appendChild( @search.$dom )
       @$side.appendChild( @summary.$dom )
 
-      @$root.appendChild( @cover.$dom ) if @cover.html
+      @$root.appendChild( @cover.$dom ) if @cover.html and !@query.id
       @$root.appendChild( @$side )
       @$root.appendChild( @$main )
 
@@ -259,33 +261,42 @@ module.exports = class Page extends ObservableObject
 
       for $link in $links
 
-         href  = $link.getAttribute('href')
+         href = $link.getAttribute('href')
          isUrl = /^(?:http)|(?:https)|(?:ftp):\/\//.test( href )
 
          if isUrl
-            $link.setAttribute('target', '_blank')
+            $link.addEventListener('click', @onClickUrl)
 
          else if href[0] is '#'
-            continue
+            $link.addEventListener('click', @onClickPageInner)
 
          else
-            href = '#/' + href
-            href = href.replace(/\/+/, '/')
-
-            $link.setAttribute('href', href)
-
-            @bindLinkEvent($link)
+            $link.addEventListener('click', @onClickPageOuter)
 
 
 
 
 
-   bindLinkEvent: ( $link ) =>
+   onClickUrl: ( e ) =>
 
-      $link.addEventListener 'click', (e) =>
+      window.open(e.target.getAttribute('href'))
+      e.preventDefault()
 
-         href = $link.getAttribute('href')
 
-         @emit('reload', href)
 
-         e.preventDefault()
+
+
+   onClickPageInner: ( e ) =>
+
+      id = e.target.getAttribute('href').slice(1)
+      @rehash(id)
+      e.preventDefault()
+
+
+
+
+
+   onClickPageOuter: ( e ) =>
+
+      @emit('reload', e.target.getAttribute('href'))
+      e.preventDefault()

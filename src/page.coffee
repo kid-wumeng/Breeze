@@ -1,5 +1,6 @@
 ObservableObject = require('./ObservableObject')
 Article          = require('./Article')
+Cover            = require('./Cover')
 Summary          = require('./Summary')
 Search           = require('./Search')
 
@@ -27,6 +28,7 @@ module.exports = class Page extends ObservableObject
 
          @markdown = markdown
          @article  = new Article(markdown)
+         @cover    = new Cover(@article.cover)
          @summary  = new Summary(@article.summary)
          @search   = new Search(@article.$sections)
 
@@ -174,6 +176,7 @@ module.exports = class Page extends ObservableObject
       @$side.appendChild( @search.$dom )
       @$side.appendChild( @summary.$dom )
 
+      @$root.appendChild( @cover.$dom ) if @cover.html
       @$root.appendChild( @$side )
       @$root.appendChild( @$main )
 
@@ -181,6 +184,8 @@ module.exports = class Page extends ObservableObject
       @$main.addEventListener('mouseleave', => @isOverMain = false)
 
       @$main.style.minHeight = window.innerHeight + 'px'
+
+      @formatLinks(@$root)
 
 
 
@@ -243,3 +248,44 @@ module.exports = class Page extends ObservableObject
          path = '/#' + path
 
       return path
+
+
+
+
+
+   formatLinks: ( $root ) =>
+
+      $links = $root.querySelectorAll('a')
+
+      for $link in $links
+
+         href  = $link.getAttribute('href')
+         isUrl = /^(?:http)|(?:https)|(?:ftp):\/\//.test( href )
+
+         if isUrl
+            $link.setAttribute('target', '_blank')
+
+         else if href[0] is '#'
+            continue
+
+         else
+            href = '#/' + href
+            href = href.replace(/\/+/, '/')
+
+            $link.setAttribute('href', href)
+
+            @bindLinkEvent($link)
+
+
+
+
+
+   bindLinkEvent: ( $link ) =>
+
+      $link.addEventListener 'click', (e) =>
+
+         href = $link.getAttribute('href')
+
+         @emit('reload', href)
+
+         e.preventDefault()

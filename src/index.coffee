@@ -2,6 +2,27 @@ Page = require('./Page')
 
 
 
-window.onload = =>
+pages = {}
 
-   page = new Page()
+
+
+load = =>
+
+   href = location.href
+
+   if pages[ href ]
+      page = pages[ href ]
+      page.render()
+
+   else
+      page = new Page
+      pages[ href ] = page
+
+      page.on 'reload', ( hash ) =>
+         history.pushState(null, null, hash)
+         load()
+
+
+
+window.addEventListener('load', load)
+window.addEventListener('hashchange', load)

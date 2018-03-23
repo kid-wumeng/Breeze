@@ -1,6 +1,5 @@
 marked           = require('marked')
 ObservableObject = require('./ObservableObject')
-util             = require('./util')
 
 
 

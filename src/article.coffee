@@ -33,6 +33,7 @@ module.exports = class Article extends ObservableObject
       @sections  = []
       @$dom      = null
       @$sections = []
+      @cover     = ''
       @summary   = ''
       @lastID    = ''
 
@@ -53,19 +54,13 @@ module.exports = class Article extends ObservableObject
       #|
       #|  Compile article-markdown to html.
       #|
-      #|  @params {string}   markdown
-      #|  @return {object}   result
-      #|          {string}   result.article
-      #|          {object[]} result.sections - [{
-      #|                                          heading: { lv, text }
-      #|                                          content: { html }
-      #|                                          example: { html }
-      #|                                       }, ...]
-      #|
       ########################################
 
-      markdown = @parseJade(@markdown)
-      sections = @parseSections(markdown)
+      markdown = @markdown
+
+      markdown            = @parseJade(markdown)
+      { cover, markdown } = @parseCover(markdown)
+      sections            = @parseSections(markdown)
 
       @trimFirst(sections)
 
@@ -73,6 +68,7 @@ module.exports = class Article extends ObservableObject
 
       @html     = html
       @sections = sections
+      @cover    = cover
 
 
 
@@ -94,6 +90,31 @@ module.exports = class Article extends ObservableObject
       return markdown.replace jadeReg, ( _, inner ) =>
          jade = new Jade( inner )
          return jade.html
+
+
+
+
+
+   parseCover: ( markdown ) =>
+
+      ########################################
+      #|
+      #|  @params {string} markdown
+      #|  @return {string} cover
+      #|
+      #|  Parse cover html.
+      #|
+      ########################################
+
+      coverReg = /<cover>((?:.|\n)*?)<\/cover>/g
+
+      cover = ''
+
+      markdown = markdown.replace coverReg, ( _, inner ) =>
+         cover = inner
+         return ''
+
+      return { cover, markdown }
 
 
 
@@ -192,6 +213,8 @@ module.exports = class Article extends ObservableObject
          html += section
 
          return { heading, content, example }
+
+      html = html.trim()
 
       return { html, sections }
 
@@ -500,17 +523,22 @@ module.exports = class Article extends ObservableObject
 
       window.addEventListener 'scroll', =>
 
-         stats = @getSectionStats()
+         isExisted = @$dom.innerHTML isnt ''
+         isVisible = @$dom.getBoundingClientRect().width > 0
 
-         for stat, i in stats
-            if stat.top > 0
-               break
+         if isExisted and isVisible
 
-         id = stats[i-1].id
+            stats = @getSectionStats()
 
-         if @lastID isnt id
-            @lastID = id
-            @emit('scroll', id)
+            for stat, i in stats
+               if stat.top > 0
+                  break
+
+            id = stats[i-1].id
+
+            if @lastID isnt id
+               @lastID = id
+               @emit('scroll', id)
 
 
 

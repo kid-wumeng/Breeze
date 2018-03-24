@@ -1,0 +1,147 @@
+/* ----------------------------------------
+
+   The common { article } styles.
+
+   article
+     section
+       .content
+       .example
+
+---------------------------------------- */
+
+@element-gap: 20px;
+
+article {
+  section {
+    overflow: hidden;
+  }
+
+  section > .content {
+    float: left;
+    width: 50%;
+    padding: 40px;
+  }
+
+  section > .example {
+    float: right;
+    width: 50%;
+    padding: 40px;
+  }
+
+  section[lv="1"] > .content,
+  section[lv="1"] > .example,
+  section[lv="2"] > .content,
+  section[lv="2"] > .example,
+  section[lv="3"] > .content,
+  section[lv="3"] > .example {
+    border-top-width: 1px;
+    border-top-style: solid;
+  }
+
+  section[lv="4"] > .content,
+  section[lv="4"] > .example,
+  section[lv="5"] > .content,
+  section[lv="5"] > .example,
+  section[lv="6"] > .content,
+  section[lv="6"] > .example {
+    padding-top: 0;
+  }
+
+  section:first-child > .content,
+  section:first-child > .example {
+    margin-top: 0;
+    border-top: none;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: "Futura", "Ubuntu", @default-font-family;
+    font-weight: 500;
+  }
+
+  h1 { font-size: 24px }
+  h2 { font-size: 20px }
+  h3 { font-size: 16px }
+  h4 { font-size: 15px }
+  h5 { font-size: 15px }
+  h6 { font-size: 15px }
+
+  blockquote {
+    padding: 0 2em;
+    font-style: italic;
+  }
+
+  li {
+    list-style-type: disc;
+    list-style-position: inside;
+  }
+
+  a {
+    font-weight: 600;
+    text-decoration: underline;
+  }
+
+  table {
+    width: 100%;
+    table-layout: auto;
+    border-collapse: collapse;
+    tr {
+      th {
+        padding: 6px 8px;
+      }
+      td {
+        text-align: center;
+        padding: 6px 8px;
+        border-width: 1px;
+        border-style: solid;
+      }
+    }
+  }
+
+  p {
+    code {
+      margin: 0 4px;
+      padding: 3px 6px;
+      font-size: 12px;
+      border-radius: 2px;
+    }
+  }
+
+  pre {
+    code {
+      display: block;
+      padding: 30px 36px;
+      line-height: 20px;
+      font-family: "Monaco", "Ubuntu Mono", "Monofur", @default-font-family;
+      font-size: 12px;
+      border-radius: 4px;
+      overflow: scroll;
+    }
+  }
+}
+
+article {
+  .content {
+    > * {
+      margin-bottom: @element-gap;
+    }
+
+    > *:empty,
+    > *:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+
+
+article {
+  .example {
+    > * {
+      margin-bottom: @element-gap;
+    }
+
+    > *:empty,
+    > *:last-child {
+      margin-bottom: 0;
+    }
+  }
+}

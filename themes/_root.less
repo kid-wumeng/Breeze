@@ -1,0 +1,49 @@
+/* ----------------------------------------
+
+   The common { root } styles.
+
+   root
+     #side
+     #main
+       ::before
+       ::after
+
+---------------------------------------- */
+
+@side-width: 240px;
+
+#root {
+  font-family: @default-font-family;
+  font-size: 14px;
+  line-height: 26px;
+  word-spacing: 0.5px;
+  letter-spacing: 0.35px;
+  -webkit-font-smoothing: antialiased;
+
+  #side {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: @side-width;
+    height: 100%;
+    overflow: scroll;
+    user-select: none;
+  }
+
+  #main {
+    margin-left: @side-width;
+    position: relative;
+    &::before,
+    &::after {
+      content: "";
+      display: block;
+      position: absolute;
+      top: 0;
+      z-index: -1;
+      width: 50%;
+      height: 100%;
+    }
+    &::before { left: 0 }
+    &::after { right: 0 }
+  }
+}

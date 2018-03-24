@@ -1,5 +1,6 @@
 marked           = require('marked')
 ObservableObject = require('./ObservableObject')
+util             = require('./util')
 
 
 
@@ -12,8 +13,8 @@ module.exports = class Summary extends ObservableObject
       super()
 
       @markdown = markdown
-      @html     = @compile( @markdown )
-      @$dom     = @render( @html )
+      @html     = @compile(@markdown)
+      @$dom     = @render(@html)
 
 
 
@@ -29,7 +30,7 @@ module.exports = class Summary extends ObservableObject
 
    render: ( html ) =>
 
-      $dom = document.createElement('summary')
+      $dom = util.element('#summary')
       $dom.innerHTML = html
 
       @removeLv4( $dom )
@@ -52,7 +53,7 @@ module.exports = class Summary extends ObservableObject
       #|
       ########################################
 
-      $lv4s = $dom.querySelectorAll('summary > ul > li > ul > li > ul > li > ul')
+      $lv4s = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > ul')
 
       for $lv4 in $lv4s
           $lv4.parentNode.removeChild($lv4)
@@ -71,17 +72,17 @@ module.exports = class Summary extends ObservableObject
       #|
       ########################################
 
-      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('summary > ul')
-      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('summary > ul > li > ul')
-      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('summary > ul > li > ul > li > ul')
+      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('#summary > ul')
+      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('#summary > ul > li > ul')
+      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('#summary > ul > li > ul > li > ul')
 
-      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('summary > ul > li')
-      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('summary > ul > li > ul > li')
-      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('summary > ul > li > ul > li > ul > li')
+      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('#summary > ul > li')
+      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('#summary > ul > li > ul > li')
+      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li')
 
-      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('summary > ul > li > a')
-      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('summary > ul > li > ul > li > a')
-      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('summary > ul > li > ul > li > ul > li > a')
+      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('#summary > ul > li > a')
+      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('#summary > ul > li > ul > li > a')
+      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > a')
 
 
 
@@ -133,10 +134,10 @@ module.exports = class Summary extends ObservableObject
       #|
       ########################################
 
-      for $el in document.querySelectorAll('summary .active')
+      for $el in document.querySelectorAll('#summary .active')
           $el.classList.remove('active')
 
-      $link = document.querySelector("summary a[href=\"##{id}\"]")
+      $link = document.querySelector("#summary a[href=\"##{id}\"]")
 
       if $link
          $link.classList.add('active')                        # <a>
@@ -149,8 +150,8 @@ module.exports = class Summary extends ObservableObject
 
    scroll: ( id ) =>
 
-      $side = document.querySelector('side')
-      $link = document.querySelector("summary a[href=\"##{id}\"]")
+      $side = document.querySelector('#side')
+      $link = document.querySelector("#summary a[href=\"##{id}\"]")
 
       if $link
 

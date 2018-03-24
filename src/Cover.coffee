@@ -26,12 +26,12 @@ module.exports = class Cover extends ObservableObject
       $wrap = util.element('.wrap')
 
       @renderLogo( $raw, $wrap )
-      @renderTitle( $raw, $wrap )
+      @renderName( $raw, $wrap )
       @renderDescs( $raw, $wrap )
       @renderItems( $raw, $wrap )
       @renderButtons( $raw, $wrap )
 
-      @$dom = util.element('.cover')
+      @$dom = util.element('#cover')
       @$dom.appendChild( $wrap )
 
 
@@ -55,7 +55,7 @@ module.exports = class Cover extends ObservableObject
 
 
 
-   renderTitle: ( $raw, $wrap ) =>
+   renderName: ( $raw, $wrap ) =>
 
       $name = $raw.querySelector('name')
 
@@ -64,14 +64,11 @@ module.exports = class Cover extends ObservableObject
          name    = $name.innerText
          version = $name.getAttribute('version') ? ''
 
-         $title   = util.element('.title')
          $name    = util.element('.name', name)
          $version = util.element('.version', version)
 
-         $title.appendChild($name)
-         $title.appendChild($version)
-
-         $wrap.appendChild($title)
+         $name.appendChild($version)
+         $wrap.appendChild($name)
 
 
 
@@ -128,6 +125,7 @@ module.exports = class Cover extends ObservableObject
 
              if $button.hasAttribute('active')
                 $li.classList.add('active')
+                $a.classList.add('active')
 
              if href = $button.getAttribute('href')
                 $a.setAttribute('href', href)

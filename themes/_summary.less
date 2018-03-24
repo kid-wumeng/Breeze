@@ -1,0 +1,75 @@
+/* ----------------------------------------
+
+   The common { summary } styles.
+
+   #summary
+     ul.lv1
+       li.lv1
+         a.lv1
+         ul.lv2
+           li.lv2
+             a.lv2
+             ul.lv3
+               li.lv3
+                 a.lv3
+
+---------------------------------------- */
+
+@padding: 24px;
+@indent:  20px;
+
+#summary {
+  margin-top: 16px;
+
+  a {
+    display: block;
+    padding: 0 @padding;
+    line-height: 36px;
+    font-family: "PT Sans", @default-font-family;
+    cursor: pointer;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  a.lv1 {
+    padding-left: @padding;
+    font-family: "Futura", @default-font-family;
+    font-weight: 500;
+    font-size: 16px;
+  }
+
+  a.lv2 {
+    padding-left: @padding + @indent;
+    font-weight: 400;
+    font-size: 14px;
+  }
+
+  a.lv3 {
+    padding-left: @padding + @indent * 2;
+    font-weight: 400;
+    font-size: 14px;
+
+    &::before {
+      content: "-";
+      margin-right: 8px;
+    }
+  }
+
+  a:hover {
+    font-weight: 500;
+  }
+
+  a.active {
+    font-weight: 500;
+  }
+
+  ul.lv3 {
+    height: 0;
+    overflow: hidden;
+  }
+  li.lv2.active ul,
+  ul.lv3.active {
+    height: auto;
+  }
+}

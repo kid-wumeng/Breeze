@@ -3,6 +3,7 @@ Article          = require('./Article')
 Cover            = require('./Cover')
 Summary          = require('./Summary')
 Search           = require('./Search')
+util             = require('./util')
 
 
 
@@ -16,9 +17,9 @@ module.exports = class Page extends ObservableObject
 
       @isOverMain = false
 
-      @$root = document.createElement('root')
-      @$side = document.createElement('side')
-      @$main = document.createElement('main')
+      @$root = util.element('#root')
+      @$side = util.element('#side')
+      @$main = util.element('#main')
 
       @path     = @getPath()
       @query    = @getQuery()
@@ -195,7 +196,7 @@ module.exports = class Page extends ObservableObject
 
    render: =>
 
-      $rootCurrent = document.querySelector('body > root')
+      $rootCurrent = document.querySelector('body > #root')
 
       if $rootCurrent
          document.body.replaceChild( @$root, $rootCurrent )

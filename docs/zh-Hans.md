@@ -194,13 +194,13 @@ this is content 2.
 
 
 
-## &lt;params&gt;
+## &lt;api&gt;
 
-API 参数表是写文档时一个很常见的需求，比如方法的调用参数，在线服务的请求参数等。以往我们会有列表或表格的形式来表达它，现在有专门的 &lt;params&gt; 标签来处理。以下是一个参数表示例，而它的书写格式在右面。
+API 参数表是写文档时一个很常见的需求，比如方法的调用参数，在线服务的请求参数等。以往我们会有列表或表格的形式来表达它，现在有专门的 &lt;api&gt; 标签来处理。以下是一个参数表示例，而它的书写格式在右面。
 
 ####
 
-<params>
+<api>
   <item>
     <name>start</name>
     <type>number</type>
@@ -216,12 +216,12 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
     <type>\*, optional</type>
     <desc>The elements to add to the array, beginning at the start index. If you don't specify any elements, splice() will only remove elements from the array.</desc>
   </item>
-</params>
+</api>
 
 
 <example>
 ```html
-<params>
+<api>
   <item>
     <name>start</name>
     <type>number</type>
@@ -237,7 +237,7 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
     <type>\*, optional</type>
     <desc>The elements to add to the array, beginning at the start index. If you don't specify any elements, splice() will only remove elements from the array.</desc>
   </item>
-</params>
+</api>
 ```
 </example>
 
@@ -253,7 +253,7 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
 ####
 
 <jade>
-  params
+  api
     item
       name sha
       type string
@@ -280,7 +280,7 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
 <example>
 ```
 <jade>
-  params
+  api
     item
       name sha
       type string
@@ -316,7 +316,7 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
 
 ### 大结构
 ### 文章 / article
-### 参数 / params
+### 参数 / api
 ### 导航 / summary
 ### 搜索 / search
 

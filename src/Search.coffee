@@ -1,4 +1,5 @@
 ObservableObject = require('./ObservableObject')
+util             = require('./util')
 
 
 
@@ -15,7 +16,7 @@ module.exports = class Search extends ObservableObject
 
       @$search = @$dom
       @$input  = @$search.querySelector('input')
-      @$clear  = @$search.querySelector('clear')
+      @$clear  = @$search.querySelector('.clear')
       @$ul     = @$search.querySelector('ul')
 
 
@@ -90,7 +91,7 @@ module.exports = class Search extends ObservableObject
       #|
       ########################################
 
-      content = $section.querySelector('content').innerText.trim()
+      content = $section.querySelector('.content').innerText.trim()
 
       if from = content.indexOf('\n') + 1
          content = content.slice(from)
@@ -111,13 +112,13 @@ module.exports = class Search extends ObservableObject
       #|
       ########################################
 
-      $dom = document.createElement('search')
+      $dom = util.element('#search')
 
       $dom.innerHTML = """
-         <input-box>
+         <div class=\"input-box\">
             <input autofocus spellcheck="false"/>
-            <clear/>
-         </input-box>
+            <div class=\"clear\"></div>
+         </div>
          <ul></ul>
       """
 
@@ -138,7 +139,7 @@ module.exports = class Search extends ObservableObject
       ########################################
 
       $input = $dom.querySelector('input')
-      $clear = $dom.querySelector('clear')
+      $clear = $dom.querySelector('.clear')
 
       $input.addEventListener('input', @input)
       $clear.addEventListener('click', @clear)
@@ -289,7 +290,7 @@ module.exports = class Search extends ObservableObject
       for result in results
           html += @createResult( result )
 
-      $ul = document.querySelector('search > ul')
+      $ul = @$dom.querySelector('ul')
       $ul.innerHTML = html
 
       @bindResultEvent( $ul )
@@ -306,15 +307,15 @@ module.exports = class Search extends ObservableObject
 
       if content
          return """
-            <li id=\"#{id}\" type="content">
-               <heading>#{heading}</heading>
-               <content>#{content}</content>
+            <li id=\"#{id}\">
+               <div class=\"heading\">#{heading}</div>
+               <div class=\"content\">#{content}</div>
             </li>
          """
       else
          return """
             <li id=\"#{id}\">
-               <heading>#{heading}</heading>
+               <div class=\"heading\">#{heading}</div>
             </li>
          """
 
@@ -324,7 +325,7 @@ module.exports = class Search extends ObservableObject
 
    hideResults: =>
 
-      $ul               = document.querySelector('search > ul')
+      $ul               = @$dom.querySelector('ul')
       $ul.innerHTML     = ''
       $ul.style.display = 'none'
 

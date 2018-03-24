@@ -1,0 +1,50 @@
+/* ----------------------------------------
+
+   The common { api } styles.
+
+   .api
+     .item
+       .left
+         .name
+         .type
+       .right
+         .desc
+
+---------------------------------------- */
+
+.api {
+  .item {
+    line-height: 21px;
+    padding: 20px 0;
+    border-bottom-width: 1px;
+    border-bottom-style: dashed;
+    overflow: hidden;
+
+    &:first-child {
+      border-top-width: 1px;
+      border-top-style: solid;
+    }
+
+    .left {
+      float: left;
+      width: 50%;
+      padding-right: 20px;
+      text-align: right;
+      font-family: "Ubuntu Mono", "Monofur", @default-font-family;
+      .name {
+        font-size: 14px;
+      }
+      .type {
+        font-size: 13px;
+      }
+    }
+
+    .right {
+      float: right;
+      width: 50%;
+      .desc {
+        font-size: 12px;
+      }
+    }
+  }
+}

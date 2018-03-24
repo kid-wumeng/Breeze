@@ -2,6 +2,7 @@ marked           = require('marked')
 Prism            = require('prismjs')
 ObservableObject = require('./ObservableObject')
 Jade             = require('./Jade')
+Api              = require('./Api')
 
 
 
@@ -248,8 +249,8 @@ module.exports = class Article extends ObservableObject
 
       section = """
          <section lv="#{lv}" id=\"#{id}\">
-            <content>#{content}</content>
-            <example>#{example}</example>
+            <div class=\"content\">#{content}</div>
+            <div class=\"example\">#{example}</div>
          </section>
       """
 
@@ -493,27 +494,12 @@ module.exports = class Article extends ObservableObject
 
    wrapParams: =>
 
-      $paramses = @$dom.querySelectorAll('params')
+      $raws = @$dom.querySelectorAll('api')
 
-      for $params in $paramses
-
-          $newParams = document.createElement('params')
-
-          for $item in $params.querySelectorAll('params > item')
-
-              $newItem = document.createElement('item')
-              $left    = document.createElement('left')
-              $right   = document.createElement('right')
-
-              $left.appendChild( $child )  for $child in $item.querySelectorAll('item > :not(desc):not(br)')
-              $right.appendChild( $child ) for $child in $item.querySelectorAll('item > desc')
-
-              $newItem.appendChild( $left )
-              $newItem.appendChild( $right )
-
-              $newParams.appendChild( $newItem )
-
-          $params.parentNode.replaceChild( $newParams, $params )
+      for $raw in $raws
+         api = new Api( $raw )
+         $api = api.render()
+         $raw.parentNode.replaceChild( $api, $raw )
 
 
 

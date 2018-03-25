@@ -45,6 +45,7 @@ module.exports = class Cover extends ObservableObject
       if $logo
 
          src = $logo.getAttribute('src')
+         src = util.formatPath(src)
 
          $logo = util.element('img.logo')
          $logo.setAttribute('src', src)

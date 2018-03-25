@@ -1,50 +1,65 @@
 module.exports = class Jade
 
 ########################################
-#|
-#|  Compile the jade-like to html.
-#|  For example,
-#|
-#|
-#|  item        =>  <item>
-#|    name ...  =>    <name>...</name>
-#|    type ...  =>    <type>...</type>
-#|    desc ...  =>    <desc>...</desc>
-#|              =>  </item>
-#|
+#/
+#/   Be responsible for compiling the jade-like to html.
+#/   For example,
+#/
+#/   ul(start="1")  =>  <ul start="1">
+#/     li ...       =>    <li>...</li>
+#/                  =>  </ul>
+#/
 ########################################
 
 
 
-   constructor: ( jade ) ->
-
-      @jade = jade
-      @html = ''
-
-      @compile(@parseTree(@parseNodes()))
-
-
-
-
-
-   parseNodes: =>
+   constructor: ( text ) ->
 
       ########################################
-      #|
-      #|  @return {object[]} nodes
-      #|
+      #/
+      #/   @params {string} text
+      #/
       ########################################
 
-      nodes = []
-      lines = @jade.split(/\n+/g)
+      @text = text
 
-      for line in lines
 
-         isEmpty = /^\s*$/.test( line )
 
-         if !isEmpty
-            node = @parseNode( line )
-            nodes.push( node )
+
+
+   compile: =>
+
+      ########################################
+      #/
+      #/   @return {string} html
+      #/
+      ########################################
+
+      nodes = @_parseNodes( @text )
+      tree  = @_parseTree( nodes )
+      html  = @_compile( tree )
+
+      return html
+
+
+
+
+
+   _parseNodes: ( text ) =>
+
+      ########################################
+      #/
+      #/   @params {string}   text
+      #/   @return {object[]} nodes - [{ deep, tag, attr, text }]
+      #/
+      ########################################
+
+      lines = text.split(/\n+/g)
+
+      nodes = lines.map ( line ) =>
+         if line.trim() then @_parseNode(line) else null
+
+      nodes = nodes.filter (node) => node
 
       return nodes
 
@@ -52,19 +67,22 @@ module.exports = class Jade
 
 
 
-   parseNode: ( line ) =>
+   _parseNode: ( line ) =>
 
       ########################################
-      #|
-      #|  @params {string} line
-      #|  @return {object} node { deep, tag, attr, text }
-      #|
+      #/
+      #/   @params {string} line
+      #/   @return {object} {number} deep
+      #/                    {string} tag
+      #/                    {string} attr
+      #/                    {string} text
+      #/
       ########################################
 
-      { deep, rest } = @parseDeep( line )
-      { tag,  rest } = @parseTag( rest )
-      { attr, rest } = @parseAttr( rest )
-      { text, rest } = @parseText( rest )
+      { deep, rest } = @_parseDeep( line )
+      { tag,  rest } = @_parseTag( rest )
+      { attr, rest } = @_parseAttr( rest )
+      { text, rest } = @_parseText( rest )
 
       return { deep, tag, attr, text }
 
@@ -72,21 +90,20 @@ module.exports = class Jade
 
 
 
-   parseDeep: ( line ) =>
+   _parseDeep: ( line ) =>
 
       ########################################
-      #|
-      #|  @params {string} line
-      #|  @return {object} data
-      #|          {number} data.deep
-      #|          {string} data.rest
-      #|
+      #/
+      #/   @params {string} line
+      #/   @return {object} {number} deep
+      #/                    {string} rest
+      #/
       ########################################
 
       deep = 0
-      deepReg = /^\s+/
+      reg  = /^\s+/
 
-      rest = line.replace deepReg, ( match ) =>
+      rest = line.replace reg, ( match ) =>
          deep = match.length
          return ''
 
@@ -96,23 +113,22 @@ module.exports = class Jade
 
 
 
-   parseTag: ( rest ) =>
+   _parseTag: ( rest ) =>
 
       ########################################
-      #|
-      #|  @params {string} rest
-      #|  @return {object} data
-      #|          {string} data.tag
-      #|          {string} data.rest
-      #|
-      #|  @errors when parse failed.
-      #|
+      #/
+      #/   @params {string} rest
+      #/   @return {object} {string} tag
+      #/                    {string} rest
+      #/
+      #/   @errors when parse failed.
+      #/
       ########################################
 
-      tag    = ''
-      tagReg = /^([A-Za-z0-9_\-]+)\s*/
+      tag = ''
+      reg = /^([A-Za-z0-9_\-]+)\s*/
 
-      rest = rest.replace tagReg, ( _, match ) =>
+      rest = rest.replace reg, ( _, match ) =>
          tag = match
          return ''
 
@@ -125,21 +141,20 @@ module.exports = class Jade
 
 
 
-   parseAttr: ( rest ) =>
+   _parseAttr: ( rest ) =>
 
       ########################################
-      #|
-      #|  @params {string} rest
-      #|  @return {object} data
-      #|          {string} data.attr
-      #|          {string} data.rest
-      #|
+      #/
+      #/   @params {string} rest
+      #/   @return {object} {string} attr
+      #/                    {string} rest
+      #/
       ########################################
 
-      attr    = ''
-      attrReg = /^\(([^)]*)\)/
+      attr = ''
+      reg  = /^\(([^)]*)\)/
 
-      rest = rest.replace attrReg, ( _, match ) =>
+      rest = rest.replace reg, ( _, match ) =>
          attr = match.trim()
          return ''
 
@@ -148,15 +163,15 @@ module.exports = class Jade
 
 
 
-    parseText: ( rest ) =>
+
+    _parseText: ( rest ) =>
 
       ########################################
-      #|
-      #|  @params {string} rest
-      #|  @return {object} data
-      #|          {string} data.text
-      #|          {string} data.rest
-      #|
+      #/
+      #/   @params {string} rest
+      #/   @return {object} {string} text
+      #/                    {string} rest
+      #/
       ########################################
 
       text = rest.trim()
@@ -168,13 +183,13 @@ module.exports = class Jade
 
 
 
-   parseTree: ( nodes ) =>
+   _parseTree: ( nodes ) =>
 
       ########################################
-      #|
-      #|  @params {object[]} nodes
-      #|  @return {object}   tree
-      #|
+      #/
+      #/   @params {object[]} nodes
+      #/   @return {object}   tree
+      #/
       ########################################
 
       root = {}
@@ -210,31 +225,23 @@ module.exports = class Jade
 
 
 
-   compile: ( tree ) =>
+   _compile: ( node ) =>
 
       ########################################
-      #|
-      #|  @params {object} tree
-      #|  @return {string} html
-      #|
+      #/
+      #/   @params {object} node - { tag, attr, text, children }
+      #/   @return {string} html
+      #/
       ########################################
 
-      each = ( node ) =>
+      { tag, attr, text, children } = node
 
-         { tag, attr, text, children } = node
+      start = if tag then "<#{tag} #{attr}>" else ''
+      end   = if tag then "</#{tag}>"        else ''
 
-         if children
+      if children
+         html = children.map(@_compile).join('')
+         return start + html + end
 
-            if tag
-               @html += "<#{tag} #{attr}>\n"
-
-            for child in children
-               each(child)
-
-            if tag
-               @html += "</#{tag}>\n"
-
-         else
-            @html += "<#{tag} #{attr}>#{text}</#{tag}>\n"
-
-      each( tree )
+      else
+         return start + text + end

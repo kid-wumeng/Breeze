@@ -1,3 +1,46 @@
+exports.isUrl = ( href ) =>
+
+   return /^(?:http)|(?:https)|(?:ftp):\/\//.test( href )
+
+
+
+
+
+exports.formatPath = ( path = '' ) =>
+
+   if !exports.isUrl( path )
+
+      if Breeze?.base
+         path = Breeze.base + '/' + path
+
+      if path
+         path = path.replace(/\/{2,}/g, '/')
+
+      if path[0] is '/'
+         path = path.slice(1)
+
+   return path
+
+
+
+
+
+exports.ajax = ( path, done ) =>
+
+   xhr = new XMLHttpRequest
+
+   xhr.open('GET', path, true)
+   xhr.send(null)
+
+   xhr.onreadystatechange = =>
+      if xhr.readyState is 4
+         if xhr.status is 200
+            done( xhr.responseText )
+
+
+
+
+
 exports.element = ( name = 'div', innerHTML = '' ) =>
 
    hasID    = /#/.test(name)

@@ -1,12 +1,45 @@
 Page = require('./Page')
+util = require('./util')
 
 
 
-pages = {}
+navigator = ''
+pages     = {}
+
 
 
 
 load = =>
+   loadNavigator =>
+      loadPage()
+
+
+
+
+loadNavigator = ( callback ) =>
+
+   if Breeze?.navigator
+
+      if Breeze.navigator is true
+         path = 'NAVIGATOR.md'
+      else
+         path = Breeze.navigator
+
+      path = util.formatPath(path)
+
+      util.ajax path, ( markdown ) =>
+         navigator = markdown
+         callback()
+
+   else
+      callback()
+
+
+
+
+
+
+loadPage = =>
 
    href = location.href
 
@@ -15,16 +48,18 @@ load = =>
       page.render()
 
    else
-      page = new Page
+      page = new Page( navigator )
       pages[ href ] = page
 
       page.on 'reload', ( hash ) =>
          hash = '#/' + hash
          hash = hash.replace(/\/+/, '/')
          history.pushState(null, null, hash)
-         load()
+         loadPage()
+
+
 
 
 
 window.addEventListener('load', load)
-window.addEventListener('hashchange', load)
+window.addEventListener('hashchange', loadPage)

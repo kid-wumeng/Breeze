@@ -1,6 +1,5 @@
 <cover>
-  <logo src="docs/logo.svg"/>
-  <!-- <name version="0.4.2">Breeze</name> -->
+  <logo src="logo.svg"/>
   <desc>A dead easy and beautiful API documentation site generator.</desc>
 
   <item>no built html files</item>

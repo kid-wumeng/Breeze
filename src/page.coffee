@@ -1,6 +1,8 @@
 ObservableObject = require('./ObservableObject')
-Article          = require('./Article')
+Markdown         = require('./Markdown')
+Navigator        = require('./Navigator')
 Cover            = require('./Cover')
+Article          = require('./Article')
 Summary          = require('./Summary')
 Search           = require('./Search')
 util             = require('./util')
@@ -11,7 +13,7 @@ module.exports = class Page extends ObservableObject
 
 
 
-   constructor: ->
+   constructor: ( navigator ) ->
 
       super()
 
@@ -25,34 +27,43 @@ module.exports = class Page extends ObservableObject
       @query    = @getQuery()
       @filePath = @getFilePath()
 
-      @load ( markdown ) =>
+      util.ajax @filePath, ( article ) =>
 
-         @markdown = markdown
-         @article  = new Article(markdown)
-         @cover    = new Cover(@article.cover)
-         @summary  = new Summary(@article.summary)
-         @search   = new Search(@article.$sections)
+         text = article
+         markdown = new Markdown(text)
+         { nav, cover, summary, article } = markdown.parse()
 
-         @article.on('scroll', ( id ) => if @isOverMain then @rehash( id ))
-         @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
-         @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
+         console.log nav
+         console.log cover
+         console.log summary
+         console.log article
 
-         @cover.on('select', @rehash)
-
-         @summary.on('select', @rehash)
-         @summary.on('select', @summary.active)
-         @summary.on('select', @article.scroll)
-
-         @search.on('select',  @rehash)
-         @search.on('select',  @article.scroll)
-
-         @ready()
-         @render()
-
-         if @query.id
-            @article.scroll(@query.id)
-            @summary.scroll(@query.id)
-            @summary.active(@query.id)
+         # @navigator = new Navigator(navigator)
+         # @article   = new Article(article)
+         # @cover     = new Cover(@article.cover)
+         # @summary   = new Summary(@article.summary)
+         # @search    = new Search(@article.$sections)
+         #
+         # @article.on('scroll', ( id ) => if @isOverMain then @rehash( id ))
+         # @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
+         # @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
+         #
+         # @cover.on('select', @rehash)
+         #
+         # @summary.on('select', @rehash)
+         # @summary.on('select', @summary.active)
+         # @summary.on('select', @article.scroll)
+         #
+         # @search.on('select',  @rehash)
+         # @search.on('select',  @article.scroll)
+         #
+         # @ready()
+         # @render()
+         #
+         # if @query.id
+         #    @article.scroll(@query.id)
+         #    @summary.scroll(@query.id)
+         #    @summary.active(@query.id)
 
 
 
@@ -130,14 +141,7 @@ module.exports = class Page extends ObservableObject
       if path
          path = path.slice(1)  # remove '#'
 
-      if Breeze.basePath
-         path = Breeze.basePath + '/' + path
-
-      if path
-         path = path.replace(/\/{2,}/g, '/')
-
-      if path[0] is '/'
-         path = path.slice(1)
+      path = util.formatPath( path )
 
       if path is ''
          path = 'README'
@@ -151,34 +155,13 @@ module.exports = class Page extends ObservableObject
 
 
 
-   load: ( done ) =>
-
-      ########################################
-      #|
-      #|  @params {function} done
-      #|
-      ########################################
-
-      xhr = new XMLHttpRequest
-
-      xhr.open('GET', @filePath, true)
-      xhr.send(null)
-
-      xhr.onreadystatechange = =>
-         if xhr.readyState is 4
-            if xhr.status is 200
-               done( xhr.responseText )
-
-
-
-
-
    ready: =>
 
       @$main.appendChild( @article.$dom )
       @$side.appendChild( @search.$dom )
       @$side.appendChild( @summary.$dom )
 
+      @$root.appendChild(@navigator.render()) if @navigator.exist()
       @$root.appendChild( @cover.$dom ) if @cover.html and !@query.id
       @$root.appendChild( @$side )
       @$root.appendChild( @$main )
@@ -188,7 +171,7 @@ module.exports = class Page extends ObservableObject
 
       @$main.style.minHeight = window.innerHeight + 'px'
 
-      @formatLinks(@$root)
+      @bindLinkEvent(@$root)
 
 
 
@@ -256,7 +239,7 @@ module.exports = class Page extends ObservableObject
 
 
 
-   formatLinks: ( $root ) =>
+   bindLinkEvent: ( $root ) =>
 
       $links = $root.querySelectorAll('a')
 

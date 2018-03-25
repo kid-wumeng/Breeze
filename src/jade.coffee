@@ -1,15 +1,15 @@
 module.exports = class Jade
 
-########################################
-#/
-#/   Be responsible for compiling the jade-like to html.
-#/   For example,
-#/
-#/   ul(start="1")  =>  <ul start="1">
-#/     li ...       =>    <li>...</li>
-#/                  =>  </ul>
-#/
-########################################
+   ########################################
+   #/
+   #/   Be responsible for compiling the jade-like to html.
+   #/   For example,
+   #/
+   #/   ul(start="1")  =>  <ul start="1">
+   #/     li ...       =>    <li>...</li>
+   #/                  =>  </ul>
+   #/
+   ########################################
 
 
 

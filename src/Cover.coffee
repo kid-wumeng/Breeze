@@ -1,20 +1,26 @@
-ObservableObject = require('./ObservableObject')
-util             = require('./util')
+util = require('./util')
 
 
 
-module.exports = class Cover extends ObservableObject
+module.exports = class Cover
+
+   ########################################
+   #/
+   #/   Be responsible for rendering cover's dom.
+   #/
+   ########################################
 
 
 
    constructor: ( html ) ->
 
-      super()
+      ########################################
+      #/
+      #/   @params {string} html
+      #/
+      ########################################
 
       @html = html
-      @$dom = null
-
-      @render()
 
 
 
@@ -22,98 +28,231 @@ module.exports = class Cover extends ObservableObject
 
    render: =>
 
-      $raw  = util.element('cover', @html)
-      $wrap = util.element('.wrap')
+      $model = util.createElement('cover', @html)
 
-      @renderLogo( $raw, $wrap )
-      @renderName( $raw, $wrap )
-      @renderDescs( $raw, $wrap )
-      @renderItems( $raw, $wrap )
-      @renderButtons( $raw, $wrap )
+      $logo  = $model.querySelector('logo')
+      $name  = $model.querySelector('name')
+      $descs = $model.querySelectorAll('desc')
+      $items = $model.querySelectorAll('item')
+      $links = $model.querySelectorAll('link')
 
-      @$dom = util.element('#cover')
-      @$dom.appendChild( $wrap )
+      $logo  = @_renderLogo($logo)
+      $name  = @_renderName($name)
+      $descs = @_renderDescs($descs)
+      $items = @_renderItems($items)
+      $links = @_renderLinks($links)
+
+      console.log $links
 
 
 
 
 
-   renderLogo: ( $raw, $wrap ) =>
+      $wrap = util.createElement('.wrap')
 
-      $logo = $raw.querySelector('logo')
+
+      # @renderLogo( $model, $wrap )
+      # @renderName( $model, $wrap )
+      # @renderDescs( $model, $wrap )
+      # @renderItems( $model, $wrap )
+      # @renderButtons( $model, $wrap )
+      #
+      # @$dom = util.element('#cover')
+      # @$dom.appendChild( $wrap )
+
+
+
+
+
+   _renderLogo: ( $logo ) =>
+
+      ########################################
+      #/
+      #/   @params {HTMLElement} $logo
+      #/   @return {HTMLElement} $logo
+      #/
+      ########################################
 
       if $logo
 
          src = $logo.getAttribute('src')
          src = util.formatPath(src)
 
-         $logo = util.element('img.logo')
+         $logo = util.createElement('img.logo')
          $logo.setAttribute('src', src)
 
-         $wrap.appendChild($logo)
+      return $logo
 
 
 
 
 
-   renderName: ( $raw, $wrap ) =>
+   _renderName: ( $name ) =>
 
-      $name = $raw.querySelector('name')
+      ########################################
+      #/
+      #/   @params {HTMLElement} $name
+      #/   @return {HTMLElement} $name
+      #/
+      ########################################
 
       if $name
 
          name    = $name.innerText
          version = $name.getAttribute('version') ? ''
 
-         $name    = util.element('.name', name)
-         $version = util.element('.version', version)
+         $name    = util.createElement('.name', name)
+         $version = util.createElement('.version', version)
 
          $name.appendChild($version)
-         $wrap.appendChild($name)
+
+      return $name
 
 
 
 
 
-   renderDescs: ( $raw, $wrap ) =>
+   _renderDescs: ( $descs ) =>
 
-      $descs = $raw.querySelectorAll('desc')
+      ########################################
+      #/
+      #/   @params {NodeList}    $descs
+      #/   @return {HTMLElement} $descs
+      #/
+      ########################################
 
       if $descs.length
 
-         $ul = util.element('ul.descs')
+         $ul = util.createElement('ul.descs')
 
          for $desc in $descs
-             $li = util.element('li', $desc.innerText)
+             $li = @_renderDesc($desc)
              $ul.appendChild($li)
 
-         $wrap.appendChild($ul)
+         return $ul
+
+      else
+         return null
 
 
 
 
 
-   renderItems: ( $raw, $wrap ) =>
+   _renderDesc: ( $desc ) =>
 
-      $items = $raw.querySelectorAll('item')
+      ########################################
+      #/
+      #/   @params {HTMLElement} $desc
+      #/   @return {HTMLElement} $desc
+      #/
+      ########################################
+
+      return util.createElement('li', $desc.innerText)
+
+
+
+
+
+   _renderItems: ( $items ) =>
+
+      ########################################
+      #/
+      #/   @params {NodeList}    $items
+      #/   @return {HTMLElement} $items
+      #/
+      ########################################
 
       if $items.length
 
-         $ul = util.element('ul.items')
+         $ul = util.createElement('ul.items')
 
          for $item in $items
-             $li = util.element('li', $item.innerText)
+             $li = @_renderItem($item)
              $ul.appendChild($li)
 
-         $wrap.appendChild($ul)
+         return $ul
+
+      else
+         return null
 
 
 
 
 
-   renderButtons: ( $raw, $wrap ) =>
+   _renderItem: ( $item ) =>
 
-      $buttons = $raw.querySelectorAll('button')
+      ########################################
+      #/
+      #/   @params {HTMLElement} $item
+      #/   @return {HTMLElement} $item
+      #/
+      ########################################
+
+      return util.createElement('li', $item.innerText)
+
+
+
+
+
+   _renderLinks: ( $links ) =>
+
+      ########################################
+      #/
+      #/   @params {NodeList}    $links
+      #/   @return {HTMLElement} $links
+      #/
+      ########################################
+
+      if $links.length
+
+         $ul = util.createElement('ul.links')
+
+         for $link in $links
+             $li = @_renderLink($link)
+             $ul.appendChild($li)
+
+         return $ul
+
+      else
+         return null
+
+
+
+
+
+   _renderLink: ( $link ) =>
+
+      ########################################
+      #/
+      #/   @params {HTMLElement} $link
+      #/   @return {HTMLElement} $link
+      #/
+      ########################################
+
+      $li = util.createElement('li')
+      $a  = util.createElement('a', $link.innerText)
+
+      if $link.hasAttribute('active')
+         $li.classList.add('active')
+         $a.classList.add('active')
+
+      if href = $link.getAttribute('href')
+         $a.setAttribute('href', href)
+         # $a.addEventListener('click', @onClickButton)
+
+      $li.appendChild($a)
+
+      return $li
+
+
+
+
+
+
+
+   renderButtons: ( $model, $wrap ) =>
+
+      $buttons = $model.querySelectorAll('button')
 
       if $buttons.length
 

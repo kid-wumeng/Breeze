@@ -28,19 +28,17 @@ module.exports = class Page extends ObservableObject
       @filePath = @getFilePath()
 
       util.ajax @filePath, ( article ) =>
+         console.log 222
 
          text = article
          markdown = new Markdown(text)
          { nav, cover, summary, article } = markdown.parse()
 
-         console.log nav
-         console.log cover
-         console.log summary
-         console.log article
+         cover = new Cover(cover)
+         cover.render()
 
          # @navigator = new Navigator(navigator)
          # @article   = new Article(article)
-         # @cover     = new Cover(@article.cover)
          # @summary   = new Summary(@article.summary)
          # @search    = new Search(@article.$sections)
          #

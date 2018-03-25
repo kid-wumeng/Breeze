@@ -1,11 +1,10 @@
-Page = require('./Page')
 util = require('./util')
+Page = require('./Page')
 
 
 
 navigator = ''
 pages     = {}
-
 
 
 

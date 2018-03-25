@@ -5,12 +5,12 @@ Jade   = require('./Jade')
 
 module.exports = class Markdown
 
-########################################
-#/
-#/   Be responsible for compiling text to markdown
-#/   and parsing some components, such as <nav>, <cover>, <summary> and so on.
-#/
-########################################
+   ########################################
+   #/
+   #/   Be responsible for compiling text to markdown
+   #/   and parsing some components, such as <nav>, <cover>, <summary> and so on.
+   #/
+   ########################################
 
 
 

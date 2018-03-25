@@ -16,7 +16,7 @@ export default
    },
 
    plugins: [
-      // uglify(),
+      uglify(),
       coffee2(),
       resolve(),
       commonjs({

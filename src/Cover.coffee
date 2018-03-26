@@ -12,6 +12,8 @@ module.exports = class Cover
 
 
 
+
+
    constructor: ( html ) ->
 
       ########################################
@@ -28,37 +30,31 @@ module.exports = class Cover
 
    render: =>
 
-      $model = util.createElement('cover', @html)
+      $model = util.createElement('model', @html)
+      $cover = util.createElement('#cover')
+      $wrap  = util.createElement('.wrap')
 
-      $logo  = $model.querySelector('logo')
-      $name  = $model.querySelector('name')
-      $descs = $model.querySelectorAll('desc')
-      $items = $model.querySelectorAll('item')
-      $links = $model.querySelectorAll('link')
+      $logo    = $model.querySelector('logo')
+      $name    = $model.querySelector('name')
+      $descs   = $model.querySelectorAll('desc')
+      $items   = $model.querySelectorAll('item')
+      $buttons = $model.querySelectorAll('button')
 
-      $logo  = @_renderLogo($logo)
-      $name  = @_renderName($name)
-      $descs = @_renderDescs($descs)
-      $items = @_renderItems($items)
-      $links = @_renderLinks($links)
+      $logo    = @_renderLogo( $logo )
+      $name    = @_renderName( $name )
+      $descs   = @_renderDescs( $descs )
+      $items   = @_renderItems( $items )
+      $buttons = @_renderButtons( $buttons )
 
-      console.log $links
+      $wrap.appendChild( $logo )  if $logo
+      $wrap.appendChild( $name )  if $name
+      $wrap.appendChild( $descs ) if $descs
+      $wrap.appendChild( $items ) if $items
+      $wrap.appendChild( $buttons ) if $buttons
 
+      $cover.appendChild( $wrap )
 
-
-
-
-      $wrap = util.createElement('.wrap')
-
-
-      # @renderLogo( $model, $wrap )
-      # @renderName( $model, $wrap )
-      # @renderDescs( $model, $wrap )
-      # @renderItems( $model, $wrap )
-      # @renderButtons( $model, $wrap )
-      #
-      # @$dom = util.element('#cover')
-      # @$dom.appendChild( $wrap )
+      return $cover
 
 
 
@@ -194,21 +190,21 @@ module.exports = class Cover
 
 
 
-   _renderLinks: ( $links ) =>
+   _renderButtons: ( $buttons ) =>
 
       ########################################
       #/
-      #/   @params {NodeList}    $links
-      #/   @return {HTMLElement} $links
+      #/   @params {NodeList}    $buttons
+      #/   @return {HTMLElement} $buttons
       #/
       ########################################
 
-      if $links.length
+      if $buttons.length
 
-         $ul = util.createElement('ul.links')
+         $ul = util.createElement('ul.buttons')
 
-         for $link in $links
-             $li = @_renderLink($link)
+         for $button in $buttons
+             $li = @_renderButton($button)
              $ul.appendChild($li)
 
          return $ul
@@ -220,25 +216,24 @@ module.exports = class Cover
 
 
 
-   _renderLink: ( $link ) =>
+   _renderButton: ( $button ) =>
 
       ########################################
       #/
-      #/   @params {HTMLElement} $link
-      #/   @return {HTMLElement} $link
+      #/   @params {HTMLElement} $button
+      #/   @return {HTMLElement} $button
       #/
       ########################################
 
       $li = util.createElement('li')
-      $a  = util.createElement('a', $link.innerText)
+      $a  = util.createElement('a', $button.innerText)
 
-      if $link.hasAttribute('active')
+      if $button.hasAttribute('active')
          $li.classList.add('active')
          $a.classList.add('active')
 
-      if href = $link.getAttribute('href')
+      if href = $button.getAttribute('href')
          $a.setAttribute('href', href)
-         # $a.addEventListener('click', @onClickButton)
 
       $li.appendChild($a)
 
@@ -248,41 +243,10 @@ module.exports = class Cover
 
 
 
-
-
-   renderButtons: ( $model, $wrap ) =>
-
-      $buttons = $model.querySelectorAll('button')
-
-      if $buttons.length
-
-         $ul = util.element('ul.buttons')
-
-         for $button in $buttons
-
-             $li = util.element('li')
-             $a  = util.element('a', $button.innerText)
-
-             if $button.hasAttribute('active')
-                $li.classList.add('active')
-                $a.classList.add('active')
-
-             if href = $button.getAttribute('href')
-                $a.setAttribute('href', href)
-                $a.addEventListener('click', @onClickButton)
-
-             $li.appendChild($a)
-             $ul.appendChild($li)
-
-         $wrap.appendChild($ul)
-
-
-
-
-
-   onClickButton: ( e ) =>
+   _onClickButton: ( e ) =>
 
       href = e.target.getAttribute('href')
 
       if href[0] is '#'
+
          @$dom.style.display = 'none'

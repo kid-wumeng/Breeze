@@ -33,8 +33,8 @@
   <item>轻量 ( ~15kB gzipped )</item>
   <item>多主题，易扩展</item>
 
-  <link href="https://github.com/kid-wumeng/Breeze">Github</link>
-  <link active href="#">阅读文档</link>
+  <button href="https://github.com/kid-wumeng/Breeze">Github</button>
+  <button active href="#">阅读文档</button>
 </cover>
 
 

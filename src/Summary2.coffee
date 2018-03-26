@@ -1,21 +1,28 @@
-marked = require('marked')
-util   = require('./util')
+marked           = require('marked')
+ObservableObject = require('./ObservableObject')
+util             = require('./util')
 
 
 
-module.exports = class Summary
-
-   ########################################
-   #/
-   #/   Be responsible for rendering summary's dom.
-   #/
-   ########################################
+module.exports = class Summary extends ObservableObject
 
 
 
-   constructor: ( html ) ->
+   constructor: ( markdown ) ->
 
-      @html = html
+      super()
+
+      @markdown = markdown
+      @html     = @compile(@markdown)
+      @$dom     = @render(@html)
+
+
+
+
+
+   compile: ( markdown ) =>
+
+      return marked( markdown )
 
 
 

@@ -1,5 +1,9 @@
 util = require('./util')
 Page = require('./Page')
+DOM  = require('./DOM.web')
+
+
+window.DOM = DOM
 
 
 

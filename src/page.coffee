@@ -2,8 +2,8 @@ ObservableObject = require('./ObservableObject')
 Markdown         = require('./Markdown')
 Navigator        = require('./Navigator')
 Cover            = require('./Cover')
-Article          = require('./Article')
 Summary          = require('./Summary')
+Article          = require('./Article')
 Search           = require('./Search')
 util             = require('./util')
 
@@ -27,15 +27,19 @@ module.exports = class Page extends ObservableObject
       @query    = @getQuery()
       @filePath = @getFilePath()
 
-      util.ajax @filePath, ( article ) =>
-         console.log 222
+      util.ajax @filePath, ( text ) =>
 
-         text = article
-         markdown = new Markdown(text)
+         markdown = new Markdown( text )
          { nav, cover, summary, article } = markdown.parse()
 
-         cover = new Cover(cover)
-         cover.render()
+         cover = new Cover( cover )
+
+
+         cover.format()
+
+         # @render(cover)
+
+
 
          # @navigator = new Navigator(navigator)
          # @article   = new Article(article)
@@ -155,34 +159,38 @@ module.exports = class Page extends ObservableObject
 
    ready: =>
 
-      @$main.appendChild( @article.$dom )
-      @$side.appendChild( @search.$dom )
-      @$side.appendChild( @summary.$dom )
-
-      @$root.appendChild(@navigator.render()) if @navigator.exist()
-      @$root.appendChild( @cover.$dom ) if @cover.html and !@query.id
-      @$root.appendChild( @$side )
-      @$root.appendChild( @$main )
-
-      @$main.addEventListener('mouseenter', => @isOverMain = true)
-      @$main.addEventListener('mouseleave', => @isOverMain = false)
-
-      @$main.style.minHeight = window.innerHeight + 'px'
-
-      @bindLinkEvent(@$root)
-
-
+      # @$main.appendChild( @article.$dom )
+      # @$side.appendChild( @search.$dom )
+      # @$side.appendChild( @summary.$dom )
+      #
+      # @$root.appendChild(@navigator.render()) if @navigator.exist()
+      # @$root.appendChild( @cover.$dom ) if @cover.html and !@query.id
+      # @$root.appendChild( @$side )
+      # @$root.appendChild( @$main )
+      #
+      # @$main.addEventListener('mouseenter', => @isOverMain = true)
+      # @$main.addEventListener('mouseleave', => @isOverMain = false)
+      #
+      # @$main.style.minHeight = window.innerHeight + 'px'
+      #
+      # @bindLinkEvent(@$root)
 
 
 
-   render: =>
+
+
+   render: ( cover ) =>
+
+      $root = util.createElement('#root')
+
+      $root.appendChild(cover.render())
 
       $rootCurrent = document.querySelector('body > #root')
 
       if $rootCurrent
-         document.body.replaceChild( @$root, $rootCurrent )
+         document.body.replaceChild( $root, $rootCurrent )
       else
-         document.body.appendChild( @$root )
+         document.body.appendChild( $root )
 
 
 

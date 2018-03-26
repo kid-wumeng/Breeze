@@ -1,6 +1,8 @@
-marked = require('marked')
-Prism  = require('prismjs')
-Api    = require('./Api')
+marked           = require('marked')
+Prism            = require('prismjs')
+ObservableObject = require('./ObservableObject')
+Jade             = require('./Jade')
+Api              = require('./Api')
 
 
 
@@ -18,11 +20,13 @@ marked.setOptions({
 
 
 
-module.exports = class Article
+module.exports = class Article extends ObservableObject
 
 
 
    constructor: ( markdown ) ->
+
+      super()
 
       @markdown  = markdown
       @html      = ''
@@ -34,14 +38,18 @@ module.exports = class Article
       @summary   = ''
       @lastID    = ''
 
-      compile( @markdown )
+      @compile()
+      @render()
+
+      @$sections = @$dom.querySelectorAll('article > section')
+
+      @createSummary(@sections)
 
 
 
 
 
-
-   compile: ( markdown ) =>
+   compile: =>
 
       ########################################
       #|
@@ -49,19 +57,65 @@ module.exports = class Article
       #|
       ########################################
 
-      console.log markdown
+      markdown = @markdown
 
-      # markdown = @markdown
-      #
-      # sections            = @parseSections(markdown)
-      #
-      # @trimFirst(sections)
-      #
-      # { html, sections } = @compileSections(sections)
-      #
-      # @html     = html
-      # @sections = sections
-      # @cover    = cover
+      markdown            = @parseJade(markdown)
+      { cover, markdown } = @parseCover(markdown)
+      sections            = @parseSections(markdown)
+
+      @trimFirst(sections)
+
+      { html, sections } = @compileSections(sections)
+
+      @html     = html
+      @sections = sections
+      @cover    = cover
+
+
+
+
+
+   parseJade: ( markdown ) =>
+
+      ########################################
+      #|
+      #|  @params {string} markdown
+      #|  @return {string} markdown
+      #|
+      #|  Parse and replace the jade-block to html.
+      #|
+      ########################################
+
+      jadeReg = /<jade>((?:.|\n)*?)<\/jade>/g
+
+      return markdown.replace jadeReg, ( _, inner ) =>
+         jade = new Jade( inner )
+         return jade.html
+
+
+
+
+
+   parseCover: ( markdown ) =>
+
+      ########################################
+      #|
+      #|  @params {string} markdown
+      #|  @return {string} cover
+      #|
+      #|  Parse cover html.
+      #|
+      ########################################
+
+      coverReg = /<cover>((?:.|\n)*?)<\/cover>/g
+
+      cover = ''
+
+      markdown = markdown.replace coverReg, ( _, inner ) =>
+         cover = inner
+         return ''
+
+      return { cover, markdown }
 
 
 

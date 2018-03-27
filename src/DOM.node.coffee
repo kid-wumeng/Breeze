@@ -219,5 +219,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      @root.append(child.root)
+      if child
+         @root.append(child.root)
+         
       return @

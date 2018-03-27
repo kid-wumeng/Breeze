@@ -13,28 +13,37 @@ module.exports = class Page extends ObservableObject
 
 
 
-   constructor: ( navigator ) ->
+   constructor: ( text, common = '' ) ->
 
       super()
 
-      @isOverMain = false
+      @text = text + common
 
-      @$root = util.element('#root')
-      @$side = util.element('#side')
-      @$main = util.element('#main')
 
-      @path     = @getPath()
-      @query    = @getQuery()
-      @filePath = @getFilePath()
-
-      util.ajax @filePath, ( text ) =>
-
-         markdown = new Markdown( text )
-         { nav, cover, summary, article } = markdown.parse()
-
-         cover = new Cover( cover )
-
-         @render(cover)
+      # super()
+      #
+      # @isOverMain = false
+      #
+      # @$root = util.element('#root')
+      # @$side = util.element('#side')
+      # @$main = util.element('#main')
+      #
+      # @path     = @getPath()
+      # @query    = @getQuery()
+      # @filePath = @getFilePath()
+      #
+      # util.ajax @filePath, ( text ) =>
+      #
+      #    markdown = new Markdown( text )
+      #
+      #    { nav, cover, summary, article } = markdown.parse()
+      #
+      #    cover   = new Cover( cover )
+      #    article = new Article( article )
+      #
+      #    article.parse()
+      #
+      #    @_render(cover)
 
 
 
@@ -68,221 +77,68 @@ module.exports = class Page extends ObservableObject
 
 
 
-   getPath: =>
+   compile: =>
+
+      markdown = new Markdown( @text )
+
+      { nav, cover, summary, article } = markdown.parse()
+
+      cover   = new Cover( cover )
+      article = new Article( article )
+
+
+      page = util.dom('#page')
+      page.append(cover.render())
+
+      return page.htmlSelf()
+
+
+
+
+
+   render: ( router ) =>
+
+      html = @compile()
+      page = util.dom( html )
+
+      @_bindLinkEvent( router, page )
+
+      return page
+
+
+
+
+
+   _bindLinkEvent: ( router, page ) =>
 
       ########################################
-      #|
-      #|  @return {string} path
-      #|
-      #|  localhost:8080/#/api?id=abc  =>  /api
-      #|
+      #/
+      #/   @params {DOM} page
+      #/
       ########################################
 
-      hash = location.hash
+      links = page.findAll('a')
 
-      if hash
-         path = hash.slice(1)
-         path = path.replace(/\?.*$/, '')
+      for link in links
+          link.on('click', @_redirect.bind(null, router))
+
+
+
+
+
+   _redirect: ( router, link ) =>
+
+      ########################################
+      #/
+      #/   @params {Router}     router
+      #/   @params {DOM}        link
+      #/   @params {MouseEvent} e
+      #/
+      ########################################
+
+      href = link.attr('href')
+
+      if util.isUrl( href )
+         window.open( href, '_blank' )
       else
-         path = '/'
-
-      return path
-
-
-
-
-
-   getQuery: =>
-
-      ########################################
-      #|
-      #|  @return {string} path
-      #|
-      #|  localhost:8080/#/api?id=abc  =>  { id: 'abc' }
-      #|
-      ########################################
-
-      query = {}
-      hash  = decodeURI( location.hash )
-      index = hash.indexOf('?')
-
-      if index > -1
-
-         string = hash.slice(index + 1)
-         array  = string.split('&')
-
-         for item in array
-             item  = item.split('=')
-             name  = item[0]
-             value = item[1] ? true
-
-             query[name] = value
-
-      return query
-
-
-
-
-
-   getFilePath: =>
-
-      ########################################
-      #|
-      #|  @return {string} path
-      #|
-      #|  localhost:8080/#/api?id=abc   =>  api.md
-      #|  localhost:8080/#/api/?id=abc  =>  api/README.md
-      #|
-      ########################################
-
-      path = @getPath()
-
-      if path
-         path = path.slice(1)  # remove '#'
-
-      path = util.formatPath( path )
-
-      if path is ''
-         path = 'README'
-
-      if path[path.length - 1] is '/'
-         path += 'README'
-
-      return path + '.md'
-
-
-
-
-
-   ready: =>
-
-      # @$main.appendChild( @article.$dom )
-      # @$side.appendChild( @search.$dom )
-      # @$side.appendChild( @summary.$dom )
-      #
-      # @$root.appendChild(@navigator.render()) if @navigator.exist()
-      # @$root.appendChild( @cover.$dom ) if @cover.html and !@query.id
-      # @$root.appendChild( @$side )
-      # @$root.appendChild( @$main )
-      #
-      # @$main.addEventListener('mouseenter', => @isOverMain = true)
-      # @$main.addEventListener('mouseleave', => @isOverMain = false)
-      #
-      # @$main.style.minHeight = window.innerHeight + 'px'
-      #
-      # @bindLinkEvent(@$root)
-
-
-
-
-
-   render: ( cover ) =>
-
-      $root = util.element('#root')
-      $root.appendChild(cover.render())
-
-      $rootCurrent = document.querySelector('body > #root')
-
-      if $rootCurrent
-         document.body.replaceChild( $root, $rootCurrent )
-      else
-         document.body.appendChild( $root )
-
-
-
-
-
-   rehash: ( id ) =>
-
-      ########################################
-      #|
-      #|  @params {string} id
-      #|
-      ########################################
-
-      if id
-         history.replaceState(null, null, @formatPath({ id }))
-      else
-         history.replaceState(null, null, @formatPath())
-
-
-
-
-
-   formatPath: ( newQuery = {} ) =>
-
-      ########################################
-      #|
-      #|  @params {object} newQuery
-      #|  @return {string} path
-      #|
-      ########################################
-
-      query = Object.assign({}, query, newQuery)
-      array = []
-
-      for name, value of query
-         if value
-            array.push(name + '=' + value)
-         else
-            array.push(name)
-
-      if array.length
-         path = @path + '?' + array.join('&')
-      else
-         path = @path
-
-      if location.hash
-         path = '/#' + path
-
-      return path
-
-
-
-
-
-   bindLinkEvent: ( $root ) =>
-
-      $links = $root.querySelectorAll('a')
-
-      for $link in $links
-
-         href = $link.getAttribute('href')
-         isUrl = /^(?:http)|(?:https)|(?:ftp):\/\//.test( href )
-
-         if isUrl
-            $link.addEventListener('click', @onClickUrl)
-
-         else if href[0] is '#'
-            $link.addEventListener('click', @onClickPageInner)
-
-         else
-            $link.addEventListener('click', @onClickPageOuter)
-
-
-
-
-
-   onClickUrl: ( e ) =>
-
-      window.open(e.target.getAttribute('href'))
-      e.preventDefault()
-
-
-
-
-
-   onClickPageInner: ( e ) =>
-
-      id = e.target.getAttribute('href').slice(1)
-      @rehash(id)
-      e.preventDefault()
-
-
-
-
-
-   onClickPageOuter: ( e ) =>
-
-      @emit('reload', e.target.getAttribute('href'))
-      e.preventDefault()
+         router.go( href )

@@ -65,6 +65,7 @@ module.exports = class Markdown
       { cover,   markdown } = @_parseCover( markdown )
       { summary, markdown } = @_parseSummary( markdown )
 
+
       article = markdown.trim()
 
       return { nav, cover, summary, article }

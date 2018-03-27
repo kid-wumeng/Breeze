@@ -13,15 +13,14 @@ exports.isUrl = ( href ) =>
 
 
 
-exports.formatPath = ( href = '' ) =>
+exports.filePath = ( href = '' ) =>
 
    ########################################
    #/
    #/   @params {string} href
+   #/   @return {string} path
    #/
-   #/   '/abc/def'  ->  'base/abc/def'
-   #/
-   #/   Won't format when href is url.
+   #/   href  ->  basePath/href  ( won't format when href is url )
    #/
    ########################################
 
@@ -30,8 +29,8 @@ exports.formatPath = ( href = '' ) =>
    else
       path = href
 
-   if Breeze?.base
-      path = Breeze.base + '/' + path
+   if Breeze?.basePath
+      path = Breeze.basePath + '/' + path
 
    if path
       path = path.replace(/\/{2,}/g, '/')

@@ -20,15 +20,14 @@ exports.isUrl = (href) => {
   return /^(?:http)|(?:https)|(?:ftp):\/\//.test(href);
 };
 
-exports.formatPath = (href = '') => {
+exports.filePath = (href = '') => {
   var path;
   //#######################################
   ///
   ///   @params {string} href
+  ///   @return {string} path
   ///
-  ///   '/abc/def'  ->  'base/abc/def'
-  ///
-  ///   Won't format when href is url.
+  ///   href  ->  basePath/href  ( won't format when href is url )
   ///
   //#######################################
   if (exports.isUrl(href)) {
@@ -36,8 +35,8 @@ exports.formatPath = (href = '') => {
   } else {
     path = href;
   }
-  if (typeof Breeze !== "undefined" && Breeze !== null ? Breeze.base : void 0) {
-    path = Breeze.base + '/' + path;
+  if (typeof Breeze !== "undefined" && Breeze !== null ? Breeze.basePath : void 0) {
+    path = Breeze.basePath + '/' + path;
   }
   if (path) {
     path = path.replace(/\/{2,}/g, '/');
@@ -198,7 +197,7 @@ parseSelector = (selector = 'div') => {
 };
 });
 var util_1 = util.isUrl;
-var util_2 = util.formatPath;
+var util_2 = util.filePath;
 var util_3 = util.ajax;
 var util_4 = util.dom;
 var util_5 = util.element;
@@ -238,6 +237,316 @@ var ObservableObject_1 = ObservableObject = class ObservableObject {
       callback(...params);
     }
     return this;
+  }
+
+};
+
+var ObservableObject$1, Router, util$1,
+  boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+
+util$1 = util;
+
+ObservableObject$1 = ObservableObject_1;
+
+var Router_1 = Router = class Router extends ObservableObject$1 {
+  //#######################################
+  ///
+  ///   Be responsible for
+  ///      managing the singleton router.
+  ///
+  //#######################################
+  constructor(isJIT) {
+    super();
+    this._parse = this._parse.bind(this);
+    this._parseFullPath = this._parseFullPath.bind(this);
+    this._parsePath = this._parsePath.bind(this);
+    this._parseQuery = this._parseQuery.bind(this);
+    this._parseFilePath = this._parseFilePath.bind(this);
+    this.go = this.go.bind(this);
+    this._parseHref = this._parseHref.bind(this);
+    this._redirect = this._redirect.bind(this);
+    this._replace = this._replace.bind(this);
+    this._push = this._push.bind(this);
+    this._formatFullPath = this._formatFullPath.bind(this);
+    this._formatPath = this._formatPath.bind(this);
+    this._formatQuery = this._formatQuery.bind(this);
+    this.isJIT = isJIT;
+    this.fullPath = '';
+    this.path = '';
+    this.query = '';
+    this.filePath = '';
+    this._parse();
+    window.addEventListener('popstate', () => {
+      this._parse();
+      return this.emit('redirectPage');
+    });
+  }
+
+  _parse() {
+    boundMethodCheck(this, Router);
+    this.fullPath = this._parseFullPath();
+    this.path = this._parsePath();
+    this.query = this._parseQuery();
+    if (this.isJIT) {
+      return this.filePath = this._parseFilePath();
+    }
+  }
+
+  _parseFullPath() {
+    var path;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @return {string} path
+    ///
+    ///   when JIT,
+    ///      host:port                        ->  /
+    ///      host:port/#/                     ->  /
+    ///      host:port/#/?id=xxx              ->  /?id=xxx
+    ///      host:port/#/path/subPath?id=xxx  ->  /path/subPath?id=xxx
+    ///
+    ///   when no-JIT,
+    ///      host:port                        ->  /
+    ///      host:port?id=xxx                 ->  /?id=xxx
+    ///      host:port/path/subPath?id=xxx    ->  /path/subPath?id=xxx
+    ///
+    //#######################################
+    if (this.isJIT) {
+      path = location.hash.slice(1);
+    } else {
+      path = location.pathname;
+    }
+    path = '/' + path;
+    path = path.replace(/\/+/g, '/');
+    return path;
+  }
+
+  _parsePath() {
+    var path;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @return {string} path
+    ///
+    ///   when JIT,
+    ///      host:port                        ->  /
+    ///      host:port/#/                     ->  /
+    ///      host:port/#/path/subPath?id=xxx  ->  /path/subPath
+    ///
+    ///   when no-JIT,
+    ///      host:port                        ->  /
+    ///      host:port/path/subPath?id=xxx    ->  /path/subPath
+    ///
+    //#######################################
+    path = this._parseFullPath();
+    path = path.replace(/\?.*$/, '');
+    return path;
+  }
+
+  _parseQuery() {
+    var field, fields, i, index, len, name, parts, path, query, ref, string, value;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @return {object} query
+    ///
+    ///   when JIT,
+    ///      host:port/#/path/subPath         ->  {}
+    ///      host:port/#/path/subPath?id=xxx  ->  { id: 'abc' }
+    ///
+    ///   when no-JIT,
+    ///      host:port/#/path/subPath?id=xxx  ->  {}
+    ///      host:port/path/subPath?id=xxx    ->  { id: 'abc' }
+    ///
+    //#######################################
+    path = this._parseFullPath();
+    index = path.indexOf('?');
+    query = {};
+    if (index > -1) {
+      string = path.slice(index + 1);
+      string = decodeURI(string);
+      fields = string.split('&');
+      for (i = 0, len = fields.length; i < len; i++) {
+        field = fields[i];
+        parts = field.split('=');
+        name = parts[0];
+        value = (ref = parts[1]) != null ? ref : true;
+        query[name] = value;
+      }
+    }
+    return query;
+  }
+
+  _parseFilePath() {
+    var path;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @return {string} path
+    ///
+    ///
+    ///   when JIT (only),
+    ///      host:port/                 ->  basePath/README.md
+    ///      host:port/#/               ->  basePath/README.md
+    ///      host:port/#/path/subPath   ->  basePath/path/subPath.md
+    ///      host:port/#/path/subPath/  ->  basePath/path/subPath/README.md
+    ///
+    //#######################################
+    path = this._parsePath();
+    path = util$1.filePath(path);
+    if (path === '') {
+      path = 'README';
+    }
+    if (path[path.length - 1] === '/') {
+      path += 'README';
+    }
+    return path + '.md';
+  }
+
+  go(href = '') {
+    var id, path, query;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} href - 'path#id'
+    ///
+    //#######################################
+    ({path, id} = this._parseHref(href));
+    if (id) {
+      query = {id};
+    } else {
+      query = {};
+    }
+    return this._redirect(path, query);
+  }
+
+  _parseHref(href = '') {
+    var id, parts, path;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} href - 'path#id'
+    ///   @return {object}      - { path: 'path', id: 'id' }
+    ///
+    //#######################################
+    parts = href.split('#');
+    switch (parts.length) {
+      case 1:
+        path = parts[0];
+        id = '';
+        break;
+      case 2:
+        path = parts[0];
+        id = parts[1];
+        break;
+      default:
+        path = '';
+        id = '';
+    }
+    return {path, id};
+  }
+
+  _redirect(path, query) {
+    var fullPath, isSamePage;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @params {object} query
+    ///
+    //#######################################
+    fullPath = this._formatFullPath(path, query);
+    if (this.isJIT) {
+      isSamePage = this._formatPath(path) === this.path;
+      if (isSamePage) {
+        return this._replace(fullPath);
+      } else {
+        return this._push(fullPath);
+      }
+    } else {
+      return location.href = fullPath;
+    }
+  }
+
+  _replace(fullPath) {
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} fullPath
+    ///
+    //#######################################
+    history.replaceState(null, null, fullPath);
+    return this._parse();
+  }
+
+  _push(fullPath) {
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} fullPath
+    ///
+    //#######################################
+    history.pushState(null, null, fullPath);
+    this._parse();
+    return this.emit('redirectPage');
+  }
+
+  _formatFullPath(path, query) {
+    var querystring;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @params {object} query
+    ///   @return {string} fullPath
+    ///
+    //#######################################
+    path = this._formatPath(path);
+    querystring = this._formatQuery(query);
+    if (this.isJIT) {
+      if (path !== '/') {
+        path = '/#' + path;
+      }
+    }
+    return path + querystring;
+  }
+
+  _formatPath(path = '') {
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @return {string} path
+    ///
+    //#######################################
+    path = '/' + path;
+    path = path.replace(/\/+/g, '/');
+    return path;
+  }
+
+  _formatQuery(query = {}) {
+    var name, parts, value;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {object} query
+    ///   @return {string} querystring
+    ///
+    //#######################################
+    parts = [];
+    for (name in query) {
+      value = query[name];
+      if (value === true) {
+        parts.push(name);
+      } else {
+        parts.push(name + '=' + value);
+      }
+    }
+    if (parts.length) {
+      return '?' + parts.join('&');
+    } else {
+      return '';
+    }
   }
 
 };
@@ -2002,9 +2311,9 @@ var Markdown_1 = Markdown = class Markdown {
 
 };
 
-var Cover, util$2;
+var Cover, util$3;
 
-util$2 = util;
+util$3 = util;
 
 var Cover_1 = Cover = class Cover {
   //#######################################
@@ -2036,9 +2345,9 @@ var Cover_1 = Cover = class Cover {
     ///   @return {string} html
     ///
     //#######################################
-    dom = util$2.dom(this.html);
-    wrap = util$2.dom('.wrap');
-    cover = util$2.dom('#cover');
+    dom = util$3.dom(this.html);
+    wrap = util$3.dom('.wrap');
+    cover = util$3.dom('#cover');
     logo = dom.find('cover > logo');
     name = dom.find('cover > name');
     descs = dom.findAll('cover > desc');
@@ -2072,8 +2381,8 @@ var Cover_1 = Cover = class Cover {
     ///
     //#######################################
     src = logo.attr('src');
-    src = util$2.formatPath(src);
-    logo = util$2.dom('img.logo');
+    src = util$3.filePath(src);
+    logo = util$3.dom('img.logo');
     logo.attr('src', src);
     return logo;
   }
@@ -2088,8 +2397,8 @@ var Cover_1 = Cover = class Cover {
     //#######################################
     text = name.text();
     version = (ref = name.attr('version')) != null ? ref : '';
-    name = util$2.dom('.name').text(text);
-    version = util$2.dom('.version').text(version);
+    name = util$3.dom('.name').text(text);
+    version = util$3.dom('.version').text(version);
     name.append(version);
     return name;
   }
@@ -2102,10 +2411,10 @@ var Cover_1 = Cover = class Cover {
     ///   @return {DOM}   ul.descs
     ///
     //#######################################
-    ul = util$2.dom('ul.descs');
+    ul = util$3.dom('ul.descs');
     for (i = 0, len = descs.length; i < len; i++) {
       desc = descs[i];
-      li = util$2.dom('li').text(desc.text());
+      li = util$3.dom('li').text(desc.text());
       ul.append(li);
     }
     return ul;
@@ -2119,35 +2428,34 @@ var Cover_1 = Cover = class Cover {
     ///   @return {DOM}   ul.items
     ///
     //#######################################
-    ul = util$2.dom('ul.items');
+    ul = util$3.dom('ul.items');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
-      li = util$2.dom('li').text(item.text());
+      li = util$3.dom('li').text(item.text());
       ul.append(li);
     }
     return ul;
   }
 
   _formatButtons(buttons) {
-    var a, button, href, i, len, li, text, ul;
+    var a, button, href, i, len, li, ref, text, ul;
     //#######################################
     ///
     ///   @params {DOM[]} buttons
     ///   @return {DOM}   ul.buttons
     ///
     //#######################################
-    ul = util$2.dom('ul.buttons');
+    ul = util$3.dom('ul.buttons');
     for (i = 0, len = buttons.length; i < len; i++) {
       button = buttons[i];
-      li = util$2.dom('li');
-      a = util$2.dom('a');
+      li = util$3.dom('li');
+      a = util$3.dom('a');
       if (button.attr('active') != null) {
         li.addClass('active');
         a.addClass('active');
       }
-      if (href = button.attr('href')) {
-        a.attr('href', href);
-      }
+      href = (ref = button.attr('href')) != null ? ref : '';
+      a.attr('href', href);
       text = button.text();
       a.text(text);
       li.append(a);
@@ -2157,29 +2465,32 @@ var Cover_1 = Cover = class Cover {
   }
 
   render() {
-    var cover, html;
+    var cover;
     //#######################################
     ///
-    ///   @return {HTMLElement} $cover
+    ///   @return {HTMLElement} $cover - return null if hasn't.
     ///
     //#######################################
-    html = this.format();
-    cover = util$2.dom(html);
-    this._bindButtonEvent(cover);
-    return cover.$el;
+    if (this.html) {
+      cover = util$3.dom(this.format());
+      this._bindButtonEvent(cover);
+    } else {
+      cover = null;
+    }
+    return cover;
   }
 
   _bindButtonEvent(cover) {
-    var button, i, len, ref, results;
-    ref = cover.findAll('.buttons li');
+    var button, buttons, i, len, results;
     //#######################################
     ///
     ///   @params {DOM} cover
     ///
     //#######################################
+    buttons = cover.findAll('.buttons li');
     results = [];
-    for (i = 0, len = ref.length; i < len; i++) {
-      button = ref[i];
+    for (i = 0, len = buttons.length; i < len; i++) {
+      button = buttons[i];
       results.push(button.on('click', () => {
         return cover.css('display', 'none');
       }));
@@ -3051,11 +3362,63 @@ Prism.languages.js = Prism.languages.javascript;
 })();
 });
 
-var Prism, marked$4;
+var API, util$5;
+
+util$5 = util;
+
+var Api = API = class API {
+  constructor($raw) {
+    this.render = this.render.bind(this);
+    this.renderItem = this.renderItem.bind(this);
+    this._$raw = $raw;
+  }
+
+  render() {
+    var $api, $item, $items, i, len;
+    $api = util$5.element('.api');
+    $items = this._$raw.querySelectorAll('item');
+    for (i = 0, len = $items.length; i < len; i++) {
+      $item = $items[i];
+      $item = this.renderItem($item);
+      $api.appendChild($item);
+    }
+    return $api;
+  }
+
+  renderItem($item) {
+    var $desc, $left, $name, $right, $type;
+    $name = $item.querySelector('name');
+    $type = $item.querySelector('type');
+    $desc = $item.querySelector('desc');
+    $left = util$5.element('.left');
+    $right = util$5.element('.right');
+    if ($name) {
+      $name = util$5.element('.name', $name.innerHTML);
+      $left.appendChild($name);
+    }
+    if ($type) {
+      $type = util$5.element('.type', $type.innerHTML);
+      $left.appendChild($type);
+    }
+    if ($desc) {
+      $desc = util$5.element('.desc', $desc.innerHTML);
+      $right.appendChild($desc);
+    }
+    $item = util$5.element('.item');
+    $item.appendChild($left);
+    $item.appendChild($right);
+    return $item;
+  }
+
+};
+
+var Api$1, Article, Prism, marked$4;
 
 marked$4 = marked;
 
 Prism = prism;
+
+Api$1 = Api;
 
 marked$4.setOptions({
   gfm: true,
@@ -3069,20 +3432,643 @@ marked$4.setOptions({
   }
 });
 
-var Cover$1, Markdown$1, ObservableObject$2, Page, util$6,
-  boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+var Article_1 = Article = class Article {
+  constructor(markdown) {
+    this.parse = this.parse.bind(this);
+    this._parseSections = this._parseSections.bind(this);
+    this._parseSection = this._parseSection.bind(this);
+    this._checkLine = this._checkLine.bind(this);
+    this._parseHeadings = this._parseHeadings.bind(this);
+    this._parseHeading = this._parseHeading.bind(this);
+    this._parseOrder = this._parseOrder.bind(this);
+    this.compile = this.compile.bind(this);
+    // markdown = @markdown
 
-ObservableObject$2 = ObservableObject_1;
+    // sections            = @parseSections(markdown)
+
+    // @trimFirst(sections)
+
+    // { html, sections } = @compileSections(sections)
+
+    // @html     = html
+    // @sections = sections
+    // @cover    = cover
+    this.parseSections = this.parseSections.bind(this);
+    this.formatHeading = this.formatHeading.bind(this);
+    this.trimFirst = this.trimFirst.bind(this);
+    this.compileSections = this.compileSections.bind(this);
+    this.compileSection = this.compileSection.bind(this);
+    this.parseContentAndExample = this.parseContentAndExample.bind(this);
+    this.parseExamples = this.parseExamples.bind(this);
+    this.delExamples = this.delExamples.bind(this);
+    this.parseHeading = this.parseHeading.bind(this);
+    this.getOrder = this.getOrder.bind(this);
+    this.createSummary = this.createSummary.bind(this);
+    this.createSummaryItem = this.createSummaryItem.bind(this);
+    this.getID = this.getID.bind(this);
+    this.render = this.render.bind(this);
+    this.wrapParams = this.wrapParams.bind(this);
+    this.bindScrollEvent = this.bindScrollEvent.bind(this);
+    this.getSectionStats = this.getSectionStats.bind(this);
+    this.scroll = this.scroll.bind(this);
+    this.markdown = markdown;
+    this.html = '';
+    this.lastOrder = '0';
+    this.sections = [];
+    this.$dom = null;
+    this.$sections = [];
+    this.cover = '';
+    this.summary = '';
+    this.lastID = '';
+  }
+
+  parse() {
+    var sections;
+    //#######################################
+    ///
+    ///   @return {object} - {object[]} sections
+    ///
+    //#######################################
+    sections = this._parseSections(this.markdown);
+    sections = this._parseHeadings(sections);
+    return sections;
+  }
+
+  _parseSections(markdown) {
+    var i, inCode, inExample, isCode, isExampleEnd, isExampleStart, j, len, line, lines, next, section, sectionLines, sections;
+    //#######################################
+    ///
+    ///   @params {string}   markdown
+    ///   @return {object[]} section - [{ heading, content, example }]
+    ///
+    //#######################################
+    lines = markdown.split('\n');
+    sections = [];
+    sectionLines = [];
+    inExample = false;
+    inCode = false;
+    for (i = j = 0, len = lines.length; j < len; i = ++j) {
+      line = lines[i];
+      sectionLines.push(line);
+      ({isExampleStart, isExampleEnd, isCode} = this._checkLine(line));
+      if (isExampleStart) {
+        inExample = true;
+      }
+      if (isExampleEnd) {
+        inExample = false;
+      }
+      if (isCode) {
+        inCode = !inCode;
+      }
+      next = this._checkLine(lines[i + 1]);
+      if (next.isHeading || next.isEOF) {
+        if (!(inExample || inCode)) {
+          section = this._parseSection(sectionLines);
+          sections.push(section);
+          sectionLines = [];
+        }
+      }
+    }
+    return sections;
+  }
+
+  _parseSection(sectionLines) {
+    var content, example, heading, i, inExample, isExampleEnd, isExampleStart, isHeading, j, len, line;
+    //#######################################
+    ///
+    ///   @params {string[]} sectionLines
+    ///   @return {object}   section - {string} heading
+    ///                                {string} content
+    ///                                {string} example
+    ///
+    //#######################################
+    heading = '';
+    content = '';
+    example = '';
+    inExample = false;
+    for (i = j = 0, len = sectionLines.length; j < len; i = ++j) {
+      line = sectionLines[i];
+      ({isExampleStart, isExampleEnd, isHeading} = this._checkLine(line));
+      if (isExampleStart) {
+        inExample = true;
+        continue;
+      }
+      if (isExampleEnd) {
+        inExample = false;
+        continue;
+      }
+      if (isHeading && i === 0) {
+        heading = line;
+        continue;
+      }
+      if (inExample) {
+        example += `${line}\n`;
+      } else {
+        content += `${line}\n`;
+      }
+    }
+    return {heading, content, example};
+  }
+
+  _checkLine(line) {
+    var code, exampleEnd, exampleStart, heading, isCode, isEOF, isExampleEnd, isExampleStart, isHeading;
+    //#######################################
+    ///
+    ///   @return {object} - {boolean} isExampleStart
+    ///                      {boolean} isExampleEnd
+    ///                      {boolean} isCode
+    ///                      {boolean} isHeading
+    ///                      {boolean} isEOF
+    ///
+    //#######################################
+    exampleStart = /^\s*<example>/;
+    exampleEnd = /^\s*<\/example>/;
+    code = /^\s*```/;
+    heading = /^\s*#{1,6}/;
+    isExampleStart = line && exampleStart.test(line);
+    isExampleEnd = line && exampleEnd.test(line);
+    isCode = line && code.test(line);
+    isHeading = line && heading.test(line);
+    isEOF = line === void 0;
+    return {isExampleStart, isExampleEnd, isCode, isHeading, isEOF};
+  }
+
+  _parseHeadings(sections) {
+    var heading, i, j, len, prev, ref, ref1, section;
+//#######################################
+///
+///   @params {object[]} sections - [{ heading, content, example }]
+///   @return {object[]} sections - [{ heading, content, example }]
+///
+//#######################################
+    for (i = j = 0, len = sections.length; j < len; i = ++j) {
+      section = sections[i];
+      heading = (ref = sections[i]) != null ? ref.heading : void 0;
+      prev = (ref1 = sections[i - 1]) != null ? ref1.heading : void 0;
+      section.heading = this._parseHeading(heading, prev);
+    }
+    return sections;
+  }
+
+  _parseHeading(heading, prev) {
+    var lv, order, results, text;
+    //#######################################
+    ///
+    ///   @params {string} heading
+    ///   @params {object} prev - {number} lv
+    ///                           {string} text
+    ///                           {string} order
+    ///
+    ///   @return {object} heading - {number} lv
+    ///                              {string} text
+    ///                              {string} order
+    ///
+    ///   Assume the prev.order is '1.2',
+    ///      '#### Quick Start'  ->  { lv: 4, text: 'Quick Start', order: '1.2.0.1' }
+    ///
+    //#######################################
+    if (heading) {
+      heading = heading.trim();
+      results = heading.match(/^(#+)\s*(.*)$/);
+      lv = results[1].length;
+      text = results[2];
+      order = this._parseOrder(lv, prev != null ? prev.order : void 0);
+      return {lv, order, text};
+    } else {
+      return null;
+    }
+  }
+
+  _parseOrder(lv, prevOrder) {
+    var order;
+    //#######################################
+    ///
+    ///   @params {number} lv
+    ///   @params {string} prevOrder
+    ///   @return {string} order
+    ///
+    //#######################################
+    if (prevOrder) {
+      // Assume lv = 4, prevOrder = '1.2'
+      order = prevOrder.split('.'); // order = ['1', '2']
+      order = order.map((p) => {
+        return parseInt(p); // order = [1, 2]
+      });
+      while (order.length < lv) { // order = [1, 2, 0, 0]
+        order.push(0);
+      }
+      order[lv - 1] += 1; // order = [1, 2, 0, 1]
+      order = order.join('.'); // order = '1.2.0.1'
+      return order;
+    } else {
+      return '1';
+    }
+  }
+
+  compile() {
+    var renderer;
+    //#######################################
+    //|
+    //|  Compile article-markdown to html.
+    //|
+    //#######################################
+    renderer = new marked$4.Renderer();
+    renderer.html = (html) => {
+      return html;
+    };
+    return marked$4(this.markdown, {renderer});
+  }
+
+  parseSections(markdown) {
+    var allLines, inCode, isCode, isHeading, j, len, line, lines, section, sections;
+    //#######################################
+    //|
+    //|  @params {string}   markdown
+    //|  @return {string[]} sections
+    //|
+    //|  Split each section from article.
+    //|
+    //#######################################
+    sections = [];
+    allLines = markdown.split('\n');
+    lines = [];
+    inCode = false;
+    for (j = 0, len = allLines.length; j < len; j++) {
+      line = allLines[j];
+      isCode = /^\s*```/.test(line);
+      isHeading = /^\s*#{1,6}/.test(line);
+      if (isCode) {
+        inCode = !inCode;
+      }
+      if (isHeading && !inCode) {
+        section = lines.join('\n');
+        sections.push(section);
+        lines = [];
+        line = this.formatHeading(line);
+      }
+      lines.push(line);
+    }
+    section = lines.join('\n');
+    sections.push(section);
+    return sections;
+  }
+
+  formatHeading(heading) {
+    var lv, results, text;
+    heading = heading.trim();
+    results = heading.match(/^(#+)\s*(.*)$/);
+    lv = results[1].length;
+    text = results[2];
+    return `<h${lv}>${text}</h${lv}>`;
+  }
+
+  trimFirst(sections) {
+    //#######################################
+    //|
+    //|  @params {string[]} sections
+    //|
+    //|  Delete the first section if empty.
+    //|
+    //#######################################
+    if (sections[0] != null) {
+      if (sections[0].match(/^(?:\s|\n)*$/)) {
+        return sections.shift();
+      }
+    }
+  }
+
+  compileSections(sections) {
+    var html;
+    //#######################################
+    //|
+    //|  @params {string[]} sections
+    //|  @return {object} - { article, sections }
+    //|
+    //#######################################
+    html = '';
+    sections = sections.map((section) => {
+      var content, example, heading;
+      ({section, heading, content, example} = this.compileSection(section));
+      html += section;
+      return {heading, content, example};
+    });
+    html = html.trim();
+    return {html, sections};
+  }
+
+  compileSection(section) {
+    var content, example, heading, id, lv, order, ref, ref1, ref2, text;
+    //######################################
+    //|
+    //|  @params {string} section-markdown
+    //|
+    //|  @return {object} - {string} section-html
+    //|                     {string} content-html
+    //|                     {string} example-html
+    //|
+    //#######################################
+    ({content, example} = this.parseContentAndExample(section));
+    heading = this.parseHeading(content);
+    content = marked$4(content);
+    example = marked$4(example);
+    lv = (ref = heading != null ? heading.lv : void 0) != null ? ref : '';
+    order = (ref1 = heading != null ? heading.order : void 0) != null ? ref1 : '';
+    text = (ref2 = heading != null ? heading.text : void 0) != null ? ref2 : '';
+    id = this.getID(order, text);
+    section = `<section lv="${lv}" id="${id}">\n   <div class="content">${content}</div>\n   <div class="example">${example}</div>\n</section>`;
+    return {section, heading, content, example};
+  }
+
+  parseContentAndExample(section) {
+    var content, example, examples, indexes;
+    //#######################################
+    //|
+    //|  @params {string} section-markdown
+    //|
+    //|  @return {string} content-markdown
+    //|          {string} example-markdown
+    //|
+    //#######################################
+    ({examples, indexes} = this.parseExamples(section));
+    content = this.delExamples(section, indexes);
+    example = examples.join('');
+    return {content, example};
+  }
+
+  parseExamples(section) {
+    var end, example, examples, index, indexes, isOpenTag, reg, result, stack, start;
+    //#######################################
+    //|
+    //|  @params {string} section
+    //|  @return {object} { examples, indexes }
+    //|
+    //#######################################
+    stack = [];
+    indexes = [];
+    examples = [];
+    reg = /(<example>)|(<\/example>)/g;
+    while (result = reg.exec(section)) {
+      index = result.index;
+      isOpenTag = result[0] === '<example>';
+      if (isOpenTag) {
+        stack.push(index);
+      } else {
+        start = stack.pop();
+        end = index + '</example>'.length;
+        if (stack.length === 0) {
+          example = section.slice(start, end);
+          example = example.replace(/(<example>)|(<\/example>)/g, '');
+          examples.push(example);
+          indexes.push(start);
+          indexes.push(end);
+        }
+      }
+    }
+    return {examples, indexes};
+  }
+
+  delExamples(section, indexes = []) {
+    var end, rest, start;
+    //#######################################
+    //|
+    //|  @params {string}   section
+    //|  @params {number[]} indexes
+    //|  @return {string}   section (rest)
+    //|
+    //|  Delete all examples from section.
+    //|
+    //|  123<example>456</example>789 => 123789
+    //|
+    //#######################################
+    rest = '';
+    indexes.unshift(-1);
+    while (indexes.length > 1) {
+      start = indexes.shift();
+      end = indexes.shift();
+      rest += section.slice(start + 1, end);
+    }
+    start = indexes.shift();
+    rest += section.slice(start + 1);
+    return rest;
+  }
+
+  parseHeading(content) {
+    var lv, order, results, text;
+    //#######################################
+    //|
+    //|  @params {string} content
+    //|  @return {object} heading - { lv, text }
+    //|
+    //#######################################
+    if (results = content.match(/^<h([1-6])>(.*)<\/h[1-6]>$/m)) {
+      lv = parseInt(results[1]);
+      order = this.getOrder(lv);
+      text = results[2];
+      return {lv, order, text};
+    } else {
+      return null;
+    }
+  }
+
+  getOrder(lv) {
+    var _, i, j, len, part, parts, ref;
+    //#######################################
+    //|
+    //|  @params {number} lv
+    //|  @return {string} order
+    //|
+    //#######################################
+    parts = this.lastOrder.split('.');
+    i = lv - 1;
+    part = (ref = parts[i]) != null ? ref : '0';
+    part = parseInt(part);
+    part = part + 1;
+    parts[i] = part;
+    parts = parts.slice(0, i + 1);
+    for (i = j = 0, len = parts.length; j < len; i = ++j) {
+      _ = parts[i];
+      if (!parts[i]) {
+        parts[i] = '0';
+      }
+    }
+    return this.lastOrder = parts.join('.');
+  }
+
+  createSummary(sections) {
+    var heading, j, len, results1, section;
+//#######################################
+//|
+//|  Create the article's summary by headings.
+//|
+//|  @params {object[]} sections
+//|  @return {string}   summary-markdown
+//|
+//#######################################
+    results1 = [];
+    for (j = 0, len = sections.length; j < len; j++) {
+      section = sections[j];
+      ({heading} = section);
+      if (heading && heading.lv <= 3) {
+        results1.push(this.summary += this.createSummaryItem(heading));
+      } else {
+        results1.push(void 0);
+      }
+    }
+    return results1;
+  }
+
+  createSummaryItem(heading) {
+    var count, lv, order, space, text;
+    //#######################################
+    //|
+    //|  @params {object} heading - { lv, text }
+    //|  @return {string} markdown-item
+    //|
+    //|  { lv:2, text: 'Quick Start' }
+    //|
+    //|  => '  * [Quick Start](#Quick-Start)'
+    //|
+    //#######################################
+    ({lv, order, text} = heading);
+    count = lv;
+    space = '';
+    while (count > 1) {
+      space += '  ';
+      count--;
+    }
+    return `${space}* [${text}](#${this.getID(order, text)})\n`;
+  }
+
+  getID(order, text = '') {
+    //#######################################
+    //|
+    //|  @params {string} order
+    //|  @params {string} text
+    //|  @return {string} id
+    //|
+    //#######################################
+    text = text.replace(/\s+/g, '-');
+    if (text) {
+      return order + '-' + text;
+    } else {
+      return order;
+    }
+  }
+
+  render() {
+    this.$dom = document.createElement('article');
+    this.$dom.innerHTML = this.html;
+    this.wrapParams();
+    return this.bindScrollEvent();
+  }
+
+  wrapParams() {
+    var $api, $raw, $raws, api, j, len, results1;
+    $raws = this.$dom.querySelectorAll('api');
+    results1 = [];
+    for (j = 0, len = $raws.length; j < len; j++) {
+      $raw = $raws[j];
+      api = new Api$1($raw);
+      $api = api.render();
+      results1.push($raw.parentNode.replaceChild($api, $raw));
+    }
+    return results1;
+  }
+
+  bindScrollEvent() {
+    return window.addEventListener('scroll', () => {
+      var i, id, isExisted, isVisible, j, len, stat, stats;
+      isExisted = this.$dom.innerHTML !== '';
+      isVisible = this.$dom.getBoundingClientRect().width > 0;
+      if (isExisted && isVisible) {
+        stats = this.getSectionStats();
+        for (i = j = 0, len = stats.length; j < len; i = ++j) {
+          stat = stats[i];
+          if (stat.top > 0) {
+            break;
+          }
+        }
+        id = stats[i - 1].id;
+        if (this.lastID !== id) {
+          this.lastID = id;
+          return this.emit('scroll', id);
+        }
+      }
+    });
+  }
+
+  getSectionStats() {
+    var $section, id, j, len, ref, stats, top;
+    //#######################################
+    //|
+    //|  @params {object[]} sectionStats
+    //|
+    //#######################################
+    stats = [];
+    ref = this.$sections;
+    for (j = 0, len = ref.length; j < len; j++) {
+      $section = ref[j];
+      id = $section.getAttribute('id');
+      top = $section.getBoundingClientRect().top;
+      stats.push({id, top});
+    }
+    return stats;
+  }
+
+  scroll(id) {
+    var $section, top;
+    $section = this.$dom.querySelector(`section[id="${id}"]`);
+    if ($section) {
+      top = $section.getBoundingClientRect().top;
+      return window.scrollBy(0, top);
+    } else {
+      return window.scrollTo(0, 0);
+    }
+  }
+
+};
+
+var Article$1, Cover$1, Markdown$1, ObservableObject$3, Page, util$7,
+  boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+
+ObservableObject$3 = ObservableObject_1;
 
 Markdown$1 = Markdown_1;
 
 Cover$1 = Cover_1;
 
-util$6 = util;
+Article$1 = Article_1;
 
-var Page_1 = Page = class Page extends ObservableObject$2 {
-  constructor(navigator) {
+util$7 = util;
+
+var Page_1 = Page = class Page extends ObservableObject$3 {
+  constructor(text, common = '') {
     super();
+    // super()
+
+    // @isOverMain = false
+
+    // @$root = util.element('#root')
+    // @$side = util.element('#side')
+    // @$main = util.element('#main')
+
+    // @path     = @getPath()
+    // @query    = @getQuery()
+    // @filePath = @getFilePath()
+
+    // util.ajax @filePath, ( text ) =>
+
+    //    markdown = new Markdown( text )
+
+    //    { nav, cover, summary, article } = markdown.parse()
+
+    //    cover   = new Cover( cover )
+    //    article = new Article( article )
+
+    //    article.parse()
+
+    //    @_render(cover)
+
     // @navigator = new Navigator(navigator)
     // @article   = new Article(article)
     // @summary   = new Summary(@article.summary)
@@ -3108,219 +4094,149 @@ var Page_1 = Page = class Page extends ObservableObject$2 {
     //    @article.scroll(@query.id)
     //    @summary.scroll(@query.id)
     //    @summary.active(@query.id)
-    this.getPath = this.getPath.bind(this);
-    this.getQuery = this.getQuery.bind(this);
-    this.getFilePath = this.getFilePath.bind(this);
-    this.ready = this.ready.bind(this);
-    // @$main.appendChild( @article.$dom )
-    // @$side.appendChild( @search.$dom )
-    // @$side.appendChild( @summary.$dom )
-
-    // @$root.appendChild(@navigator.render()) if @navigator.exist()
-    // @$root.appendChild( @cover.$dom ) if @cover.html and !@query.id
-    // @$root.appendChild( @$side )
-    // @$root.appendChild( @$main )
-
-    // @$main.addEventListener('mouseenter', => @isOverMain = true)
-    // @$main.addEventListener('mouseleave', => @isOverMain = false)
-
-    // @$main.style.minHeight = window.innerHeight + 'px'
-
-    // @bindLinkEvent(@$root)
+    this.compile = this.compile.bind(this);
     this.render = this.render.bind(this);
-    this.rehash = this.rehash.bind(this);
-    this.formatPath = this.formatPath.bind(this);
-    this.bindLinkEvent = this.bindLinkEvent.bind(this);
-    this.onClickUrl = this.onClickUrl.bind(this);
-    this.onClickPageInner = this.onClickPageInner.bind(this);
-    this.onClickPageOuter = this.onClickPageOuter.bind(this);
-    this.isOverMain = false;
-    this.$root = util$6.element('#root');
-    this.$side = util$6.element('#side');
-    this.$main = util$6.element('#main');
-    this.path = this.getPath();
-    this.query = this.getQuery();
-    this.filePath = this.getFilePath();
-    util$6.ajax(this.filePath, (text) => {
-      var article, cover, markdown, nav, summary;
-      markdown = new Markdown$1(text);
-      ({nav, cover, summary, article} = markdown.parse());
-      cover = new Cover$1(cover);
-      return this.render(cover);
-    });
+    this._bindLinkEvent = this._bindLinkEvent.bind(this);
+    this._redirect = this._redirect.bind(this);
+    this.text = text + common;
   }
 
-  getPath() {
-    var hash, path;
-    boundMethodCheck$1(this, Page);
-    //#######################################
-    //|
-    //|  @return {string} path
-    //|
-    //|  localhost:8080/#/api?id=abc  =>  /api
-    //|
-    //#######################################
-    hash = location.hash;
-    if (hash) {
-      path = hash.slice(1);
-      path = path.replace(/\?.*$/, '');
-    } else {
-      path = '/';
-    }
-    return path;
+  compile() {
+    var article, cover, markdown, nav, page, summary;
+    boundMethodCheck$2(this, Page);
+    markdown = new Markdown$1(this.text);
+    ({nav, cover, summary, article} = markdown.parse());
+    cover = new Cover$1(cover);
+    article = new Article$1(article);
+    page = util$7.dom('#page');
+    page.append(cover.render());
+    return page.htmlSelf();
   }
 
-  getQuery() {
-    var array, hash, i, index, item, len, name, query, ref, string, value;
-    boundMethodCheck$1(this, Page);
-    //#######################################
-    //|
-    //|  @return {string} path
-    //|
-    //|  localhost:8080/#/api?id=abc  =>  { id: 'abc' }
-    //|
-    //#######################################
-    query = {};
-    hash = decodeURI(location.hash);
-    index = hash.indexOf('?');
-    if (index > -1) {
-      string = hash.slice(index + 1);
-      array = string.split('&');
-      for (i = 0, len = array.length; i < len; i++) {
-        item = array[i];
-        item = item.split('=');
-        name = item[0];
-        value = (ref = item[1]) != null ? ref : true;
-        query[name] = value;
-      }
-    }
-    return query;
+  render(router) {
+    var html, page;
+    boundMethodCheck$2(this, Page);
+    html = this.compile();
+    page = util$7.dom(html);
+    this._bindLinkEvent(router, page);
+    return page;
   }
 
-  getFilePath() {
-    var path;
-    boundMethodCheck$1(this, Page);
+  _bindLinkEvent(router, page) {
+    var i, len, link, links, results;
+    boundMethodCheck$2(this, Page);
     //#######################################
-    //|
-    //|  @return {string} path
-    //|
-    //|  localhost:8080/#/api?id=abc   =>  api.md
-    //|  localhost:8080/#/api/?id=abc  =>  api/README.md
-    //|
+    ///
+    ///   @params {DOM} page
+    ///
     //#######################################
-    path = this.getPath();
-    if (path) {
-      path = path.slice(1); // remove '#'
-    }
-    path = util$6.formatPath(path);
-    if (path === '') {
-      path = 'README';
-    }
-    if (path[path.length - 1] === '/') {
-      path += 'README';
-    }
-    return path + '.md';
-  }
-
-  ready() {
-    boundMethodCheck$1(this, Page);
-  }
-
-  render(cover) {
-    var $root, $rootCurrent;
-    boundMethodCheck$1(this, Page);
-    $root = util$6.element('#root');
-    $root.appendChild(cover.render());
-    $rootCurrent = document.querySelector('body > #root');
-    if ($rootCurrent) {
-      return document.body.replaceChild($root, $rootCurrent);
-    } else {
-      return document.body.appendChild($root);
-    }
-  }
-
-  rehash(id) {
-    boundMethodCheck$1(this, Page);
-    //#######################################
-    //|
-    //|  @params {string} id
-    //|
-    //#######################################
-    if (id) {
-      return history.replaceState(null, null, this.formatPath({id}));
-    } else {
-      return history.replaceState(null, null, this.formatPath());
-    }
-  }
-
-  formatPath(newQuery = {}) {
-    var array, name, path, query, value;
-    boundMethodCheck$1(this, Page);
-    //#######################################
-    //|
-    //|  @params {object} newQuery
-    //|  @return {string} path
-    //|
-    //#######################################
-    query = Object.assign({}, query, newQuery);
-    array = [];
-    for (name in query) {
-      value = query[name];
-      if (value) {
-        array.push(name + '=' + value);
-      } else {
-        array.push(name);
-      }
-    }
-    if (array.length) {
-      path = this.path + '?' + array.join('&');
-    } else {
-      path = this.path;
-    }
-    if (location.hash) {
-      path = '/#' + path;
-    }
-    return path;
-  }
-
-  bindLinkEvent($root) {
-    var $link, $links, href, i, isUrl, len, results;
-    boundMethodCheck$1(this, Page);
-    $links = $root.querySelectorAll('a');
+    links = page.findAll('a');
     results = [];
-    for (i = 0, len = $links.length; i < len; i++) {
-      $link = $links[i];
-      href = $link.getAttribute('href');
-      isUrl = /^(?:http)|(?:https)|(?:ftp):\/\//.test(href);
-      if (isUrl) {
-        results.push($link.addEventListener('click', this.onClickUrl));
-      } else if (href[0] === '#') {
-        results.push($link.addEventListener('click', this.onClickPageInner));
-      } else {
-        results.push($link.addEventListener('click', this.onClickPageOuter));
-      }
+    for (i = 0, len = links.length; i < len; i++) {
+      link = links[i];
+      results.push(link.on('click', this._redirect.bind(null, router)));
     }
     return results;
   }
 
-  onClickUrl(e) {
-    boundMethodCheck$1(this, Page);
-    window.open(e.target.getAttribute('href'));
-    return e.preventDefault();
+  _redirect(router, link) {
+    var href;
+    boundMethodCheck$2(this, Page);
+    //#######################################
+    ///
+    ///   @params {Router}     router
+    ///   @params {DOM}        link
+    ///   @params {MouseEvent} e
+    ///
+    //#######################################
+    href = link.attr('href');
+    if (util$7.isUrl(href)) {
+      return window.open(href, '_blank');
+    } else {
+      return router.go(href);
+    }
   }
 
-  onClickPageInner(e) {
-    var id;
-    boundMethodCheck$1(this, Page);
-    id = e.target.getAttribute('href').slice(1);
-    this.rehash(id);
-    return e.preventDefault();
+};
+
+var App, Page$1, Router$1, util$8;
+
+Router$1 = Router_1;
+
+Page$1 = Page_1;
+
+util$8 = util;
+
+var App_1 = App = class App {
+  constructor(isJIT) {
+    this.run = this.run.bind(this);
+    this._loadPage = this._loadPage.bind(this);
+    this._renderPage = this._renderPage.bind(this);
+    this._bindRedirectEvent = this._bindRedirectEvent.bind(this);
+    this._mount = this._mount.bind(this);
+    //#######################################
+    ///
+    ///   @params {boolean} isJIT - is the Just In Time mode ?
+    ///
+    //#######################################
+    this.isJIT = isJIT;
+    this.router = new Router$1(isJIT);
+    this.pageStore = {};
   }
 
-  onClickPageOuter(e) {
-    boundMethodCheck$1(this, Page);
-    this.emit('reload', e.target.getAttribute('href'));
-    return e.preventDefault();
+  run() {
+    if (this.isJIT) {
+      this._loadPage();
+      return this.router.on('redirectPage', this._loadPage);
+    } else {
+      return util$8.dom(document.querySelector('#page'));
+    }
+  }
+
+  _loadPage() {
+    var page, path;
+    //#######################################
+    ///
+    ///   Load current page.
+    ///
+    //#######################################
+    path = this.router.filePath;
+    page = this.pageStore[path];
+    if (page) {
+      return this._mount(page);
+    } else {
+      return util$8.ajax(path, this._renderPage);
+    }
+  }
+
+  _renderPage(text) {
+    var page;
+    //#######################################
+    ///
+    ///   @params {string} text
+    ///
+    //#######################################
+    page = new Page$1(text);
+    page = page.render(this.router);
+    this.pageStore[this.router.filePath] = page;
+    return this._mount(page);
+  }
+
+  _bindRedirectEvent(page) {}
+
+  _mount(page) {
+    var old;
+    //#######################################
+    ///
+    ///   @params {DOM} page
+    ///
+    //#######################################
+    old = document.querySelector('body > page');
+    if (old) {
+      return document.body.replaceChild(page.$el, old);
+    } else {
+      return document.body.appendChild(page.$el);
+    }
   }
 
 };
@@ -3358,7 +4274,7 @@ var DOM_web = DOM$1 = class DOM {
     } else {
       this.root = html;
     }
-    this.$el = this.root; // only exists in DOM.node for better semantics.
+    this.$el = this.root; // only exists in DOM.web for better semantics.
   }
 
   _getHTMLElement(html) {
@@ -3516,7 +4432,9 @@ var DOM_web = DOM$1 = class DOM {
     ///   @return {DOM} this
     ///
     //#######################################
-    this.root.appendChild(child.root);
+    if (child) {
+      this.root.appendChild(child.root);
+    }
     return this;
   }
 
@@ -3527,7 +4445,7 @@ var DOM_web = DOM$1 = class DOM {
     ///   @params {value}  name
     ///   @return {DOM}    this
     ///
-    ///   This method only exists in DOM.node
+    ///   This method only exists in DOM.web
     ///
     //#######################################
     return this.root.style[name] = value;
@@ -3540,77 +4458,78 @@ var DOM_web = DOM$1 = class DOM {
     ///   @params {function} callback
     ///
     ///   add an event listener to root,
-    ///   this method only exists in DOM.node
+    ///   this method only exists in DOM.web
     ///
     //#######################################
     return this.root.addEventListener(name, (e) => {
       var dom;
       dom = new DOM(e.target);
-      return callback(dom, e);
+      callback(dom, e);
+      return e.preventDefault();
     });
   }
 
 };
 
-var DOM$2, Page$1, load, loadNavigator, loadPage, navigator, pages, util$7;
+var App$1, DOM$2;
 
-util$7 = util;
-
-Page$1 = Page_1;
+App$1 = App_1;
 
 DOM$2 = DOM_web;
 
 window.DOM = DOM$2;
 
-navigator = '';
-
-pages = {};
-
-load = () => {
-  return loadNavigator(() => {
-    return loadPage();
-  });
+window.onload = () => {
+  var app, isJIT;
+  app = new App$1(isJIT = true);
+  return app.run();
 };
 
-loadNavigator = (callback) => {
-  var path;
-  if (typeof Breeze !== "undefined" && Breeze !== null ? Breeze.navigator : void 0) {
-    if (Breeze.navigator === true) {
-      path = 'NAVIGATOR.md';
-    } else {
-      path = Breeze.navigator;
-    }
-    path = util$7.formatPath(path);
-    return util$7.ajax(path, (markdown) => {
-      navigator = markdown;
-      return callback();
-    });
-  } else {
-    return callback();
-  }
-};
+// navigator = ''
+// pages     = {}
 
-loadPage = () => {
-  var href, page;
-  href = location.href;
-  if (pages[href]) {
-    page = pages[href];
-    return page.render();
-  } else {
-    page = new Page$1(navigator);
-    pages[href] = page;
-    return page.on('reload', (hash) => {
-      hash = '#/' + hash;
-      hash = hash.replace(/\/+/, '/');
-      history.pushState(null, null, hash);
-      return loadPage();
-    });
-  }
-};
+// load = =>
+//    loadNavigator =>
+//       loadPage()
 
-window.addEventListener('load', load);
+// loadNavigator = ( callback ) =>
 
-window.addEventListener('hashchange', loadPage);
+//    if Breeze?.navigator
+
+//       if Breeze.navigator is true
+//          path = 'NAVIGATOR.md'
+//       else
+//          path = Breeze.navigator
+
+//       path = util.formatPath(path)
+
+//       util.ajax path, ( markdown ) =>
+//          navigator = markdown
+//          callback()
+
+//    else
+//       callback()
+
+// loadPage = =>
+
+//    href = location.href
+
+//    if pages[ href ]
+//       page = pages[ href ]
+//       page.render()
+
+//    else
+//       page = new Page( navigator )
+//       pages[ href ] = page
+
+//       page.on 'reload', ( hash ) =>
+//          hash = '#/' + hash
+//          hash = hash.replace(/\/+/, '/')
+//          history.pushState(null, null, hash)
+//          loadPage()
+
+// window.addEventListener('load', load)
+// window.addEventListener('hashchange', loadPage)
 
 var src = {
 

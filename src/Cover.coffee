@@ -70,7 +70,7 @@ module.exports = class Cover
       ########################################
 
       src = logo.attr('src')
-      src = util.formatPath(src)
+      src = util.filePath(src)
 
       logo = util.dom('img.logo')
       logo.attr('src', src)
@@ -166,8 +166,8 @@ module.exports = class Cover
              li.addClass('active')
              a.addClass('active')
 
-          if href = button.attr('href')
-             a.attr('href', href)
+          href = button.attr('href') ? ''
+          a.attr('href', href)
 
           text = button.text()
           a.text(text)
@@ -185,16 +185,18 @@ module.exports = class Cover
 
       ########################################
       #/
-      #/   @return {HTMLElement} $cover
+      #/   @return {HTMLElement} $cover - return null if hasn't.
       #/
       ########################################
 
-      html  = @format()
-      cover = util.dom( html )
+      if @html
+         cover = util.dom(@format())
+         @_bindButtonEvent( cover )
 
-      @_bindButtonEvent( cover )
+      else
+         cover = null
 
-      return cover.$el
+      return cover
 
 
 
@@ -208,5 +210,8 @@ module.exports = class Cover
       #/
       ########################################
 
-      for button in cover.findAll('.buttons li')
-          button.on('click', => cover.css('display', 'none'))
+      buttons = cover.findAll('.buttons li')
+
+      for button in buttons
+          button.on 'click', =>
+             cover.css('display', 'none')

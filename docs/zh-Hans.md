@@ -34,7 +34,7 @@
   <item>多主题，易扩展</item>
 
   <button href="https://github.com/kid-wumeng/Breeze">Github</button>
-  <button active href="#">阅读文档</button>
+  <button active href="#kid">阅读文档</button>
 </cover>
 
 

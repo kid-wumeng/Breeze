@@ -34,14 +34,234 @@ module.exports = class Article
       @summary   = ''
       @lastID    = ''
 
-      compile( @markdown )
+
+
+
+
+   parse: =>
+
+      ########################################
+      #/
+      #/   @return {object} - {object[]} sections
+      #/
+      ########################################
+
+      sections = @_parseSections( @markdown )
+      sections = @_parseHeadings( sections )
+
+      return sections
 
 
 
 
 
+   _parseSections: ( markdown ) =>
 
-   compile: ( markdown ) =>
+      ########################################
+      #/
+      #/   @params {string}   markdown
+      #/   @return {object[]} section - [{ heading, content, example }]
+      #/
+      ########################################
+
+      lines        = markdown.split('\n')
+      sections     = []
+      sectionLines = []
+      inExample    = false
+      inCode       = false
+
+      for line, i in lines
+
+         sectionLines.push(line)
+
+         { isExampleStart, isExampleEnd, isCode } = @_checkLine(line)
+
+         if isExampleStart then inExample = true
+         if isExampleEnd   then inExample = false
+         if isCode         then inCode    = !inCode
+
+         next = @_checkLine( lines[i+1] )
+
+         if next.isHeading or next.isEOF
+            if not ( inExample or inCode )
+
+               section = @_parseSection(sectionLines)
+               sections.push(section)
+               sectionLines = []
+
+      return sections
+
+
+
+
+
+   _parseSection: ( sectionLines ) =>
+
+      ########################################
+      #/
+      #/   @params {string[]} sectionLines
+      #/   @return {object}   section - {string} heading
+      #/                                {string} content
+      #/                                {string} example
+      #/
+      ########################################
+
+      heading = ''
+      content = ''
+      example = ''
+
+      inExample = false
+
+      for line, i in sectionLines
+
+          { isExampleStart, isExampleEnd, isHeading } = @_checkLine(line)
+
+          if isExampleStart
+             inExample = true
+             continue
+
+          if isExampleEnd
+             inExample = false
+             continue
+
+          if isHeading and i is 0
+             heading = line
+             continue
+
+          if inExample
+             example += "#{line}\n"
+          else
+             content += "#{line}\n"
+
+      return { heading, content, example }
+
+
+
+
+
+   _checkLine: ( line ) =>
+
+      ########################################
+      #/
+      #/   @return {object} - {boolean} isExampleStart
+      #/                      {boolean} isExampleEnd
+      #/                      {boolean} isCode
+      #/                      {boolean} isHeading
+      #/                      {boolean} isEOF
+      #/
+      ########################################
+
+      exampleStart = /^\s*<example>/
+      exampleEnd   = /^\s*<\/example>/
+      code         = /^\s*```/
+      heading      = /^\s*#{1,6}/
+
+      isExampleStart = line and exampleStart.test(line)
+      isExampleEnd   = line and exampleEnd.test(line)
+      isCode         = line and code.test(line)
+      isHeading      = line and heading.test(line)
+
+      isEOF          = line is undefined
+
+      return { isExampleStart, isExampleEnd, isCode, isHeading, isEOF }
+
+
+
+
+
+   _parseHeadings: ( sections ) =>
+
+      ########################################
+      #/
+      #/   @params {object[]} sections - [{ heading, content, example }]
+      #/   @return {object[]} sections - [{ heading, content, example }]
+      #/
+      ########################################
+
+      for section, i in sections
+
+          heading = sections[i]?.heading
+          prev    = sections[i-1]?.heading
+
+          section.heading = @_parseHeading( heading, prev )
+
+      return sections
+
+
+
+
+
+   _parseHeading: ( heading, prev ) =>
+
+      ########################################
+      #/
+      #/   @params {string} heading
+      #/   @params {object} prev - {number} lv
+      #/                           {string} text
+      #/                           {string} order
+      #/
+      #/   @return {object} heading - {number} lv
+      #/                              {string} text
+      #/                              {string} order
+      #/
+      #/   Assume the prev.order is '1.2',
+      #/      '#### Quick Start'  ->  { lv: 4, text: 'Quick Start', order: '1.2.0.1' }
+      #/
+      ########################################
+
+      if heading
+
+         heading = heading.trim()
+         results = heading.match /^(#+)\s*(.*)$/
+
+         lv   = results[1].length
+         text = results[2]
+
+         order = @_parseOrder( lv, prev?.order )
+
+         return { lv, order, text }
+
+      else
+         return null
+
+
+
+
+
+   _parseOrder: ( lv, prevOrder ) =>
+
+      ########################################
+      #/
+      #/   @params {number} lv
+      #/   @params {string} prevOrder
+      #/   @return {string} order
+      #/
+      ########################################
+
+      if prevOrder
+
+         # Assume lv = 4, prevOrder = '1.2'
+
+         order = prevOrder.split('.')           # order = ['1', '2']
+
+         order = order.map (p) => parseInt(p)   # order = [1, 2]
+
+         order.push(0) while order.length < lv  # order = [1, 2, 0, 0]
+
+         order[lv-1] += 1                       # order = [1, 2, 0, 1]
+
+         order = order.join('.')                # order = '1.2.0.1'
+
+         return order
+
+      else
+         return '1'
+
+
+
+
+
+   compile: =>
 
       ########################################
       #|
@@ -49,7 +269,11 @@ module.exports = class Article
       #|
       ########################################
 
-      console.log markdown
+      renderer = new marked.Renderer()
+      renderer.html = ( html ) =>
+         return html
+
+      marked(@markdown, { renderer })
 
       # markdown = @markdown
       #

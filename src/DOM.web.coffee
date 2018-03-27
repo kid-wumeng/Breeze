@@ -24,7 +24,7 @@ module.exports = class DOM
       else
          @root = html
 
-      @$el = @root  # only exists in DOM.node for better semantics.
+      @$el = @root  # only exists in DOM.web for better semantics.
 
 
 
@@ -234,7 +234,9 @@ module.exports = class DOM
       #/
       ########################################
 
-      @root.appendChild(child.root)
+      if child
+         @root.appendChild(child.root)
+
       return @
 
 
@@ -249,7 +251,7 @@ module.exports = class DOM
       #/   @params {value}  name
       #/   @return {DOM}    this
       #/
-      #/   This method only exists in DOM.node
+      #/   This method only exists in DOM.web
       #/
       ########################################
 
@@ -267,10 +269,13 @@ module.exports = class DOM
       #/   @params {function} callback
       #/
       #/   add an event listener to root,
-      #/   this method only exists in DOM.node
+      #/   this method only exists in DOM.web
       #/
       ########################################
 
       @root.addEventListener name, (e) =>
+
          dom = new DOM(e.target)
          callback(dom, e)
+
+         e.preventDefault()

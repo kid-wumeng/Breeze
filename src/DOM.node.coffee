@@ -85,7 +85,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if html
+      if html?
          return new DOM( html )
 
       else
@@ -106,7 +106,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if html
+      if html?
          @root.html( html )
          return @
 
@@ -130,7 +130,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if value
+      if value?
          @root.attr( name, value )
          return @
 
@@ -152,7 +152,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if text
+      if text?
          @root.text( text )
          return @
 

@@ -26,7 +26,7 @@
 
 <cover>
   <logo src="logo.svg"/>
-  <!-- <name version="0.4.2">Breeze</name> -->
+  <!-- <name>Breeze</name> -->
   <desc>超简单、超漂亮的 API 文档生成器！</desc>
 
   <item>无需 build 成 HTML，愉快的撰写体验</item>

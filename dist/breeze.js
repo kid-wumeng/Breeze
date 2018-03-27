@@ -8,27 +8,54 @@ function createCommonjsModule(fn, module) {
 }
 
 var util = createCommonjsModule(function (module, exports) {
+var _domBySelector, _elementByHTML, _elementBySelector, parseSelector;
+
 exports.isUrl = (href) => {
+  //#######################################
+  ///
+  ///   @params {string} href
+  ///   @return {boolean}
+  ///
+  //#######################################
   return /^(?:http)|(?:https)|(?:ftp):\/\//.test(href);
 };
 
-exports.formatPath = (path = '') => {
-  if (!exports.isUrl(path)) {
-    if (typeof Breeze !== "undefined" && Breeze !== null ? Breeze.base : void 0) {
-      path = Breeze.base + '/' + path;
-    }
-    if (path) {
-      path = path.replace(/\/{2,}/g, '/');
-    }
-    if (path[0] === '/') {
-      path = path.slice(1);
-    }
+exports.formatPath = (href = '') => {
+  var path;
+  //#######################################
+  ///
+  ///   @params {string} href
+  ///
+  ///   '/abc/def'  ->  'base/abc/def'
+  ///
+  ///   Won't format when href is url.
+  ///
+  //#######################################
+  if (exports.isUrl(href)) {
+    return href;
+  } else {
+    path = href;
+  }
+  if (typeof Breeze !== "undefined" && Breeze !== null ? Breeze.base : void 0) {
+    path = Breeze.base + '/' + path;
+  }
+  if (path) {
+    path = path.replace(/\/{2,}/g, '/');
+  }
+  if (path[0] === '/') {
+    path = path.slice(1);
   }
   return path;
 };
 
 exports.ajax = (path, done) => {
   var xhr;
+  //#######################################
+  ///
+  ///   @params {string}   path
+  ///   @params {function} done(text)
+  ///
+  //#######################################
   xhr = new XMLHttpRequest;
   xhr.open('GET', path, true);
   xhr.send(null);
@@ -41,103 +68,85 @@ exports.ajax = (path, done) => {
   };
 };
 
-exports.element = (name = 'div', innerHTML = '') => {
-  var $el, classname, hasClass, hasID, id, parts, tag;
-  hasID = /#/.test(name);
-  hasClass = /\./.test(name);
-  tag = 'div';
-  id = '';
-  classname = '';
-  parts = name.split(/#|\./);
-  parts = parts.filter((part) => {
-    return part;
-  });
-  switch (parts.length) {
-    case 1:
-      switch (false) {
-        case !hasID:
-          id = parts[0];
-          break;
-        case !hasClass:
-          classname = parts[0];
-          break;
-        default:
-          tag = parts[0];
-      }
-      break;
-    case 2:
-      switch (false) {
-        case !hasID:
-          (tag = parts[0]) && (id = parts[1]);
-          break;
-        case !hasClass:
-          (tag = parts[0]) && (classname = parts[1]);
-      }
+exports.dom = (html) => {
+  var $el, selector;
+  //#######################################
+  ///
+  ///   @params {string|HTMLElement} html|selector|$el
+  ///   @return {DOM}
+  ///
+  ///   <html>  ->  DOM
+  ///   sel#id  ->  DOM
+  ///   $el#id  ->  DOM
+  ///
+  //#######################################
+  if (typeof html === 'string') {
+    if (html[0] === '<') {
+      return new DOM(html);
+    } else {
+      return _domBySelector(selector = html);
+    }
+  } else {
+    return new DOM($el = html);
   }
+};
+
+_domBySelector = (selector) => {
+  var classname, dom, id, tag;
+  ({tag, id, classname} = parseSelector(selector));
+  dom = new DOM('<' + tag + '>');
+  if (id) {
+    dom.attr('id', id);
+  }
+  if (classname) {
+    dom.attr('class', classname);
+  }
+  return dom;
+};
+
+exports.element = (html) => {
+  var selector;
+  //#######################################
+  ///
+  ///   @params {string}      html|selector
+  ///   @return {HTMLElement}
+  ///
+  ///   <html>  ->  $html
+  ///   div#id  ->  $div#id
+  ///
+  //#######################################
+  if (html[0] === '<') {
+    return _elementByHTML(html);
+  } else {
+    return _elementBySelector(selector = html);
+  }
+};
+
+_elementByHTML = (html) => {
+  var fragment;
+  fragment = document.createElement('fragment');
+  fragment.innerHTML = html;
+  return fragment.childNodes[0];
+};
+
+_elementBySelector = (selector) => {
+  var $el, classname, id, tag;
+  ({tag, id, classname} = parseSelector(selector));
   $el = document.createElement(tag);
   if (id) {
-    $el.id = id;
+    $el.setAttribute('id', id);
   }
   if (classname) {
     $el.classList.add(classname);
   }
-  if (innerHTML) {
-    $el.innerHTML = innerHTML;
-  }
   return $el;
 };
 
-exports.createElement = (name = 'div', innerHTML = '') => {
-  var $el, classname, hasClass, hasID, id, parts, tag;
-  hasID = /#/.test(name);
-  hasClass = /\./.test(name);
-  tag = 'div';
-  id = '';
-  classname = '';
-  parts = name.split(/#|\./);
-  parts = parts.filter((part) => {
-    return part;
-  });
-  switch (parts.length) {
-    case 1:
-      switch (false) {
-        case !hasID:
-          id = parts[0];
-          break;
-        case !hasClass:
-          classname = parts[0];
-          break;
-        default:
-          tag = parts[0];
-      }
-      break;
-    case 2:
-      switch (false) {
-        case !hasID:
-          (tag = parts[0]) && (id = parts[1]);
-          break;
-        case !hasClass:
-          (tag = parts[0]) && (classname = parts[1]);
-      }
-  }
-  $el = document.createElement(tag);
-  if (id) {
-    $el.id = id;
-  }
-  if (classname) {
-    $el.classList.add(classname);
-  }
-  if (innerHTML) {
-    $el.innerHTML = innerHTML;
-  }
-  return $el;
-};
-
-exports.parseSelector = (sel = 'div') => {
+parseSelector = (selector = 'div') => {
   var classname, hasClass, hasID, id, parts, tag;
   //#######################################
   ///
-  ///   @params {string} sel
+  ///   @params {string} selector
   ///   @return {object} - {string} tag
   ///                      {string} id
   ///                      {string} classname
@@ -154,12 +163,12 @@ exports.parseSelector = (sel = 'div') => {
   ///   This selector can't includes classname more than two.
   ///
   //#######################################
-  hasID = /#/.test(sel);
-  hasClass = /\./.test(sel);
-  tag = '';
+  hasID = /#/.test(selector);
+  hasClass = /\./.test(selector);
+  tag = 'div';
   id = '';
   classname = '';
-  parts = sel.split(/#|\./);
+  parts = selector.split(/#|\./);
   parts = parts.filter((part) => {
     return part;
   });
@@ -187,40 +196,12 @@ exports.parseSelector = (sel = 'div') => {
   }
   return {tag, id, classname};
 };
-
-exports.dom = (html) => {
-  var classname, dom, id, sel, tag;
-  //#######################################
-  ///
-  ///   @params {string} html | selector
-  ///   @return {DOM}    dom
-  ///
-  ///   Wrap a dom if argument is html.
-  ///   Create a dom if argument is selector.
-  ///
-  //#######################################
-  if (html[0] === '<') {
-    return new DOM(html);
-  } else {
-    ({tag, id, classname} = exports.parseSelector(sel = html));
-    dom = new DOM('<' + tag + '>');
-    if (id) {
-      dom.attr('id', id);
-    }
-    if (classname) {
-      dom.attr('class', classname);
-    }
-    return dom;
-  }
-};
 });
 var util_1 = util.isUrl;
 var util_2 = util.formatPath;
 var util_3 = util.ajax;
-var util_4 = util.element;
-var util_5 = util.createElement;
-var util_6 = util.parseSelector;
-var util_7 = util.dom;
+var util_4 = util.dom;
+var util_5 = util.element;
 
 var ObservableObject;
 
@@ -1868,6 +1849,7 @@ var Markdown_1 = Markdown = class Markdown {
     this.parse = this.parse.bind(this);
     this._compileJadeByTag = this._compileJadeByTag.bind(this);
     this._compileJadeByAttribute = this._compileJadeByAttribute.bind(this);
+    this._formatSelfClosingTag = this._formatSelfClosingTag.bind(this);
     this._parseNav = this._parseNav.bind(this);
     this._parseCover = this._parseCover.bind(this);
     this._parseSummary = this._parseSummary.bind(this);
@@ -1888,6 +1870,7 @@ var Markdown_1 = Markdown = class Markdown {
     //#######################################
     text = this._compileJadeByTag(this.text);
     text = this._compileJadeByAttribute(text);
+    text = this._formatSelfClosingTag(text);
     return markdown = text;
   }
 
@@ -1944,6 +1927,22 @@ var Markdown_1 = Markdown = class Markdown {
       jade = new Jade$1(text);
       html = jade.compile();
       return start + html + end;
+    });
+  }
+
+  _formatSelfClosingTag(text) {
+    var reg;
+    //#######################################
+    ///
+    ///   @params {string} text
+    ///   @return {string} text
+    ///
+    ///   Format and replace <tag/> to <tag></tag>
+    ///
+    //#######################################
+    reg = /<([A-Za-z_-]+)((?:\s|\n)+(?:[^<]|\n)*?)?\/>/g;
+    return text.replace(reg, (_, tag, attr = '') => {
+      return `<${tag} ${attr}></${tag}>`;
     });
   }
 
@@ -2014,16 +2013,14 @@ var Cover_1 = Cover = class Cover {
   ///
   //#######################################
   constructor(html) {
+    this.format = this.format.bind(this);
+    this._formatLogo = this._formatLogo.bind(this);
+    this._formatName = this._formatName.bind(this);
+    this._formatDescs = this._formatDescs.bind(this);
+    this._formatItems = this._formatItems.bind(this);
+    this._formatButtons = this._formatButtons.bind(this);
     this.render = this.render.bind(this);
-    this._renderLogo = this._renderLogo.bind(this);
-    this._renderName = this._renderName.bind(this);
-    this._renderDescs = this._renderDescs.bind(this);
-    this._renderDesc = this._renderDesc.bind(this);
-    this._renderItems = this._renderItems.bind(this);
-    this._renderItem = this._renderItem.bind(this);
-    this._renderButtons = this._renderButtons.bind(this);
-    this._renderButton = this._renderButton.bind(this);
-    this._onClickButton = this._onClickButton.bind(this);
+    this._bindButtonEvent = this._bindButtonEvent.bind(this);
     //#######################################
     ///
     ///   @params {string} html
@@ -2032,185 +2029,162 @@ var Cover_1 = Cover = class Cover {
     this.html = html;
   }
 
-  render() {
-    var $buttons, $cover, $descs, $items, $logo, $model, $name, $wrap;
-    $model = util$2.createElement('model', this.html);
-    $cover = util$2.createElement('#cover');
-    $wrap = util$2.createElement('.wrap');
-    $logo = $model.querySelector('logo');
-    $name = $model.querySelector('name');
-    $descs = $model.querySelectorAll('desc');
-    $items = $model.querySelectorAll('item');
-    $buttons = $model.querySelectorAll('button');
-    $logo = this._renderLogo($logo);
-    $name = this._renderName($name);
-    $descs = this._renderDescs($descs);
-    $items = this._renderItems($items);
-    $buttons = this._renderButtons($buttons);
-    if ($logo) {
-      $wrap.appendChild($logo);
+  format() {
+    var buttons, cover, descs, dom, items, logo, name, wrap;
+    //#######################################
+    ///
+    ///   @return {string} html
+    ///
+    //#######################################
+    dom = util$2.dom(this.html);
+    wrap = util$2.dom('.wrap');
+    cover = util$2.dom('#cover');
+    logo = dom.find('cover > logo');
+    name = dom.find('cover > name');
+    descs = dom.findAll('cover > desc');
+    items = dom.findAll('cover > item');
+    buttons = dom.findAll('cover > button');
+    if (logo) {
+      wrap.append(this._formatLogo(logo));
     }
-    if ($name) {
-      $wrap.appendChild($name);
+    if (name) {
+      wrap.append(this._formatName(name));
     }
-    if ($descs) {
-      $wrap.appendChild($descs);
+    if (descs.length) {
+      wrap.append(this._formatDescs(descs));
     }
-    if ($items) {
-      $wrap.appendChild($items);
+    if (items.length) {
+      wrap.append(this._formatItems(items));
     }
-    if ($buttons) {
-      $wrap.appendChild($buttons);
+    if (buttons.length) {
+      wrap.append(this._formatButtons(buttons));
     }
-    $cover.appendChild($wrap);
-    return $cover;
+    cover.append(wrap);
+    return cover.htmlSelf();
   }
 
-  _renderLogo($logo) {
+  _formatLogo(logo) {
     var src;
     //#######################################
     ///
-    ///   @params {HTMLElement} $logo
-    ///   @return {HTMLElement} $logo
+    ///   @params {DOM} logo
+    ///   @return {DOM} logo
     ///
     //#######################################
-    if ($logo) {
-      src = $logo.getAttribute('src');
-      src = util$2.formatPath(src);
-      $logo = util$2.createElement('img.logo');
-      $logo.setAttribute('src', src);
-    }
-    return $logo;
+    src = logo.attr('src');
+    src = util$2.formatPath(src);
+    logo = util$2.dom('img.logo');
+    logo.attr('src', src);
+    return logo;
   }
 
-  _renderName($name) {
-    var $version, name, ref, version;
+  _formatName(name) {
+    var ref, text, version;
     //#######################################
     ///
-    ///   @params {HTMLElement} $name
-    ///   @return {HTMLElement} $name
+    ///   @params {DOM} name
+    ///   @return {DOM} name
     ///
     //#######################################
-    if ($name) {
-      name = $name.innerText;
-      version = (ref = $name.getAttribute('version')) != null ? ref : '';
-      $name = util$2.createElement('.name', name);
-      $version = util$2.createElement('.version', version);
-      $name.appendChild($version);
-    }
-    return $name;
+    text = name.text();
+    version = (ref = name.attr('version')) != null ? ref : '';
+    name = util$2.dom('.name').text(text);
+    version = util$2.dom('.version').text(version);
+    name.append(version);
+    return name;
   }
 
-  _renderDescs($descs) {
-    var $desc, $li, $ul, i, len;
+  _formatDescs(descs) {
+    var desc, i, len, li, ul;
     //#######################################
     ///
-    ///   @params {NodeList}    $descs
-    ///   @return {HTMLElement} $descs
+    ///   @params {DOM[]} descs
+    ///   @return {DOM}   ul.descs
     ///
     //#######################################
-    if ($descs.length) {
-      $ul = util$2.createElement('ul.descs');
-      for (i = 0, len = $descs.length; i < len; i++) {
-        $desc = $descs[i];
-        $li = this._renderDesc($desc);
-        $ul.appendChild($li);
+    ul = util$2.dom('ul.descs');
+    for (i = 0, len = descs.length; i < len; i++) {
+      desc = descs[i];
+      li = util$2.dom('li').text(desc.text());
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _formatItems(items) {
+    var i, item, len, li, ul;
+    //#######################################
+    ///
+    ///   @params {DOM[]} items
+    ///   @return {DOM}   ul.items
+    ///
+    //#######################################
+    ul = util$2.dom('ul.items');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      li = util$2.dom('li').text(item.text());
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _formatButtons(buttons) {
+    var a, button, href, i, len, li, text, ul;
+    //#######################################
+    ///
+    ///   @params {DOM[]} buttons
+    ///   @return {DOM}   ul.buttons
+    ///
+    //#######################################
+    ul = util$2.dom('ul.buttons');
+    for (i = 0, len = buttons.length; i < len; i++) {
+      button = buttons[i];
+      li = util$2.dom('li');
+      a = util$2.dom('a');
+      if (button.attr('active') != null) {
+        li.addClass('active');
+        a.addClass('active');
       }
-      return $ul;
-    } else {
-      return null;
-    }
-  }
-
-  _renderDesc($desc) {
-    //#######################################
-    ///
-    ///   @params {HTMLElement} $desc
-    ///   @return {HTMLElement} $desc
-    ///
-    //#######################################
-    return util$2.createElement('li', $desc.innerText);
-  }
-
-  _renderItems($items) {
-    var $item, $li, $ul, i, len;
-    //#######################################
-    ///
-    ///   @params {NodeList}    $items
-    ///   @return {HTMLElement} $items
-    ///
-    //#######################################
-    if ($items.length) {
-      $ul = util$2.createElement('ul.items');
-      for (i = 0, len = $items.length; i < len; i++) {
-        $item = $items[i];
-        $li = this._renderItem($item);
-        $ul.appendChild($li);
+      if (href = button.attr('href')) {
+        a.attr('href', href);
       }
-      return $ul;
-    } else {
-      return null;
+      text = button.text();
+      a.text(text);
+      li.append(a);
+      ul.append(li);
     }
+    return ul;
   }
 
-  _renderItem($item) {
+  render() {
+    var cover, html;
     //#######################################
     ///
-    ///   @params {HTMLElement} $item
-    ///   @return {HTMLElement} $item
+    ///   @return {HTMLElement} $cover
     ///
     //#######################################
-    return util$2.createElement('li', $item.innerText);
+    html = this.format();
+    cover = util$2.dom(html);
+    this._bindButtonEvent(cover);
+    return cover.$el;
   }
 
-  _renderButtons($buttons) {
-    var $button, $li, $ul, i, len;
+  _bindButtonEvent(cover) {
+    var button, i, len, ref, results;
+    ref = cover.findAll('.buttons li');
     //#######################################
     ///
-    ///   @params {NodeList}    $buttons
-    ///   @return {HTMLElement} $buttons
+    ///   @params {DOM} cover
     ///
     //#######################################
-    if ($buttons.length) {
-      $ul = util$2.createElement('ul.buttons');
-      for (i = 0, len = $buttons.length; i < len; i++) {
-        $button = $buttons[i];
-        $li = this._renderButton($button);
-        $ul.appendChild($li);
-      }
-      return $ul;
-    } else {
-      return null;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      button = ref[i];
+      results.push(button.on('click', () => {
+        return cover.css('display', 'none');
+      }));
     }
-  }
-
-  _renderButton($button) {
-    var $a, $li, href;
-    //#######################################
-    ///
-    ///   @params {HTMLElement} $button
-    ///   @return {HTMLElement} $button
-    ///
-    //#######################################
-    $li = util$2.createElement('li');
-    $a = util$2.createElement('a', $button.innerText);
-    if ($button.hasAttribute('active')) {
-      $li.classList.add('active');
-      $a.classList.add('active');
-    }
-    if (href = $button.getAttribute('href')) {
-      $a.setAttribute('href', href);
-    }
-    $li.appendChild($a);
-    return $li;
-  }
-
-  _onClickButton(e) {
-    var href;
-    href = e.target.getAttribute('href');
-    if (href[0] === '#') {
-      return this.$dom.style.display = 'none';
-    }
+    return results;
   }
 
 };
@@ -3109,8 +3083,6 @@ util$6 = util;
 var Page_1 = Page = class Page extends ObservableObject$2 {
   constructor(navigator) {
     super();
-    // @render(cover)
-
     // @navigator = new Navigator(navigator)
     // @article   = new Article(article)
     // @summary   = new Summary(@article.summary)
@@ -3174,7 +3146,7 @@ var Page_1 = Page = class Page extends ObservableObject$2 {
       markdown = new Markdown$1(text);
       ({nav, cover, summary, article} = markdown.parse());
       cover = new Cover$1(cover);
-      return cover.format();
+      return this.render(cover);
     });
   }
 
@@ -3257,7 +3229,7 @@ var Page_1 = Page = class Page extends ObservableObject$2 {
   render(cover) {
     var $root, $rootCurrent;
     boundMethodCheck$1(this, Page);
-    $root = util$6.createElement('#root');
+    $root = util$6.element('#root');
     $root.appendChild(cover.render());
     $rootCurrent = document.querySelector('body > #root');
     if ($rootCurrent) {
@@ -3363,7 +3335,7 @@ var DOM_web = DOM$1 = class DOM {
   ///
   //#######################################
   constructor(html) {
-    this._getRoot = this._getRoot.bind(this);
+    this._getHTMLElement = this._getHTMLElement.bind(this);
     this.find = this.find.bind(this);
     this.findAll = this.findAll.bind(this);
     this.htmlSelf = this.htmlSelf.bind(this);
@@ -3374,15 +3346,22 @@ var DOM_web = DOM$1 = class DOM {
     this.hasClass = this.hasClass.bind(this);
     this.removeClass = this.removeClass.bind(this);
     this.append = this.append.bind(this);
+    this.css = this.css.bind(this);
+    this.on = this.on.bind(this);
     //#######################################
     ///
-    ///   @params {string} html
+    ///   @params {string|HTMLElement} html|$el
     ///
     //#######################################
-    this.root = this._getRoot(html);
+    if (typeof html === 'string') {
+      this.root = this._getHTMLElement(html);
+    } else {
+      this.root = html;
+    }
+    this.$el = this.root; // only exists in DOM.node for better semantics.
   }
 
-  _getRoot(html) {
+  _getHTMLElement(html) {
     var fragment;
     //#######################################
     ///
@@ -3395,43 +3374,36 @@ var DOM_web = DOM$1 = class DOM {
     return fragment.childNodes[0];
   }
 
-  find(sel) {
-    var el, fragment, html;
+  find(selector) {
+    var $el;
     //#######################################
     ///
-    ///   @params {string} sel
+    ///   @params {string} selector
     ///   @return {DOM}    dom - return null when not found.
     ///
     //#######################################
-    el = this.root.querySelector(sel);
-    if (el) {
-      el = el.cloneNode(true);
-      fragment = document.createElement('fragment');
-      fragment.appendChild(el);
-      html = fragment.innerHTML;
-      return new DOM(html);
+    $el = this.root.querySelector(selector);
+    if ($el) {
+      return new DOM($el);
     } else {
       return null;
     }
   }
 
-  findAll(sel) {
-    var doms, el, els, fragment, html, i, len;
+  findAll(selector) {
+    var $el, $els, dom, doms, i, len;
     //#######################################
     ///
-    ///   @params {string} sel
+    ///   @params {string} selector
     ///   @return {DOM[]}  doms - return [] when not found.
     ///
     //#######################################
     doms = [];
-    els = this.root.querySelectorAll(sel);
-    for (i = 0, len = els.length; i < len; i++) {
-      el = els[i];
-      el = el.cloneNode(true);
-      fragment = document.createElement('fragment');
-      fragment.appendChild(el);
-      html = fragment.innerHTML;
-      doms.push(new DOM(html));
+    $els = this.root.querySelectorAll(selector);
+    for (i = 0, len = $els.length; i < len; i++) {
+      $el = $els[i];
+      dom = new DOM($el);
+      doms.push(dom);
     }
     return doms;
   }
@@ -3445,7 +3417,7 @@ var DOM_web = DOM$1 = class DOM {
     ///   GET   @return {string} html ( outer's )
     ///
     //#######################################
-    if (html) {
+    if (html != null) {
       return new DOM(html);
     } else {
       return this.root.outerHTML;
@@ -3461,7 +3433,7 @@ var DOM_web = DOM$1 = class DOM {
     ///   GET   @return {string} html ( inner's )
     ///
     //#######################################
-    if (html) {
+    if (html != null) {
       this.root.innerHTML = html;
       return this;
     } else {
@@ -3480,7 +3452,7 @@ var DOM_web = DOM$1 = class DOM {
     ///         @return {string} value
     ///
     //#######################################
-    if (value) {
+    if (value != null) {
       this.root.setAttribute(name, value);
       return this;
     } else {
@@ -3497,7 +3469,7 @@ var DOM_web = DOM$1 = class DOM {
     ///   GET   @return {string} text
     ///
     //#######################################
-    if (text) {
+    if (text != null) {
       this.root.innerText = text;
       return this;
     } else {
@@ -3544,8 +3516,38 @@ var DOM_web = DOM$1 = class DOM {
     ///   @return {DOM} this
     ///
     //#######################################
-    this.root.appendChild(child.root.cloneNode(true));
+    this.root.appendChild(child.root);
     return this;
+  }
+
+  css(name, value) {
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @params {value}  name
+    ///   @return {DOM}    this
+    ///
+    ///   This method only exists in DOM.node
+    ///
+    //#######################################
+    return this.root.style[name] = value;
+  }
+
+  on(name, callback) {
+    //#######################################
+    ///
+    ///   @params {string}   name
+    ///   @params {function} callback
+    ///
+    ///   add an event listener to root,
+    ///   this method only exists in DOM.node
+    ///
+    //#######################################
+    return this.root.addEventListener(name, (e) => {
+      var dom;
+      dom = new DOM(e.target);
+      return callback(dom, e);
+    });
   }
 
 };

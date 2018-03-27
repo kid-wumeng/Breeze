@@ -34,10 +34,7 @@ module.exports = class Page extends ObservableObject
 
          cover = new Cover( cover )
 
-
-         cover.format()
-
-         # @render(cover)
+         @render(cover)
 
 
 
@@ -181,8 +178,7 @@ module.exports = class Page extends ObservableObject
 
    render: ( cover ) =>
 
-      $root = util.createElement('#root')
-
+      $root = util.element('#root')
       $root.appendChild(cover.render())
 
       $rootCurrent = document.querySelector('body > #root')

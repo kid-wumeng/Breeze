@@ -15,17 +15,22 @@ module.exports = class DOM
 
       ########################################
       #/
-      #/   @params {string} html
+      #/   @params {string|HTMLElement} html|$el
       #/
       ########################################
 
-      @root = @_getRoot( html )
+      if typeof( html ) is 'string'
+         @root = @_getHTMLElement( html )
+      else
+         @root = html
+
+      @$el = @root  # only exists in DOM.node for better semantics.
 
 
 
 
 
-   _getRoot: ( html ) =>
+   _getHTMLElement: ( html ) =>
 
       ########################################
       #/
@@ -42,26 +47,19 @@ module.exports = class DOM
 
 
 
-   find: ( sel ) =>
+   find: ( selector ) =>
 
       ########################################
       #/
-      #/   @params {string} sel
+      #/   @params {string} selector
       #/   @return {DOM}    dom - return null when not found.
       #/
       ########################################
 
-      el = @root.querySelector(sel)
+      $el = @root.querySelector( selector )
 
-      if el
-         el = el.cloneNode(true)
-
-         fragment = document.createElement('fragment')
-         fragment.appendChild(el)
-
-         html = fragment.innerHTML
-         return new DOM( html )
-
+      if $el
+         return new DOM( $el )
       else
          return null
 
@@ -69,26 +67,21 @@ module.exports = class DOM
 
 
 
-   findAll: ( sel ) =>
+   findAll: ( selector ) =>
 
       ########################################
       #/
-      #/   @params {string} sel
+      #/   @params {string} selector
       #/   @return {DOM[]}  doms - return [] when not found.
       #/
       ########################################
 
       doms = []
-      els  = @root.querySelectorAll(sel)
+      $els = @root.querySelectorAll( selector )
 
-      for el in els
-          el = el.cloneNode(true)
-
-          fragment = document.createElement('fragment')
-          fragment.appendChild(el)
-
-          html = fragment.innerHTML
-          doms.push(new DOM( html ))
+      for $el in $els
+          dom = new DOM( $el )
+          doms.push( dom )
 
       return doms
 
@@ -107,7 +100,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if html
+      if html?
          return new DOM( html )
 
       else
@@ -128,7 +121,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if html
+      if html?
          @root.innerHTML = html
          return @
 
@@ -152,7 +145,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if value
+      if value?
          @root.setAttribute( name, value )
          return @
 
@@ -174,7 +167,7 @@ module.exports = class DOM
       #/
       ########################################
 
-      if text
+      if text?
          @root.innerText = text
          return @
 
@@ -241,5 +234,43 @@ module.exports = class DOM
       #/
       ########################################
 
-      @root.appendChild(child.root.cloneNode(true))
+      @root.appendChild(child.root)
       return @
+
+
+
+
+
+   css: ( name, value ) =>
+
+      ########################################
+      #/
+      #/   @params {string} name
+      #/   @params {value}  name
+      #/   @return {DOM}    this
+      #/
+      #/   This method only exists in DOM.node
+      #/
+      ########################################
+
+      @root.style[name] = value
+
+
+
+
+
+   on: ( name, callback ) =>
+
+      ########################################
+      #/
+      #/   @params {string}   name
+      #/   @params {function} callback
+      #/
+      #/   add an event listener to root,
+      #/   this method only exists in DOM.node
+      #/
+      ########################################
+
+      @root.addEventListener name, (e) =>
+         dom = new DOM(e.target)
+         callback(dom, e)

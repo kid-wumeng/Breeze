@@ -40,6 +40,7 @@ module.exports = class Markdown
 
       text = @_compileJadeByTag( @text )
       text = @_compileJadeByAttribute( text )
+      text = @_formatSelfClosingTag( text )
 
       return markdown = text
 
@@ -115,6 +116,26 @@ module.exports = class Markdown
          html = jade.compile()
 
          return start + html + end
+
+
+
+
+
+   _formatSelfClosingTag: ( text ) =>
+
+      ########################################
+      #/
+      #/   @params {string} text
+      #/   @return {string} text
+      #/
+      #/   Format and replace <tag/> to <tag></tag>
+      #/
+      ########################################
+
+      reg = /<([A-Za-z_-]+)((?:\s|\n)+(?:[^<]|\n)*?)?\/>/g
+
+      return text.replace reg, ( _, tag, attr = '' ) =>
+         return "<#{tag} #{attr}></#{tag}>"
 
 
 

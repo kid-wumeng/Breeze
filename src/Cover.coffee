@@ -28,225 +28,185 @@ module.exports = class Cover
 
 
 
+   format: =>
+
+      ########################################
+      #/
+      #/   @return {string} html
+      #/
+      ########################################
+
+      dom   = util.dom(@html)
+      wrap  = util.dom('.wrap')
+      cover = util.dom('#cover')
+
+      logo    = dom.find('cover > logo')
+      name    = dom.find('cover > name')
+      descs   = dom.findAll('cover > desc')
+      items   = dom.findAll('cover > item')
+      buttons = dom.findAll('cover > button')
+
+      wrap.append(@_formatLogo(logo))       if logo
+      wrap.append(@_formatName(name))       if name
+      wrap.append(@_formatDescs(descs))     if descs.length
+      wrap.append(@_formatItems(items))     if items.length
+      wrap.append(@_formatButtons(buttons)) if buttons.length
+
+      cover.append(wrap)
+
+      return cover.htmlSelf()
+
+
+
+
+
+   _formatLogo: ( logo ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} logo
+      #/   @return {DOM} logo
+      #/
+      ########################################
+
+      src = logo.attr('src')
+      src = util.formatPath(src)
+
+      logo = util.dom('img.logo')
+      logo.attr('src', src)
+
+      return logo
+
+
+
+
+
+   _formatName: ( name ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} name
+      #/   @return {DOM} name
+      #/
+      ########################################
+
+      text    = name.text()
+      version = name.attr('version') ? ''
+
+      name    = util.dom('.name').text(text)
+      version = util.dom('.version').text(version)
+
+      name.append(version)
+
+      return name
+
+
+
+
+
+   _formatDescs: ( descs ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM[]} descs
+      #/   @return {DOM}   ul.descs
+      #/
+      ########################################
+
+      ul = util.dom('ul.descs')
+
+      for desc in descs
+          li = util.dom('li').text(desc.text())
+          ul.append(li)
+
+      return ul
+
+
+
+
+
+   _formatItems: ( items ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM[]} items
+      #/   @return {DOM}   ul.items
+      #/
+      ########################################
+
+      ul = util.dom('ul.items')
+
+      for item in items
+          li = util.dom('li').text(item.text())
+          ul.append(li)
+
+      return ul
+
+
+
+
+
+   _formatButtons: ( buttons ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM[]} buttons
+      #/   @return {DOM}   ul.buttons
+      #/
+      ########################################
+
+      ul = util.dom('ul.buttons')
+
+      for button in buttons
+
+          li = util.dom('li')
+          a  = util.dom('a')
+
+          if button.attr('active')?
+             li.addClass('active')
+             a.addClass('active')
+
+          if href = button.attr('href')
+             a.attr('href', href)
+
+          text = button.text()
+          a.text(text)
+
+          li.append(a)
+          ul.append(li)
+
+      return ul
+
+
+
+
+
    render: =>
 
-      $model = util.createElement('model', @html)
-      $cover = util.createElement('#cover')
-      $wrap  = util.createElement('.wrap')
-
-      $logo    = $model.querySelector('logo')
-      $name    = $model.querySelector('name')
-      $descs   = $model.querySelectorAll('desc')
-      $items   = $model.querySelectorAll('item')
-      $buttons = $model.querySelectorAll('button')
-
-      $logo    = @_renderLogo( $logo )
-      $name    = @_renderName( $name )
-      $descs   = @_renderDescs( $descs )
-      $items   = @_renderItems( $items )
-      $buttons = @_renderButtons( $buttons )
-
-      $wrap.appendChild( $logo )  if $logo
-      $wrap.appendChild( $name )  if $name
-      $wrap.appendChild( $descs ) if $descs
-      $wrap.appendChild( $items ) if $items
-      $wrap.appendChild( $buttons ) if $buttons
-
-      $cover.appendChild( $wrap )
-
-      return $cover
-
-
-
-
-
-   _renderLogo: ( $logo ) =>
-
       ########################################
       #/
-      #/   @params {HTMLElement} $logo
-      #/   @return {HTMLElement} $logo
+      #/   @return {HTMLElement} $cover
       #/
       ########################################
 
-      if $logo
+      html  = @format()
+      cover = util.dom( html )
 
-         src = $logo.getAttribute('src')
-         src = util.formatPath(src)
+      @_bindButtonEvent( cover )
 
-         $logo = util.createElement('img.logo')
-         $logo.setAttribute('src', src)
-
-      return $logo
+      return cover.$el
 
 
 
 
 
-   _renderName: ( $name ) =>
+   _bindButtonEvent: ( cover ) =>
 
       ########################################
       #/
-      #/   @params {HTMLElement} $name
-      #/   @return {HTMLElement} $name
+      #/   @params {DOM} cover
       #/
       ########################################
 
-      if $name
-
-         name    = $name.innerText
-         version = $name.getAttribute('version') ? ''
-
-         $name    = util.createElement('.name', name)
-         $version = util.createElement('.version', version)
-
-         $name.appendChild($version)
-
-      return $name
-
-
-
-
-
-   _renderDescs: ( $descs ) =>
-
-      ########################################
-      #/
-      #/   @params {NodeList}    $descs
-      #/   @return {HTMLElement} $descs
-      #/
-      ########################################
-
-      if $descs.length
-
-         $ul = util.createElement('ul.descs')
-
-         for $desc in $descs
-             $li = @_renderDesc($desc)
-             $ul.appendChild($li)
-
-         return $ul
-
-      else
-         return null
-
-
-
-
-
-   _renderDesc: ( $desc ) =>
-
-      ########################################
-      #/
-      #/   @params {HTMLElement} $desc
-      #/   @return {HTMLElement} $desc
-      #/
-      ########################################
-
-      return util.createElement('li', $desc.innerText)
-
-
-
-
-
-   _renderItems: ( $items ) =>
-
-      ########################################
-      #/
-      #/   @params {NodeList}    $items
-      #/   @return {HTMLElement} $items
-      #/
-      ########################################
-
-      if $items.length
-
-         $ul = util.createElement('ul.items')
-
-         for $item in $items
-             $li = @_renderItem($item)
-             $ul.appendChild($li)
-
-         return $ul
-
-      else
-         return null
-
-
-
-
-
-   _renderItem: ( $item ) =>
-
-      ########################################
-      #/
-      #/   @params {HTMLElement} $item
-      #/   @return {HTMLElement} $item
-      #/
-      ########################################
-
-      return util.createElement('li', $item.innerText)
-
-
-
-
-
-   _renderButtons: ( $buttons ) =>
-
-      ########################################
-      #/
-      #/   @params {NodeList}    $buttons
-      #/   @return {HTMLElement} $buttons
-      #/
-      ########################################
-
-      if $buttons.length
-
-         $ul = util.createElement('ul.buttons')
-
-         for $button in $buttons
-             $li = @_renderButton($button)
-             $ul.appendChild($li)
-
-         return $ul
-
-      else
-         return null
-
-
-
-
-
-   _renderButton: ( $button ) =>
-
-      ########################################
-      #/
-      #/   @params {HTMLElement} $button
-      #/   @return {HTMLElement} $button
-      #/
-      ########################################
-
-      $li = util.createElement('li')
-      $a  = util.createElement('a', $button.innerText)
-
-      if $button.hasAttribute('active')
-         $li.classList.add('active')
-         $a.classList.add('active')
-
-      if href = $button.getAttribute('href')
-         $a.setAttribute('href', href)
-
-      $li.appendChild($a)
-
-      return $li
-
-
-
-
-
-   _onClickButton: ( e ) =>
-
-      href = e.target.getAttribute('href')
-
-      if href[0] is '#'
-
-         @$dom.style.display = 'none'
+      for button in cover.findAll('.buttons li')
+          button.on('click', => cover.css('display', 'none'))

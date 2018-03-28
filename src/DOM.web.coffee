@@ -229,12 +229,16 @@ module.exports = class DOM
 
       ########################################
       #/
-      #/   @params {DOM} child
+      #/   @params {DOM|string} child|html|selector
       #/   @return {DOM} this
       #/
       ########################################
 
       if child
+
+         if typeof(child) is 'string'
+            child = new DOM(child)
+
          @root.appendChild(child.root)
 
       return @

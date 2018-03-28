@@ -28,7 +28,8 @@ module.exports = class App
       @isJIT     = isJIT
       @pageCache = {}
 
-      window.router.on('redirect', @_loadPage)
+      @router = new Router( isJIT )
+      @router.on('redirect', @_loadPage)
 
       @_run()
 
@@ -55,7 +56,7 @@ module.exports = class App
       #/
       ########################################
 
-      path = window.router.filePath
+      path = @router.filePath
       page = @pageCache[path]
 
       if page
@@ -75,10 +76,10 @@ module.exports = class App
       #/
       ########################################
 
-      path = window.router.filePath
+      path = @router.filePath
 
       page = new Page(text)
-      page = page.render()
+      page = page.render(@router)
 
       @pageCache[path] = page
 

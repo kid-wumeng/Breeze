@@ -60,17 +60,36 @@ module.exports = class Page extends ObservableObject
 
 
 
-   compile: =>
+   parse: =>
 
-      markdown = new Markdown( @text )
+      ########################################
+      #/
+      #/   @return {object} - {Nav}     nav
+      #/                      {Cover}   cover
+      #/                      {Summary} summary
+      #/                      {Article} article
+      #/
+      ########################################
+
+      markdown = new Markdown(@text)
 
       { nav, cover, summary, article } = markdown.parse()
 
       cover   = new Cover(cover)
       article = new Article(article)
 
+      return { nav, cover, summary, article }
+
+
+
+
+
+   compile: =>
+
+      { nav, cover, summary, article } = @parse()
+
       page = util.dom('#page')
-      page.append(cover.render())
+                 .append(cover.compile())
 
       return page.htmlSelf()
 
@@ -78,12 +97,22 @@ module.exports = class Page extends ObservableObject
 
 
 
-   render: =>
+   render: ( router ) =>
 
-      html = @compile()
-      page = util.dom( html )
+      ########################################
+      #/
+      #/   @params {Router} router
+      #/
+      ########################################
 
-      Page.bindEvent( page, bus = new ObservableObject )
+      { nav, cover, summary, article } = @parse()
+
+      bus = new ObservableObject
+
+      page = util.dom('#page')
+                 .append(cover.render( bus ))
+
+      @_bindLinkEvent( router, page )
 
       return page
 
@@ -91,52 +120,37 @@ module.exports = class Page extends ObservableObject
 
 
 
-Page.bindEvent = ( page, bus ) =>
+   _bindLinkEvent: ( router, page ) =>
 
-   ########################################
-   #/
-   #/   @params {DOM}              page
-   #/   @params {ObservableObject} bus
-   #/
-   ########################################
+      ########################################
+      #/
+      #/   @params {Router} router
+      #/   @params {DOM}    page
+      #/
+      ########################################
 
-   cover = page.find('#cover')
+      links = page.findAll('a')
 
-   Cover.bindEvent( cover, bus ) if cover
-   Page._bindLinkEvent( page )
-
-
-
-
-
-Page._bindLinkEvent = ( page ) =>
-
-   ########################################
-   #/
-   #/   @params {DOM} link
-   #/
-   ########################################
-
-   links = page.findAll('a')
-
-   for link in links
-       link.on('click', Page._redirect)
+      for link in links
+          link.on('click', @_redirect.bind(@, router))
 
 
 
 
 
-Page._redirect = ( link ) =>
+   _redirect: ( router, link ) =>
 
-   ########################################
-   #/
-   #/   @params {DOM} link
-   #/
-   ########################################
+      ########################################
+      #/
+      #/   @params {Router}     router
+      #/   @params {DOM}        link
+      #/   @params {MouseEvent} e
+      #/
+      ########################################
 
-   href = link.attr('href')
+      href = link.attr('href')
 
-   if util.isUrl( href )
-      window.open( href, '_blank' )
-   else
-      window.router.go( href )
+      if util.isUrl( href )
+         window.open( href, '_blank' )
+      else
+         router.go( href )

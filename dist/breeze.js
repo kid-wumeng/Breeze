@@ -188,11 +188,14 @@ var DOM_web = DOM$1 = class DOM {
   append(child) {
     //#######################################
     ///
-    ///   @params {DOM} child
+    ///   @params {DOM|string} child|html|selector
     ///   @return {DOM} this
     ///
     //#######################################
     if (child) {
+      if (typeof child === 'string') {
+        child = new DOM(child);
+      }
       this.root.appendChild(child.root);
     }
     return this;
@@ -227,6 +230,45 @@ var DOM_web = DOM$1 = class DOM {
       callback(dom, e);
       return e.preventDefault();
     });
+  }
+
+};
+
+var ObservableObject;
+
+var ObservableObject_1 = ObservableObject = class ObservableObject {
+  constructor() {
+    this.on = this.on.bind(this);
+    this.emit = this.emit.bind(this);
+    this.events = {};
+  }
+
+  on(name, callback) {
+    if (!this.events[name]) {
+      this.events[name] = [];
+    }
+    this.events[name].push(callback);
+    return this;
+  }
+
+  emit(name, ...params) {
+    var callback, callbacks, i, len, ref;
+    //#######################################
+    //|
+    //|  Trigger an event.
+    //|
+    //|  @params {string} event's name
+    //|  @params {*...}   params...
+    //|
+    //|  @return {ObservableObject} this
+    //|
+    //#######################################
+    callbacks = (ref = this.events[name]) != null ? ref : [];
+    for (i = 0, len = callbacks.length; i < len; i++) {
+      callback = callbacks[i];
+      callback(...params);
+    }
+    return this;
   }
 
 };
@@ -431,45 +473,6 @@ var util_2 = util.filePath;
 var util_3 = util.ajax;
 var util_4 = util.dom;
 var util_5 = util.element;
-
-var ObservableObject;
-
-var ObservableObject_1 = ObservableObject = class ObservableObject {
-  constructor() {
-    this.on = this.on.bind(this);
-    this.emit = this.emit.bind(this);
-    this.events = {};
-  }
-
-  on(name, callback) {
-    if (!this.events[name]) {
-      this.events[name] = [];
-    }
-    this.events[name].push(callback);
-    return this;
-  }
-
-  emit(name, ...params) {
-    var callback, callbacks, i, len, ref;
-    //#######################################
-    //|
-    //|  Trigger an event.
-    //|
-    //|  @params {string} event's name
-    //|  @params {*...}   params...
-    //|
-    //|  @return {ObservableObject} this
-    //|
-    //#######################################
-    callbacks = (ref = this.events[name]) != null ? ref : [];
-    for (i = 0, len = callbacks.length; i < len; i++) {
-      callback = callbacks[i];
-      callback(...params);
-    }
-    return this;
-  }
-
-};
 
 var ObservableObject$1, Router, util$1,
   boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
@@ -2551,13 +2554,15 @@ var Cover_1 = Cover = class Cover {
   //#######################################
   constructor(html) {
     this.exist = this.exist.bind(this);
-    this.format = this.format.bind(this);
-    this._formatLogo = this._formatLogo.bind(this);
-    this._formatName = this._formatName.bind(this);
-    this._formatDescs = this._formatDescs.bind(this);
-    this._formatItems = this._formatItems.bind(this);
-    this._formatButtons = this._formatButtons.bind(this);
+    this.compile = this.compile.bind(this);
+    this._compileLogo = this._compileLogo.bind(this);
+    this._compileName = this._compileName.bind(this);
+    this._compileDescs = this._compileDescs.bind(this);
+    this._compileItems = this._compileItems.bind(this);
+    this._compileButtons = this._compileButtons.bind(this);
     this.render = this.render.bind(this);
+    this._bindEvent = this._bindEvent.bind(this);
+    this._hide = this._hide.bind(this);
     //#######################################
     ///
     ///   @params {string} html
@@ -2570,7 +2575,7 @@ var Cover_1 = Cover = class Cover {
     return !!this.html;
   }
 
-  format() {
+  compile() {
     var buttons, cover, descs, dom, items, logo, name, wrap;
     //#######################################
     ///
@@ -2586,25 +2591,25 @@ var Cover_1 = Cover = class Cover {
     items = dom.findAll('cover > item');
     buttons = dom.findAll('cover > button');
     if (logo) {
-      wrap.append(this._formatLogo(logo));
+      wrap.append(this._compileLogo(logo));
     }
     if (name) {
-      wrap.append(this._formatName(name));
+      wrap.append(this._compileName(name));
     }
     if (descs.length) {
-      wrap.append(this._formatDescs(descs));
+      wrap.append(this._compileDescs(descs));
     }
     if (items.length) {
-      wrap.append(this._formatItems(items));
+      wrap.append(this._compileItems(items));
     }
     if (buttons.length) {
-      wrap.append(this._formatButtons(buttons));
+      wrap.append(this._compileButtons(buttons));
     }
     cover.append(wrap);
     return cover.htmlSelf();
   }
 
-  _formatLogo(logo) {
+  _compileLogo(logo) {
     var src;
     //#######################################
     ///
@@ -2619,7 +2624,7 @@ var Cover_1 = Cover = class Cover {
     return logo;
   }
 
-  _formatName(name) {
+  _compileName(name) {
     var ref, text, version;
     //#######################################
     ///
@@ -2635,7 +2640,7 @@ var Cover_1 = Cover = class Cover {
     return name;
   }
 
-  _formatDescs(descs) {
+  _compileDescs(descs) {
     var desc, i, len, li, ul;
     //#######################################
     ///
@@ -2652,7 +2657,7 @@ var Cover_1 = Cover = class Cover {
     return ul;
   }
 
-  _formatItems(items) {
+  _compileItems(items) {
     var i, item, len, li, ul;
     //#######################################
     ///
@@ -2669,7 +2674,7 @@ var Cover_1 = Cover = class Cover {
     return ul;
   }
 
-  _formatButtons(buttons) {
+  _compileButtons(buttons) {
     var a, button, href, i, len, li, ref, text, ul;
     //#######################################
     ///
@@ -2697,43 +2702,44 @@ var Cover_1 = Cover = class Cover {
   }
 
   render() {
-    var dom, html;
+    var cover, html;
     //#######################################
     ///
-    ///   @return {DOM} dom
+    ///   @return {DOM} cover
     ///
     //#######################################
-    html = this.format();
-    dom = util$3.dom(html);
-    return dom;
+    html = this.compile();
+    cover = util$3.dom(html);
+    this._bindEvent(cover);
+    return cover;
   }
 
-};
-
-Cover.bindEvent = (cover) => {
-  var button, buttons, i, len, results;
-  //#######################################
-  ///
-  ///   @params {DOM}              cover
-  ///   @params {ObservableObject} bus
-  ///
-  //#######################################
-  buttons = cover.findAll('.buttons li');
-  results = [];
-  for (i = 0, len = buttons.length; i < len; i++) {
-    button = buttons[i];
-    results.push(button.on('click', Cover._hide.bind(undefined, cover)));
+  _bindEvent(cover) {
+    var button, buttons, i, len, results;
+    //#######################################
+    ///
+    ///   @params {DOM} cover
+    ///
+    //#######################################
+    buttons = cover.findAll('.buttons li');
+    results = [];
+    for (i = 0, len = buttons.length; i < len; i++) {
+      button = buttons[i];
+      results.push(button.on('click', this._hide.bind(this, cover)));
+    }
+    return results;
   }
-  return results;
-};
 
-Cover._hide = (cover) => {
-  //#######################################
-  ///
-  ///   @params {DOM} cover
-  ///
-  //#######################################
-  return cover.css('display', 'none');
+  _hide(cover) {
+    //#######################################
+    ///
+    ///   @params {DOM} cover
+    ///   @params {MouseEvent} e
+    ///
+    //#######################################
+    return cover.css('display', 'none');
+  }
+
 };
 
 var prism = createCommonjsModule(function (module) {
@@ -4313,81 +4319,96 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     //    @article.scroll(@query.id)
     //    @summary.scroll(@query.id)
     //    @summary.active(@query.id)
+    this.parse = this.parse.bind(this);
     this.compile = this.compile.bind(this);
     this.render = this.render.bind(this);
+    this._bindLinkEvent = this._bindLinkEvent.bind(this);
+    this._redirect = this._redirect.bind(this);
     this.text = text + common;
   }
 
-  compile() {
-    var article, cover, markdown, nav, page, summary;
+  parse() {
+    var article, cover, markdown, nav, summary;
     boundMethodCheck$2(this, Page);
+    //#######################################
+    ///
+    ///   @return {object} - {Nav}     nav
+    ///                      {Cover}   cover
+    ///                      {Summary} summary
+    ///                      {Article} article
+    ///
+    //#######################################
     markdown = new Markdown$1(this.text);
     ({nav, cover, summary, article} = markdown.parse());
     cover = new Cover$1(cover);
     article = new Article$1(article);
-    page = util$7.dom('#page');
-    page.append(cover.render());
+    return {nav, cover, summary, article};
+  }
+
+  compile() {
+    var article, cover, nav, page, summary;
+    boundMethodCheck$2(this, Page);
+    ({nav, cover, summary, article} = this.parse());
+    page = util$7.dom('#page').append(cover.compile());
     return page.htmlSelf();
   }
 
-  render() {
-    var bus, html, page;
+  render(router) {
+    var article, bus, cover, nav, page, summary;
     boundMethodCheck$2(this, Page);
-    html = this.compile();
-    page = util$7.dom(html);
-    Page.bindEvent(page, bus = new ObservableObject$3);
+    //#######################################
+    ///
+    ///   @params {Router} router
+    ///
+    //#######################################
+    ({nav, cover, summary, article} = this.parse());
+    bus = new ObservableObject$3;
+    page = util$7.dom('#page').append(cover.render(bus));
+    this._bindLinkEvent(router, page);
     return page;
   }
 
-};
-
-Page.bindEvent = (page, bus) => {
-  var cover;
-  //#######################################
-  ///
-  ///   @params {DOM}              page
-  ///   @params {ObservableObject} bus
-  ///
-  //#######################################
-  cover = page.find('#cover');
-  if (cover) {
-    Cover$1.bindEvent(cover, bus);
+  _bindLinkEvent(router, page) {
+    var i, len, link, links, results;
+    boundMethodCheck$2(this, Page);
+    //#######################################
+    ///
+    ///   @params {Router} router
+    ///   @params {DOM}    page
+    ///
+    //#######################################
+    links = page.findAll('a');
+    results = [];
+    for (i = 0, len = links.length; i < len; i++) {
+      link = links[i];
+      results.push(link.on('click', this._redirect.bind(this, router)));
+    }
+    return results;
   }
-  return Page._bindLinkEvent(page);
-};
 
-Page._bindLinkEvent = (page) => {
-  var i, len, link, links, results;
-  //#######################################
-  ///
-  ///   @params {DOM} link
-  ///
-  //#######################################
-  links = page.findAll('a');
-  results = [];
-  for (i = 0, len = links.length; i < len; i++) {
-    link = links[i];
-    results.push(link.on('click', Page._redirect));
+  _redirect(router, link) {
+    var href;
+    boundMethodCheck$2(this, Page);
+    //#######################################
+    ///
+    ///   @params {Router}     router
+    ///   @params {DOM}        link
+    ///   @params {MouseEvent} e
+    ///
+    //#######################################
+    href = link.attr('href');
+    if (util$7.isUrl(href)) {
+      return window.open(href, '_blank');
+    } else {
+      return router.go(href);
+    }
   }
-  return results;
+
 };
 
-Page._redirect = (link) => {
-  var href;
-  //#######################################
-  ///
-  ///   @params {DOM} link
-  ///
-  //#######################################
-  href = link.attr('href');
-  if (util$7.isUrl(href)) {
-    return window.open(href, '_blank');
-  } else {
-    return window.router.go(href);
-  }
-};
+var App, Page$1, Router$1, util$8;
 
-var App, Page$1, util$8;
+Router$1 = Router_1;
 
 Page$1 = Page_1;
 
@@ -4413,7 +4434,8 @@ var App_1 = App = class App {
     //#######################################
     this.isJIT = isJIT;
     this.pageCache = {};
-    window.router.on('redirect', this._loadPage);
+    this.router = new Router$1(isJIT);
+    this.router.on('redirect', this._loadPage);
     this._run();
   }
 
@@ -4432,7 +4454,7 @@ var App_1 = App = class App {
     ///   Load current page.
     ///
     //#######################################
-    path = window.router.filePath;
+    path = this.router.filePath;
     page = this.pageCache[path];
     if (page) {
       return this._mount(page);
@@ -4448,9 +4470,9 @@ var App_1 = App = class App {
     ///   @params {string} text
     ///
     //#######################################
-    path = window.router.filePath;
+    path = this.router.filePath;
     page = new Page$1(text);
-    page = page.render();
+    page = page.render(this.router);
     this.pageCache[path] = page;
     return this._mount(page);
   }
@@ -4472,19 +4494,17 @@ var App_1 = App = class App {
 
 };
 
-var App$1, DOM$2, Router$2;
+var App$1, DOM$2;
 
 DOM$2 = DOM_web;
 
-Router$2 = Router_1;
-
 App$1 = App_1;
+
+window.DOM = DOM$2;
 
 window.onload = () => {
   var isJIT;
-  window.DOM = DOM$2;
-  window.router = new Router$2(isJIT = true);
-  return window.app = new App$1(isJIT = true);
+  return new App$1(isJIT = true);
 };
 
 var src = {

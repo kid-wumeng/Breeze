@@ -42,7 +42,7 @@ module.exports = class Cover
 
 
 
-   format: =>
+   compile: =>
 
       ########################################
       #/
@@ -60,11 +60,11 @@ module.exports = class Cover
       items   = dom.findAll('cover > item')
       buttons = dom.findAll('cover > button')
 
-      wrap.append(@_formatLogo(logo))       if logo
-      wrap.append(@_formatName(name))       if name
-      wrap.append(@_formatDescs(descs))     if descs.length
-      wrap.append(@_formatItems(items))     if items.length
-      wrap.append(@_formatButtons(buttons)) if buttons.length
+      wrap.append(@_compileLogo(logo))       if logo
+      wrap.append(@_compileName(name))       if name
+      wrap.append(@_compileDescs(descs))     if descs.length
+      wrap.append(@_compileItems(items))     if items.length
+      wrap.append(@_compileButtons(buttons)) if buttons.length
 
       cover.append(wrap)
 
@@ -74,7 +74,7 @@ module.exports = class Cover
 
 
 
-   _formatLogo: ( logo ) =>
+   _compileLogo: ( logo ) =>
 
       ########################################
       #/
@@ -95,7 +95,7 @@ module.exports = class Cover
 
 
 
-   _formatName: ( name ) =>
+   _compileName: ( name ) =>
 
       ########################################
       #/
@@ -118,7 +118,7 @@ module.exports = class Cover
 
 
 
-   _formatDescs: ( descs ) =>
+   _compileDescs: ( descs ) =>
 
       ########################################
       #/
@@ -139,7 +139,7 @@ module.exports = class Cover
 
 
 
-   _formatItems: ( items ) =>
+   _compileItems: ( items ) =>
 
       ########################################
       #/
@@ -160,7 +160,7 @@ module.exports = class Cover
 
 
 
-   _formatButtons: ( buttons ) =>
+   _compileButtons: ( buttons ) =>
 
       ########################################
       #/
@@ -199,43 +199,45 @@ module.exports = class Cover
 
       ########################################
       #/
-      #/   @return {DOM} dom
+      #/   @return {DOM} cover
       #/
       ########################################
 
-      html = @format()
-      dom  = util.dom( html )
+      html  = @compile()
+      cover = util.dom( html )
 
-      return dom
+      @_bindEvent( cover )
 
-
-
-
-
-Cover.bindEvent = ( cover ) =>
-
-   ########################################
-   #/
-   #/   @params {DOM}              cover
-   #/   @params {ObservableObject} bus
-   #/
-   ########################################
-
-   buttons = cover.findAll('.buttons li')
-
-   for button in buttons
-       button.on('click', Cover._hide.bind(@, cover))
+      return cover
 
 
 
 
 
-Cover._hide = ( cover ) =>
+   _bindEvent: ( cover ) =>
 
-   ########################################
-   #/
-   #/   @params {DOM} cover
-   #/
-   ########################################
+      ########################################
+      #/
+      #/   @params {DOM} cover
+      #/
+      ########################################
 
-   cover.css('display', 'none')
+      buttons = cover.findAll('.buttons li')
+
+      for button in buttons
+          button.on('click', @_hide.bind(@, cover))
+
+
+
+
+
+   _hide: ( cover ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} cover
+      #/   @params {MouseEvent} e
+      #/
+      ########################################
+
+      cover.css('display', 'none')

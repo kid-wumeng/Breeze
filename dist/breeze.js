@@ -1,6 +1,236 @@
 var Breeze = (function () {
 'use strict';
 
+var DOM$1;
+
+var DOM_web = DOM$1 = class DOM {
+  //#######################################
+  ///
+  ///   Be responsible for querying and operating dom ( html-string ).
+  ///   Adapted to the web environment ( browser-runtime ).
+  ///
+  //#######################################
+  constructor(html) {
+    this._getHTMLElement = this._getHTMLElement.bind(this);
+    this.find = this.find.bind(this);
+    this.findAll = this.findAll.bind(this);
+    this.htmlSelf = this.htmlSelf.bind(this);
+    this.html = this.html.bind(this);
+    this.attr = this.attr.bind(this);
+    this.text = this.text.bind(this);
+    this.addClass = this.addClass.bind(this);
+    this.hasClass = this.hasClass.bind(this);
+    this.removeClass = this.removeClass.bind(this);
+    this.append = this.append.bind(this);
+    this.css = this.css.bind(this);
+    this.on = this.on.bind(this);
+    //#######################################
+    ///
+    ///   @params {string|HTMLElement} html|$el
+    ///
+    //#######################################
+    if (typeof html === 'string') {
+      this.root = this._getHTMLElement(html);
+    } else {
+      this.root = html;
+    }
+    this.$el = this.root; // only exists in DOM.web for better semantics.
+  }
+
+  _getHTMLElement(html) {
+    var fragment;
+    //#######################################
+    ///
+    ///   @params {string}      html
+    ///   @return {HTMLElement} root
+    ///
+    //#######################################
+    fragment = document.createElement('fragment');
+    fragment.innerHTML = html;
+    return fragment.childNodes[0];
+  }
+
+  find(selector) {
+    var $el;
+    //#######################################
+    ///
+    ///   @params {string} selector
+    ///   @return {DOM}    dom - return null when not found.
+    ///
+    //#######################################
+    $el = this.root.querySelector(selector);
+    if ($el) {
+      return new DOM($el);
+    } else {
+      return null;
+    }
+  }
+
+  findAll(selector) {
+    var $el, $els, dom, doms, i, len;
+    //#######################################
+    ///
+    ///   @params {string} selector
+    ///   @return {DOM[]}  doms - return [] when not found.
+    ///
+    //#######################################
+    doms = [];
+    $els = this.root.querySelectorAll(selector);
+    for (i = 0, len = $els.length; i < len; i++) {
+      $el = $els[i];
+      dom = new DOM($el);
+      doms.push(dom);
+    }
+    return doms;
+  }
+
+  htmlSelf(html) {
+    //#######################################
+    ///
+    ///   SET   @params {string} html
+    ///         @return {DOM}    this
+    ///
+    ///   GET   @return {string} html ( outer's )
+    ///
+    //#######################################
+    if (html != null) {
+      return new DOM(html);
+    } else {
+      return this.root.outerHTML;
+    }
+  }
+
+  html(html) {
+    //#######################################
+    ///
+    ///   SET   @params {string} html
+    ///         @return {DOM}    this
+    ///
+    ///   GET   @return {string} html ( inner's )
+    ///
+    //#######################################
+    if (html != null) {
+      this.root.innerHTML = html;
+      return this;
+    } else {
+      return this.root.innerHTML;
+    }
+  }
+
+  attr(name, value) {
+    //#######################################
+    ///
+    ///   SET   @params {string} name
+    ///         @params {string} value
+    ///         @return {DOM}    this
+    ///
+    ///   GET   @params {string} name
+    ///         @return {string} value
+    ///
+    //#######################################
+    if (value != null) {
+      this.root.setAttribute(name, value);
+      return this;
+    } else {
+      return this.root.getAttribute(name);
+    }
+  }
+
+  text(text) {
+    //#######################################
+    ///
+    ///   SET   @params {string} text
+    ///         @return {DOM}    this
+    ///
+    ///   GET   @return {string} text
+    ///
+    //#######################################
+    if (text != null) {
+      this.root.innerText = text;
+      return this;
+    } else {
+      return this.root.innerText;
+    }
+  }
+
+  addClass(name) {
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @return {DOM}    this
+    ///
+    //#######################################
+    this.root.classList.add(name);
+    return this;
+  }
+
+  hasClass(name) {
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @return {boolean}
+    ///
+    //#######################################
+    return this.root.classList.contains(name);
+  }
+
+  removeClass(name) {
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @return {DOM}    this
+    ///
+    //#######################################
+    this.root.classList.remove(name);
+    return this;
+  }
+
+  append(child) {
+    //#######################################
+    ///
+    ///   @params {DOM} child
+    ///   @return {DOM} this
+    ///
+    //#######################################
+    if (child) {
+      this.root.appendChild(child.root);
+    }
+    return this;
+  }
+
+  css(name, value) {
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @params {value}  name
+    ///   @return {DOM}    this
+    ///
+    ///   This method only exists in DOM.web
+    ///
+    //#######################################
+    return this.root.style[name] = value;
+  }
+
+  on(name, callback) {
+    //#######################################
+    ///
+    ///   @params {string}   name
+    ///   @params {function} callback
+    ///
+    ///   add an event listener to root,
+    ///   this method only exists in DOM.web
+    ///
+    //#######################################
+    return this.root.addEventListener(name, (e) => {
+      var dom;
+      dom = new DOM(e.target);
+      callback(dom, e);
+      return e.preventDefault();
+    });
+  }
+
+};
+
 var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 function createCommonjsModule(fn, module) {
@@ -278,7 +508,7 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     this._parse();
     window.addEventListener('popstate', () => {
       this._parse();
-      return this.emit('redirectPage');
+      return this.emit('redirect');
     });
   }
 
@@ -488,27 +718,24 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     //#######################################
     history.pushState(null, null, fullPath);
     this._parse();
-    return this.emit('redirectPage');
+    return this.emit('redirect');
   }
 
   _formatFullPath(path, query) {
-    var querystring;
+    var fullPath;
     boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} path
-    ///   @params {object} query
-    ///   @return {string} fullPath
-    ///
-    //#######################################
-    path = this._formatPath(path);
-    querystring = this._formatQuery(query);
+    if (!path) {
+      path = this.path;
+    }
+    fullPath = this._formatPath(path) + this._formatQuery(query);
     if (this.isJIT) {
-      if (path !== '/') {
-        path = '/#' + path;
+      if (path === '/') {
+        return fullPath;
+      } else {
+        return '/#' + fullPath;
       }
     }
-    return path + querystring;
+    return fullPath;
   }
 
   _formatPath(path = '') {
@@ -2149,8 +2376,9 @@ Jade$1 = Jade_1;
 var Markdown_1 = Markdown = class Markdown {
   //#######################################
   ///
-  ///   Be responsible for compiling text to markdown
-  ///   and parsing some components, such as <nav>, <cover>, <summary> and so on.
+  ///   Be responsible for
+  ///      compiling text to markdown and parsing some components,
+  ///      such as <nav>, <cover>, <summary> and so on.
   ///
   //#######################################
   constructor(text) {
@@ -2322,6 +2550,7 @@ var Cover_1 = Cover = class Cover {
   ///
   //#######################################
   constructor(html) {
+    this.exist = this.exist.bind(this);
     this.format = this.format.bind(this);
     this._formatLogo = this._formatLogo.bind(this);
     this._formatName = this._formatName.bind(this);
@@ -2329,13 +2558,16 @@ var Cover_1 = Cover = class Cover {
     this._formatItems = this._formatItems.bind(this);
     this._formatButtons = this._formatButtons.bind(this);
     this.render = this.render.bind(this);
-    this._bindButtonEvent = this._bindButtonEvent.bind(this);
     //#######################################
     ///
     ///   @params {string} html
     ///
     //#######################################
     this.html = html;
+  }
+
+  exist() {
+    return !!this.html;
   }
 
   format() {
@@ -2465,39 +2697,43 @@ var Cover_1 = Cover = class Cover {
   }
 
   render() {
-    var cover;
+    var dom, html;
     //#######################################
     ///
-    ///   @return {HTMLElement} $cover - return null if hasn't.
+    ///   @return {DOM} dom
     ///
     //#######################################
-    if (this.html) {
-      cover = util$3.dom(this.format());
-      this._bindButtonEvent(cover);
-    } else {
-      cover = null;
-    }
-    return cover;
+    html = this.format();
+    dom = util$3.dom(html);
+    return dom;
   }
 
-  _bindButtonEvent(cover) {
-    var button, buttons, i, len, results;
-    //#######################################
-    ///
-    ///   @params {DOM} cover
-    ///
-    //#######################################
-    buttons = cover.findAll('.buttons li');
-    results = [];
-    for (i = 0, len = buttons.length; i < len; i++) {
-      button = buttons[i];
-      results.push(button.on('click', () => {
-        return cover.css('display', 'none');
-      }));
-    }
-    return results;
-  }
+};
 
+Cover.bindEvent = (cover) => {
+  var button, buttons, i, len, results;
+  //#######################################
+  ///
+  ///   @params {DOM}              cover
+  ///   @params {ObservableObject} bus
+  ///
+  //#######################################
+  buttons = cover.findAll('.buttons li');
+  results = [];
+  for (i = 0, len = buttons.length; i < len; i++) {
+    button = buttons[i];
+    results.push(button.on('click', Cover._hide.bind(undefined, cover)));
+  }
+  return results;
+};
+
+Cover._hide = (cover) => {
+  //#######################################
+  ///
+  ///   @params {DOM} cover
+  ///
+  //#######################################
+  return cover.css('display', 'none');
 };
 
 var prism = createCommonjsModule(function (module) {
@@ -4052,23 +4288,6 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     // @$side = util.element('#side')
     // @$main = util.element('#main')
 
-    // @path     = @getPath()
-    // @query    = @getQuery()
-    // @filePath = @getFilePath()
-
-    // util.ajax @filePath, ( text ) =>
-
-    //    markdown = new Markdown( text )
-
-    //    { nav, cover, summary, article } = markdown.parse()
-
-    //    cover   = new Cover( cover )
-    //    article = new Article( article )
-
-    //    article.parse()
-
-    //    @_render(cover)
-
     // @navigator = new Navigator(navigator)
     // @article   = new Article(article)
     // @summary   = new Summary(@article.summary)
@@ -4096,8 +4315,6 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     //    @summary.active(@query.id)
     this.compile = this.compile.bind(this);
     this.render = this.render.bind(this);
-    this._bindLinkEvent = this._bindLinkEvent.bind(this);
-    this._redirect = this._redirect.bind(this);
     this.text = text + common;
   }
 
@@ -4113,66 +4330,81 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     return page.htmlSelf();
   }
 
-  render(router) {
-    var html, page;
+  render() {
+    var bus, html, page;
     boundMethodCheck$2(this, Page);
     html = this.compile();
     page = util$7.dom(html);
-    this._bindLinkEvent(router, page);
+    Page.bindEvent(page, bus = new ObservableObject$3);
     return page;
-  }
-
-  _bindLinkEvent(router, page) {
-    var i, len, link, links, results;
-    boundMethodCheck$2(this, Page);
-    //#######################################
-    ///
-    ///   @params {DOM} page
-    ///
-    //#######################################
-    links = page.findAll('a');
-    results = [];
-    for (i = 0, len = links.length; i < len; i++) {
-      link = links[i];
-      results.push(link.on('click', this._redirect.bind(null, router)));
-    }
-    return results;
-  }
-
-  _redirect(router, link) {
-    var href;
-    boundMethodCheck$2(this, Page);
-    //#######################################
-    ///
-    ///   @params {Router}     router
-    ///   @params {DOM}        link
-    ///   @params {MouseEvent} e
-    ///
-    //#######################################
-    href = link.attr('href');
-    if (util$7.isUrl(href)) {
-      return window.open(href, '_blank');
-    } else {
-      return router.go(href);
-    }
   }
 
 };
 
-var App, Page$1, Router$1, util$8;
+Page.bindEvent = (page, bus) => {
+  var cover;
+  //#######################################
+  ///
+  ///   @params {DOM}              page
+  ///   @params {ObservableObject} bus
+  ///
+  //#######################################
+  cover = page.find('#cover');
+  if (cover) {
+    Cover$1.bindEvent(cover, bus);
+  }
+  return Page._bindLinkEvent(page);
+};
 
-Router$1 = Router_1;
+Page._bindLinkEvent = (page) => {
+  var i, len, link, links, results;
+  //#######################################
+  ///
+  ///   @params {DOM} link
+  ///
+  //#######################################
+  links = page.findAll('a');
+  results = [];
+  for (i = 0, len = links.length; i < len; i++) {
+    link = links[i];
+    results.push(link.on('click', Page._redirect));
+  }
+  return results;
+};
+
+Page._redirect = (link) => {
+  var href;
+  //#######################################
+  ///
+  ///   @params {DOM} link
+  ///
+  //#######################################
+  href = link.attr('href');
+  if (util$7.isUrl(href)) {
+    return window.open(href, '_blank');
+  } else {
+    return window.router.go(href);
+  }
+};
+
+var App, Page$1, util$8;
 
 Page$1 = Page_1;
 
 util$8 = util;
 
 var App_1 = App = class App {
+  //#######################################
+  ///
+  ///   Be responsible for
+  ///      loading pages and save them to cache,
+  ///      swapping them when route is changed.
+  ///
+  //#######################################
   constructor(isJIT) {
-    this.run = this.run.bind(this);
+    this._run = this._run.bind(this);
     this._loadPage = this._loadPage.bind(this);
     this._renderPage = this._renderPage.bind(this);
-    this._bindRedirectEvent = this._bindRedirectEvent.bind(this);
     this._mount = this._mount.bind(this);
     //#######################################
     ///
@@ -4180,14 +4412,14 @@ var App_1 = App = class App {
     ///
     //#######################################
     this.isJIT = isJIT;
-    this.router = new Router$1(isJIT);
-    this.pageStore = {};
+    this.pageCache = {};
+    window.router.on('redirect', this._loadPage);
+    this._run();
   }
 
-  run() {
+  _run() {
     if (this.isJIT) {
-      this._loadPage();
-      return this.router.on('redirectPage', this._loadPage);
+      return this._loadPage();
     } else {
       return util$8.dom(document.querySelector('#page'));
     }
@@ -4200,8 +4432,8 @@ var App_1 = App = class App {
     ///   Load current page.
     ///
     //#######################################
-    path = this.router.filePath;
-    page = this.pageStore[path];
+    path = window.router.filePath;
+    page = this.pageCache[path];
     if (page) {
       return this._mount(page);
     } else {
@@ -4210,19 +4442,18 @@ var App_1 = App = class App {
   }
 
   _renderPage(text) {
-    var page;
+    var page, path;
     //#######################################
     ///
     ///   @params {string} text
     ///
     //#######################################
+    path = window.router.filePath;
     page = new Page$1(text);
-    page = page.render(this.router);
-    this.pageStore[this.router.filePath] = page;
+    page = page.render();
+    this.pageCache[path] = page;
     return this._mount(page);
   }
-
-  _bindRedirectEvent(page) {}
 
   _mount(page) {
     var old;
@@ -4231,7 +4462,7 @@ var App_1 = App = class App {
     ///   @params {DOM} page
     ///
     //#######################################
-    old = document.querySelector('body > page');
+    old = document.querySelector('body > #page');
     if (old) {
       return document.body.replaceChild(page.$el, old);
     } else {
@@ -4241,295 +4472,20 @@ var App_1 = App = class App {
 
 };
 
-var DOM$1;
-
-var DOM_web = DOM$1 = class DOM {
-  //#######################################
-  ///
-  ///   Be responsible for querying and operating dom ( html-string ).
-  ///   Adapted to the web environment ( browser-runtime ).
-  ///
-  //#######################################
-  constructor(html) {
-    this._getHTMLElement = this._getHTMLElement.bind(this);
-    this.find = this.find.bind(this);
-    this.findAll = this.findAll.bind(this);
-    this.htmlSelf = this.htmlSelf.bind(this);
-    this.html = this.html.bind(this);
-    this.attr = this.attr.bind(this);
-    this.text = this.text.bind(this);
-    this.addClass = this.addClass.bind(this);
-    this.hasClass = this.hasClass.bind(this);
-    this.removeClass = this.removeClass.bind(this);
-    this.append = this.append.bind(this);
-    this.css = this.css.bind(this);
-    this.on = this.on.bind(this);
-    //#######################################
-    ///
-    ///   @params {string|HTMLElement} html|$el
-    ///
-    //#######################################
-    if (typeof html === 'string') {
-      this.root = this._getHTMLElement(html);
-    } else {
-      this.root = html;
-    }
-    this.$el = this.root; // only exists in DOM.web for better semantics.
-  }
-
-  _getHTMLElement(html) {
-    var fragment;
-    //#######################################
-    ///
-    ///   @params {string}      html
-    ///   @return {HTMLElement} root
-    ///
-    //#######################################
-    fragment = document.createElement('fragment');
-    fragment.innerHTML = html;
-    return fragment.childNodes[0];
-  }
-
-  find(selector) {
-    var $el;
-    //#######################################
-    ///
-    ///   @params {string} selector
-    ///   @return {DOM}    dom - return null when not found.
-    ///
-    //#######################################
-    $el = this.root.querySelector(selector);
-    if ($el) {
-      return new DOM($el);
-    } else {
-      return null;
-    }
-  }
-
-  findAll(selector) {
-    var $el, $els, dom, doms, i, len;
-    //#######################################
-    ///
-    ///   @params {string} selector
-    ///   @return {DOM[]}  doms - return [] when not found.
-    ///
-    //#######################################
-    doms = [];
-    $els = this.root.querySelectorAll(selector);
-    for (i = 0, len = $els.length; i < len; i++) {
-      $el = $els[i];
-      dom = new DOM($el);
-      doms.push(dom);
-    }
-    return doms;
-  }
-
-  htmlSelf(html) {
-    //#######################################
-    ///
-    ///   SET   @params {string} html
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @return {string} html ( outer's )
-    ///
-    //#######################################
-    if (html != null) {
-      return new DOM(html);
-    } else {
-      return this.root.outerHTML;
-    }
-  }
-
-  html(html) {
-    //#######################################
-    ///
-    ///   SET   @params {string} html
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @return {string} html ( inner's )
-    ///
-    //#######################################
-    if (html != null) {
-      this.root.innerHTML = html;
-      return this;
-    } else {
-      return this.root.innerHTML;
-    }
-  }
-
-  attr(name, value) {
-    //#######################################
-    ///
-    ///   SET   @params {string} name
-    ///         @params {string} value
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @params {string} name
-    ///         @return {string} value
-    ///
-    //#######################################
-    if (value != null) {
-      this.root.setAttribute(name, value);
-      return this;
-    } else {
-      return this.root.getAttribute(name);
-    }
-  }
-
-  text(text) {
-    //#######################################
-    ///
-    ///   SET   @params {string} text
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @return {string} text
-    ///
-    //#######################################
-    if (text != null) {
-      this.root.innerText = text;
-      return this;
-    } else {
-      return this.root.innerText;
-    }
-  }
-
-  addClass(name) {
-    //#######################################
-    ///
-    ///   @params {string} name
-    ///   @return {DOM}    this
-    ///
-    //#######################################
-    this.root.classList.add(name);
-    return this;
-  }
-
-  hasClass(name) {
-    //#######################################
-    ///
-    ///   @params {string} name
-    ///   @return {boolean}
-    ///
-    //#######################################
-    return this.root.classList.contains(name);
-  }
-
-  removeClass(name) {
-    //#######################################
-    ///
-    ///   @params {string} name
-    ///   @return {DOM}    this
-    ///
-    //#######################################
-    this.root.classList.remove(name);
-    return this;
-  }
-
-  append(child) {
-    //#######################################
-    ///
-    ///   @params {DOM} child
-    ///   @return {DOM} this
-    ///
-    //#######################################
-    if (child) {
-      this.root.appendChild(child.root);
-    }
-    return this;
-  }
-
-  css(name, value) {
-    //#######################################
-    ///
-    ///   @params {string} name
-    ///   @params {value}  name
-    ///   @return {DOM}    this
-    ///
-    ///   This method only exists in DOM.web
-    ///
-    //#######################################
-    return this.root.style[name] = value;
-  }
-
-  on(name, callback) {
-    //#######################################
-    ///
-    ///   @params {string}   name
-    ///   @params {function} callback
-    ///
-    ///   add an event listener to root,
-    ///   this method only exists in DOM.web
-    ///
-    //#######################################
-    return this.root.addEventListener(name, (e) => {
-      var dom;
-      dom = new DOM(e.target);
-      callback(dom, e);
-      return e.preventDefault();
-    });
-  }
-
-};
-
-var App$1, DOM$2;
-
-App$1 = App_1;
+var App$1, DOM$2, Router$2;
 
 DOM$2 = DOM_web;
 
-window.DOM = DOM$2;
+Router$2 = Router_1;
+
+App$1 = App_1;
 
 window.onload = () => {
-  var app, isJIT;
-  app = new App$1(isJIT = true);
-  return app.run();
+  var isJIT;
+  window.DOM = DOM$2;
+  window.router = new Router$2(isJIT = true);
+  return window.app = new App$1(isJIT = true);
 };
-
-// navigator = ''
-// pages     = {}
-
-// load = =>
-//    loadNavigator =>
-//       loadPage()
-
-// loadNavigator = ( callback ) =>
-
-//    if Breeze?.navigator
-
-//       if Breeze.navigator is true
-//          path = 'NAVIGATOR.md'
-//       else
-//          path = Breeze.navigator
-
-//       path = util.formatPath(path)
-
-//       util.ajax path, ( markdown ) =>
-//          navigator = markdown
-//          callback()
-
-//    else
-//       callback()
-
-// loadPage = =>
-
-//    href = location.href
-
-//    if pages[ href ]
-//       page = pages[ href ]
-//       page.render()
-
-//    else
-//       page = new Page( navigator )
-//       pages[ href ] = page
-
-//       page.on 'reload', ( hash ) =>
-//          hash = '#/' + hash
-//          hash = hash.replace(/\/+/, '/')
-//          history.pushState(null, null, hash)
-//          loadPage()
-
-// window.addEventListener('load', load)
-// window.addEventListener('hashchange', loadPage)
 
 var src = {
 

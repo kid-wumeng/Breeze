@@ -1,10 +1,19 @@
-Router = require('./Router')
-Page   = require('./Page')
-util   = require('./util')
+ObservableObject = require('./ObservableObject')
+Router           = require('./Router')
+Page             = require('./Page')
+util             = require('./util')
 
 
 
 module.exports = class App
+
+   ########################################
+   #/
+   #/   Be responsible for
+   #/      loading pages and save them to cache,
+   #/      swapping them when route is changed.
+   #/
+   ########################################
 
 
 
@@ -17,21 +26,23 @@ module.exports = class App
       ########################################
 
       @isJIT     = isJIT
-      @router    = new Router( isJIT )
-      @pageStore = {}
+      @pageCache = {}
+
+      window.router.on('redirect', @_loadPage)
+
+      @_run()
 
 
 
 
 
-   run: =>
+   _run: =>
 
       if @isJIT
          @_loadPage()
-         @router.on('redirectPage', @_loadPage)
-
       else
          util.dom(document.querySelector('#page'))
+
 
 
 
@@ -44,8 +55,8 @@ module.exports = class App
       #/
       ########################################
 
-      path = @router.filePath
-      page = @pageStore[path]
+      path = window.router.filePath
+      page = @pageCache[path]
 
       if page
          @_mount(page)
@@ -64,19 +75,14 @@ module.exports = class App
       #/
       ########################################
 
-      page = new Page(text)
-      page = page.render(@router)
+      path = window.router.filePath
 
-      @pageStore[@router.filePath] = page
+      page = new Page(text)
+      page = page.render()
+
+      @pageCache[path] = page
 
       @_mount(page)
-
-
-
-
-   _bindRedirectEvent: ( page ) =>
-
-
 
 
 
@@ -90,7 +96,7 @@ module.exports = class App
       #/
       ########################################
 
-      old = document.querySelector('body > page')
+      old = document.querySelector('body > #page')
 
       if old
          document.body.replaceChild( page.$el, old )

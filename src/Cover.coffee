@@ -28,6 +28,20 @@ module.exports = class Cover
 
 
 
+   exist: =>
+
+      ########################################
+      #/
+      #/   @return {boolean}
+      #/
+      ########################################
+
+      return !!@html
+
+
+
+
+
    format: =>
 
       ########################################
@@ -69,8 +83,8 @@ module.exports = class Cover
       #/
       ########################################
 
-      src = logo.attr('src')
-      src = util.filePath(src)
+      src  = logo.attr('src')
+      src  = util.filePath(src)
 
       logo = util.dom('img.logo')
       logo.attr('src', src)
@@ -185,33 +199,43 @@ module.exports = class Cover
 
       ########################################
       #/
-      #/   @return {HTMLElement} $cover - return null if hasn't.
+      #/   @return {DOM} dom
       #/
       ########################################
 
-      if @html
-         cover = util.dom(@format())
-         @_bindButtonEvent( cover )
+      html = @format()
+      dom  = util.dom( html )
 
-      else
-         cover = null
-
-      return cover
+      return dom
 
 
 
 
 
-   _bindButtonEvent: ( cover ) =>
+Cover.bindEvent = ( cover ) =>
 
-      ########################################
-      #/
-      #/   @params {DOM} cover
-      #/
-      ########################################
+   ########################################
+   #/
+   #/   @params {DOM}              cover
+   #/   @params {ObservableObject} bus
+   #/
+   ########################################
 
-      buttons = cover.findAll('.buttons li')
+   buttons = cover.findAll('.buttons li')
 
-      for button in buttons
-          button.on 'click', =>
-             cover.css('display', 'none')
+   for button in buttons
+       button.on('click', Cover._hide.bind(@, cover))
+
+
+
+
+
+Cover._hide = ( cover ) =>
+
+   ########################################
+   #/
+   #/   @params {DOM} cover
+   #/
+   ########################################
+
+   cover.css('display', 'none')

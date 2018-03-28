@@ -3,8 +3,6 @@ ObservableObject = require('./ObservableObject')
 
 
 
-
-
 module.exports = class Router extends ObservableObject
 
    ########################################
@@ -39,7 +37,7 @@ module.exports = class Router extends ObservableObject
 
       window.addEventListener 'popstate', =>
          @_parse()
-         @emit('redirectPage')
+         @emit('redirect')
 
 
 
@@ -287,7 +285,7 @@ module.exports = class Router extends ObservableObject
       history.pushState(null, null, fullPath)
       @_parse()
 
-      @emit('redirectPage')
+      @emit('redirect')
 
 
 
@@ -303,14 +301,18 @@ module.exports = class Router extends ObservableObject
       #/
       ########################################
 
-      path        = @_formatPath(path)
-      querystring = @_formatQuery(query)
+      if !path
+          path = @path
+
+      fullPath = @_formatPath(path) + @_formatQuery(query)
 
       if @isJIT
-         if path isnt '/'
-            path = '/#' + path
+         if path is '/'
+            return        fullPath
+         else
+            return '/#' + fullPath
 
-      return path + querystring
+      return fullPath
 
 
 

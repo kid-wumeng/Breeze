@@ -305,8 +305,8 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
 
 
 <example>
-```
-<jade>
+```html
+<JADE>
   api
     item
       name sha
@@ -328,7 +328,7 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
       name until
       type string
       desc Only commits before this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
-<\/jade>
+</JADE>
 ```
 </example>
 

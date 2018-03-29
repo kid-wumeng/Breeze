@@ -58,8 +58,6 @@ module.exports = class App
       #/
       ########################################
 
-      console.log '----'
-
       path = @router.filePath
       page = @pageCache[path]
 

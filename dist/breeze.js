@@ -2950,7 +2950,7 @@ Summary._filterSection = (section) => {
   ///
   //#######################################
   if (section.heading) {
-    if (section.heading.lv <= Breeze.get('summary.maxLevel')) {
+    if (section.heading.lv <= Breeze.get('summary.showLevel')) {
       return true;
     }
   }
@@ -3940,21 +3940,7 @@ var Article_1 = Article = class Article {
     this._isTag = this._isTag.bind(this);
     this.render = this.render.bind(this);
     this._trimCode = this._trimCode.bind(this);
-    this.parseSections = this.parseSections.bind(this);
-    this.formatHeading = this.formatHeading.bind(this);
-    this.trimFirst = this.trimFirst.bind(this);
-    this.compileSections = this.compileSections.bind(this);
-    this.compileSection = this.compileSection.bind(this);
-    this.parseContentAndExample = this.parseContentAndExample.bind(this);
-    this.parseExamples = this.parseExamples.bind(this);
-    this.delExamples = this.delExamples.bind(this);
-    this.parseHeading = this.parseHeading.bind(this);
     this.getOrder = this.getOrder.bind(this);
-    this.createSummary = this.createSummary.bind(this);
-    this.createSummaryItem = this.createSummaryItem.bind(this);
-    this.getID = this.getID.bind(this);
-    this.render2 = this.render2.bind(this);
-    this.wrapParams = this.wrapParams.bind(this);
     this.bindScrollEvent = this.bindScrollEvent.bind(this);
     this.getSectionStats = this.getSectionStats.bind(this);
     this.scroll = this.scroll.bind(this);
@@ -4139,16 +4125,17 @@ var Article_1 = Article = class Article {
     ///
     //#######################################
     if (prevOrder) {
-      // Assume lv = 4, prevOrder = '1.2'
-      order = prevOrder.split('.'); // order = ['1', '2']
+      // Assume lv = 3, prevOrder = '1.2.3.4'
+      order = prevOrder.split('.'); // order = ['1', '2', '3', '4']
       order = order.map((p) => {
-        return parseInt(p); // order = [1, 2]
+        return parseInt(p); // order = [1, 2, 3, 4]
       });
-      while (order.length < lv) { // order = [1, 2, 0, 0]
+      while (order.length < lv) { // order = [1, 2, 3, 4]  append 0 if order.length < 3
         order.push(0);
       }
-      order[lv - 1] += 1; // order = [1, 2, 0, 1]
-      order = order.join('.'); // order = '1.2.0.1'
+      order[lv - 1] += 1; // order = [1, 2, 4, 4]
+      order = order.slice(0, lv); // order = [1, 2, 4]
+      order = order.join('.'); // order = '1.2.4'
       return order;
     } else {
       return '1';
@@ -4302,197 +4289,6 @@ var Article_1 = Article = class Article {
     return results1;
   }
 
-  parseSections(markdown) {
-    var allLines, inCode, isCode, isHeading, j, len, line, lines, section, sections;
-    //#######################################
-    //|
-    //|  @params {string}   markdown
-    //|  @return {string[]} sections
-    //|
-    //|  Split each section from article.
-    //|
-    //#######################################
-    sections = [];
-    allLines = markdown.split('\n');
-    lines = [];
-    inCode = false;
-    for (j = 0, len = allLines.length; j < len; j++) {
-      line = allLines[j];
-      isCode = /^\s*```/.test(line);
-      isHeading = /^\s*#{1,6}/.test(line);
-      if (isCode) {
-        inCode = !inCode;
-      }
-      if (isHeading && !inCode) {
-        section = lines.join('\n');
-        sections.push(section);
-        lines = [];
-        line = this.formatHeading(line);
-      }
-      lines.push(line);
-    }
-    section = lines.join('\n');
-    sections.push(section);
-    return sections;
-  }
-
-  formatHeading(heading) {
-    var lv, results, text;
-    heading = heading.trim();
-    results = heading.match(/^(#+)\s*(.*)$/);
-    lv = results[1].length;
-    text = results[2];
-    return `<h${lv}>${text}</h${lv}>`;
-  }
-
-  trimFirst(sections) {
-    //#######################################
-    //|
-    //|  @params {string[]} sections
-    //|
-    //|  Delete the first section if empty.
-    //|
-    //#######################################
-    if (sections[0] != null) {
-      if (sections[0].match(/^(?:\s|\n)*$/)) {
-        return sections.shift();
-      }
-    }
-  }
-
-  compileSections(sections) {
-    var html;
-    //#######################################
-    //|
-    //|  @params {string[]} sections
-    //|  @return {object} - { article, sections }
-    //|
-    //#######################################
-    html = '';
-    sections = sections.map((section) => {
-      var content, example, heading;
-      ({section, heading, content, example} = this.compileSection(section));
-      html += section;
-      return {heading, content, example};
-    });
-    html = html.trim();
-    return {html, sections};
-  }
-
-  compileSection(section) {
-    var content, example, heading, id, lv, order, ref, ref1, ref2, text;
-    //######################################
-    //|
-    //|  @params {string} section-markdown
-    //|
-    //|  @return {object} - {string} section-html
-    //|                     {string} content-html
-    //|                     {string} example-html
-    //|
-    //#######################################
-    ({content, example} = this.parseContentAndExample(section));
-    heading = this.parseHeading(content);
-    content = marked$4(content);
-    example = marked$4(example);
-    lv = (ref = heading != null ? heading.lv : void 0) != null ? ref : '';
-    order = (ref1 = heading != null ? heading.order : void 0) != null ? ref1 : '';
-    text = (ref2 = heading != null ? heading.text : void 0) != null ? ref2 : '';
-    id = this.getID(order, text);
-    section = `<section lv="${lv}" id="${id}">\n   <div class="content">${content}</div>\n   <div class="example">${example}</div>\n</section>`;
-    return {section, heading, content, example};
-  }
-
-  parseContentAndExample(section) {
-    var content, example, examples, indexes;
-    //#######################################
-    //|
-    //|  @params {string} section-markdown
-    //|
-    //|  @return {string} content-markdown
-    //|          {string} example-markdown
-    //|
-    //#######################################
-    ({examples, indexes} = this.parseExamples(section));
-    content = this.delExamples(section, indexes);
-    example = examples.join('');
-    return {content, example};
-  }
-
-  parseExamples(section) {
-    var end, example, examples, index, indexes, isOpenTag, reg, result, stack, start;
-    //#######################################
-    //|
-    //|  @params {string} section
-    //|  @return {object} { examples, indexes }
-    //|
-    //#######################################
-    stack = [];
-    indexes = [];
-    examples = [];
-    reg = /(<example>)|(<\/example>)/g;
-    while (result = reg.exec(section)) {
-      index = result.index;
-      isOpenTag = result[0] === '<example>';
-      if (isOpenTag) {
-        stack.push(index);
-      } else {
-        start = stack.pop();
-        end = index + '</example>'.length;
-        if (stack.length === 0) {
-          example = section.slice(start, end);
-          example = example.replace(/(<example>)|(<\/example>)/g, '');
-          examples.push(example);
-          indexes.push(start);
-          indexes.push(end);
-        }
-      }
-    }
-    return {examples, indexes};
-  }
-
-  delExamples(section, indexes = []) {
-    var end, rest, start;
-    //#######################################
-    //|
-    //|  @params {string}   section
-    //|  @params {number[]} indexes
-    //|  @return {string}   section (rest)
-    //|
-    //|  Delete all examples from section.
-    //|
-    //|  123<example>456</example>789 => 123789
-    //|
-    //#######################################
-    rest = '';
-    indexes.unshift(-1);
-    while (indexes.length > 1) {
-      start = indexes.shift();
-      end = indexes.shift();
-      rest += section.slice(start + 1, end);
-    }
-    start = indexes.shift();
-    rest += section.slice(start + 1);
-    return rest;
-  }
-
-  parseHeading(content) {
-    var lv, order, results, text;
-    //#######################################
-    //|
-    //|  @params {string} content
-    //|  @return {object} heading - { lv, text }
-    //|
-    //#######################################
-    if (results = content.match(/^<h([1-6])>(.*)<\/h[1-6]>$/m)) {
-      lv = parseInt(results[1]);
-      order = this.getOrder(lv);
-      text = results[2];
-      return {lv, order, text};
-    } else {
-      return null;
-    }
-  }
-
   getOrder(lv) {
     var _, i, j, len, part, parts, ref;
     //#######################################
@@ -4515,87 +4311,6 @@ var Article_1 = Article = class Article {
       }
     }
     return this.lastOrder = parts.join('.');
-  }
-
-  createSummary(sections) {
-    var heading, j, len, results1, section;
-//#######################################
-//|
-//|  Create the article's summary by headings.
-//|
-//|  @params {object[]} sections
-//|  @return {string}   summary-markdown
-//|
-//#######################################
-    results1 = [];
-    for (j = 0, len = sections.length; j < len; j++) {
-      section = sections[j];
-      ({heading} = section);
-      if (heading && heading.lv <= 3) {
-        results1.push(this.summary += this.createSummaryItem(heading));
-      } else {
-        results1.push(void 0);
-      }
-    }
-    return results1;
-  }
-
-  createSummaryItem(heading) {
-    var count, lv, order, space, text;
-    //#######################################
-    //|
-    //|  @params {object} heading - { lv, text }
-    //|  @return {string} markdown-item
-    //|
-    //|  { lv:2, text: 'Quick Start' }
-    //|
-    //|  => '  * [Quick Start](#Quick-Start)'
-    //|
-    //#######################################
-    ({lv, order, text} = heading);
-    count = lv;
-    space = '';
-    while (count > 1) {
-      space += '  ';
-      count--;
-    }
-    return `${space}* [${text}](#${this.getID(order, text)})\n`;
-  }
-
-  getID(order, text = '') {
-    //#######################################
-    //|
-    //|  @params {string} order
-    //|  @params {string} text
-    //|  @return {string} id
-    //|
-    //#######################################
-    text = text.replace(/\s+/g, '-');
-    if (text) {
-      return order + '-' + text;
-    } else {
-      return order;
-    }
-  }
-
-  render2() {
-    this.$dom = document.createElement('article');
-    this.$dom.innerHTML = this.html;
-    this.wrapParams();
-    return this.bindScrollEvent();
-  }
-
-  wrapParams() {
-    var $api, $raw, $raws, api, j, len, results1;
-    $raws = this.$dom.querySelectorAll('api');
-    results1 = [];
-    for (j = 0, len = $raws.length; j < len; j++) {
-      $raw = $raws[j];
-      api = new Api$1($raw);
-      $api = api.render();
-      results1.push($raw.parentNode.replaceChild($api, $raw));
-    }
-    return results1;
   }
 
   bindScrollEvent() {
@@ -4859,7 +4574,6 @@ var App_1 = App = class App {
     ///   Load current page.
     ///
     //#######################################
-    console.log('----');
     path = this.router.filePath;
     page = this.pageCache[path];
     if (page) {
@@ -4913,7 +4627,7 @@ var Main_1 = Main = class Main {
     this.get = this.get.bind(this);
     this._config = {};
     this.set('basePath', '');
-    this.set('summary.maxLevel', 3);
+    this.set('summary.showLevel', 3);
     this.set('article.showOrderLevel', 0);
   }
 

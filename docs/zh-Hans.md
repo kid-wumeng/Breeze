@@ -1,15 +1,4 @@
-<nav start="1" jade>
-  menu(name="翻译")
-    pane(name="欧文")
-      item(name="English" href="")
-
-    pane(name="亚文")
-      item(name="简体中文" href="zh-Hans")
-      item(name="日本語" href="jp")
-
-  menu(name="API" href="/api")
-</nav>
-<nav start="1" jade>
+<nav jade>
   menu(name="翻译")
     pane(name="欧文")
       item(name="English" href="")
@@ -23,19 +12,8 @@
 
 
 
-
-<cover>
-  <logo src="logo.svg"/>
-  <!-- <name>Breeze</name> -->
-  <desc>超简单、超漂亮的 API 文档生成器！</desc>
-
-  <item>无需 build 成 HTML，愉快的撰写体验</item>
-  <item>轻量 ( ~15kB gzipped )</item>
-  <item>多主题，易扩展</item>
-
-  <button href="https://github.com/kid-wumeng/Breeze">Github</button>
-  <button active href="dff">阅读文档</button>
-</cover>
+<summary>
+</summary>
 
 
 
@@ -63,6 +41,7 @@
 
 你要做的第一件事是准备一个`index.html`文件，如右侧所示：
 
+<example>
 ```html
 <!DOCTYPE html>
 <html>
@@ -74,16 +53,18 @@
 </body>
 </html>
 ```
+</example>
 
 ####
 
 第二件事是准备一个``README.md``，随便写几句内容：
 
-
+<example>
 ```
 # hello world
 this is my first document by Breeze ~ !
 ```
+</example>
 
 ####
 

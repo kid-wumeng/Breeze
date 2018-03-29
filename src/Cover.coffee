@@ -195,10 +195,11 @@ module.exports = class Cover
 
 
 
-   render: =>
+   render: ( bus ) =>
 
       ########################################
       #/
+      #/   @params {Bus} bus
       #/   @return {DOM} cover
       #/
       ########################################

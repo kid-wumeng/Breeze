@@ -21,16 +21,21 @@ module.exports = class Summary
 
 
 
-   render: ( html ) =>
+   compile: =>
 
-      $dom = util.element('#summary')
-      $dom.innerHTML = html
+      console.log @html
 
-      @removeLv4( $dom )
-      @setClass( $dom )
-      @bindEvent( $dom )
+      return @html
 
-      return $dom
+
+
+
+
+   render: ( bus ) =>
+
+      return @compile()
+
+
 
 
 

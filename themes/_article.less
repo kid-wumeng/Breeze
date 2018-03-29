@@ -2,68 +2,108 @@
 
    The common { article } styles.
 
-   article
-     section
+   #article
+     .section
        .content
        .example
 
 ---------------------------------------- */
 
-@element-gap: 20px;
 
-article {
-  section {
+@section-padding-x: 40px;
+@section-padding-y: 40px;
+@element-gap:       24px;
+
+
+#article {
+  .section {
     overflow: hidden;
   }
 
-  section > .content {
+  .section > h1,
+  .section > h2,
+  .section > h3,
+  .section > h4,
+  .section > h5,
+  .section > h6 {
+    font-family: "Futura", "Ubuntu", @default-font-family;
+    font-weight: 500;
+    padding-left:  @section-padding-x;
+    padding-right: @section-padding-x;
+  }
+
+  .section > h1,
+  .section > h2,
+  .section > h3 {
+     padding-top:   @section-padding-y;
+     margin-bottom: @section-padding-y;
+  }
+
+  .section > h4,
+  .section > h5,
+  .section > h6 {
+     margin-bottom: @element-gap;
+  }
+
+  .section:not(:first-child) > h1,
+  .section:not(:first-child) > h2,
+  .section:not(:first-child) > h3 {
+     margin-top: @section-padding-y;
+     position: relative;
+
+     &::before,
+     &::after {
+       content: "";
+       position: absolute;
+       top: 0;
+       display: block;
+       width: 50%;
+       border-top-width: 1px;
+       border-top-style: solid;
+     }
+
+     &::before { left: 0 }
+     &::after { right: 0 }
+  }
+
+  .section > h1 { font-size: 24px }
+  .section > h2 { font-size: 20px }
+  .section > h3 { font-size: 16px }
+  .section > h4 { font-size: 15px }
+  .section > h5 { font-size: 15px }
+  .section > h6 { font-size: 15px }
+
+  .section > .content {
     float: left;
     width: 50%;
-    padding: 40px;
+    padding: 0 @section-padding-x;
   }
 
-  section > .example {
+  .section > .example {
     float: right;
     width: 50%;
-    padding: 40px;
+    padding: 0 @section-padding-x;
   }
 
-  section[lv="1"] > .content,
-  section[lv="1"] > .example,
-  section[lv="2"] > .content,
-  section[lv="2"] > .example,
-  section[lv="3"] > .content,
-  section[lv="3"] > .example {
-    border-top-width: 1px;
-    border-top-style: solid;
+  .section > *:empty {
+    margin: 0;
+    padding: 0;
   }
 
-  section[lv="4"] > .content,
-  section[lv="4"] > .example,
-  section[lv="5"] > .content,
-  section[lv="5"] > .example,
-  section[lv="6"] > .content,
-  section[lv="6"] > .example {
+  .section[lv="4"] > .content,
+  .section[lv="4"] > .example,
+  .section[lv="5"] > .content,
+  .section[lv="5"] > .example,
+  .section[lv="6"] > .content,
+  .section[lv="6"] > .example {
     padding-top: 0;
   }
 
-  section:first-child > .content,
-  section:first-child > .example {
+  .section:first-child > .content,
+  .section:first-child > .example {
     margin-top: 0;
     border-top: none;
   }
-
-  h1, h2, h3, h4, h5, h6 {
-    font-family: "Futura", "Ubuntu", @default-font-family;
-    font-weight: 500;
-  }
-
-  h1 { font-size: 24px }
-  h2 { font-size: 20px }
-  h3 { font-size: 16px }
-  h4 { font-size: 15px }
-  h5 { font-size: 15px }
-  h6 { font-size: 15px }
 
   blockquote {
     padding: 0 2em;
@@ -115,32 +155,29 @@ article {
       font-size: 12px;
       border-radius: 4px;
       overflow: scroll;
+      -webkit-font-smoothing: subpixel-antialiased;
     }
   }
 }
 
-article {
+#article {
   .content {
     > * {
       margin-bottom: @element-gap;
     }
-
-    > *:empty,
-    > *:last-child {
+    > *:empty {
       margin-bottom: 0;
     }
   }
 }
 
 
-article {
+#article {
   .example {
     > * {
       margin-bottom: @element-gap;
     }
-
-    > *:empty,
-    > *:last-child {
+    > *:empty {
       margin-bottom: 0;
     }
   }

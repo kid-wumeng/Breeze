@@ -1,6 +1,9 @@
 marked = require('marked')
 Prism  = require('prismjs')
 Api    = require('./Api')
+util   = require('./util')
+
+
 
 
 
@@ -15,6 +18,8 @@ marked.setOptions({
       else
          return code
 })
+
+
 
 
 
@@ -132,6 +137,10 @@ module.exports = class Article
              example += "#{line}\n"
           else
              content += "#{line}\n"
+
+      heading = heading.trim()
+      content = content.trim()
+      example = example.trim()
 
       return { heading, content, example }
 
@@ -264,28 +273,186 @@ module.exports = class Article
    compile: =>
 
       ########################################
-      #|
-      #|  Compile article-markdown to html.
-      #|
+      #/
+      #/   Compile article-markdown to html.
+      #/
+      #/   @return {string} html
+      #/
+      ########################################
+
+      sections = @parse()
+      sections = sections.map(@_compileSection).join('')
+
+      article = util.dom('#article')
+      article.html(sections)
+
+      return article.htmlSelf()
+
+
+
+
+
+   _compileSection: ( section ) =>
+
+      ########################################
+      #/
+      #/   @params {object} section - {object} heading
+      #/                              {string} content
+      #/                              {string} example
+      #/   @return {string} section
+      #/
+      ########################################
+
+      { heading, content, example } = section
+
+      lv    = heading?.lv
+      text  = heading?.text
+      order = heading?.order
+
+      id = @_formatID( text, order )
+
+      heading = if heading then @_compileHeading( heading ) else ''
+      content = if content then @_compileContent( content ) else ''
+      example = if example then @_compileExample( example ) else ''
+
+      section = heading + content + example
+
+      section = util.dom('.section').html(section)
+      section.attr('lv', lv) if lv
+      section.attr('id', id) if id
+
+      return section.htmlSelf()
+
+
+
+
+
+   _compileHeading: ( heading ) =>
+
+      ########################################
+      #/
+      #/   @params {object} heading - {number} lv
+      #/                              {string} text
+      #/                              {string} order
+      #/   @params {string} heading
+      #/
+      ########################################
+
+      { lv, text, order } = heading
+
+      if lv <= Breeze.get('article.heading.showOrder')
+         text = "#{order} #{text}"
+
+      return "<h#{lv}>#{text.trim()}</h#{lv}>"
+
+
+
+
+
+   _compileContent: ( content ) =>
+
+      ########################################
+      #/
+      #/   @params {string} content ( markdown )
+      #/   @return {string} content ( html )
+      #/
       ########################################
 
       renderer = new marked.Renderer()
-      renderer.html = ( html ) =>
-         return html
+      renderer.html = @_compileHTML
 
-      marked(@markdown, { renderer })
+      content = marked(content, { renderer })
 
-      # markdown = @markdown
-      #
-      # sections            = @parseSections(markdown)
-      #
-      # @trimFirst(sections)
-      #
-      # { html, sections } = @compileSections(sections)
-      #
-      # @html     = html
-      # @sections = sections
-      # @cover    = cover
+      return "<div class=\"content\">#{ content }</div>"
+
+
+
+
+
+   _compileExample: ( example ) =>
+
+      ########################################
+      #/
+      #/   @params {string} example ( markdown )
+      #/   @return {string} example ( html )
+      #/
+      ########################################
+
+      renderer = new marked.Renderer()
+      renderer.html = @_compileHTML
+
+      example = marked(example, { renderer })
+
+      return "<div class=\"example\">#{ example }</div>"
+
+
+
+
+
+   _compileHTML: ( html ) =>
+
+      html = html.trim()
+
+      switch
+         when @_isTag('api', html) then dom = new Api( html )
+
+      return if dom then dom.compile() else html
+
+
+
+
+
+   _isTag: ( name, html ) =>
+
+      ########################################
+      #/
+      #/   @params {string} name
+      #/   @params {string} html
+      #/
+      #/   @return {boolean}
+      #/
+      ########################################
+
+      reg = new RegExp("^<\\s*#{name}\\s*>(.|\n)*?<\\s*/\\s*#{name}\\s*>$")
+
+      return reg.test( html )
+
+
+
+
+
+   _formatID: ( text = '', order ) =>
+
+      ########################################
+      #|
+      #|  @params {string} text
+      #|  @params {string} order
+      #|  @return {string} id
+      #|
+      ########################################
+
+      text = text.replace(/\s+/g, '-')
+
+      if text
+         return order + '-' + text
+      else
+         return order
+
+
+
+
+
+   render: ( bus ) =>
+
+      ########################################
+      #/
+      #/   @params {Bus} bus
+      #/   @return {DOM} article
+      #/
+      ########################################
+
+      html = @compile()
+      return util.dom( html )
 
 
 
@@ -650,7 +817,7 @@ module.exports = class Article
 
 
 
-   render: =>
+   render2: =>
 
       @$dom = document.createElement('article')
       @$dom.innerHTML = @html

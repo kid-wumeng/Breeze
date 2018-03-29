@@ -76,6 +76,7 @@ module.exports = class Page extends ObservableObject
       { nav, cover, summary, article } = markdown.parse()
 
       cover   = new Cover(cover)
+      summary = new Summary(summary)
       article = new Article(article)
 
       return { nav, cover, summary, article }
@@ -89,7 +90,14 @@ module.exports = class Page extends ObservableObject
       { nav, cover, summary, article } = @parse()
 
       page = util.dom('#page')
-                 .append(cover.compile())
+      side = util.dom('#side')
+      main = util.dom('#main')
+
+      page.append(cover.compile()) if cover.exist()
+      main.append(article.compile())
+
+      page.append(side)
+      page.append(main)
 
       return page.htmlSelf()
 
@@ -110,7 +118,16 @@ module.exports = class Page extends ObservableObject
       bus = new ObservableObject
 
       page = util.dom('#page')
-                 .append(cover.render( bus ))
+      side = util.dom('#side')
+      main = util.dom('#main')
+
+      summary.render( bus )
+
+      page.append(cover.render( bus )) if cover.exist()
+      main.append(article.render( bus ))
+
+      page.append(side)
+      page.append(main)
 
       @_bindLinkEvent( router, page )
 

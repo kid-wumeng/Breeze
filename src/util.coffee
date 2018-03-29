@@ -29,8 +29,8 @@ exports.filePath = ( href = '' ) =>
    else
       path = href
 
-   if Breeze?.basePath
-      path = Breeze.basePath + '/' + path
+   if basePath = Breeze.get('basePath')
+      path = basePath + '/' + path
 
    if path
       path = path.replace(/\/{2,}/g, '/')

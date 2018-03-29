@@ -14,8 +14,15 @@
 @default-font-family: "Helvetica Neue", "Arial", "Verdana", "Roboto", "PingFang SC", "Hiragino Sans GB", sans-serif;
 
 @border: 1px solid @border-color;
-
 @border-color: #F6F6F6;
+
+
+
+
+
+html {
+  background-color: #2D3134;
+}
 
 
 
@@ -39,15 +46,18 @@
 #cover {
   color: #273340;
   background-color: #FFFFFF;
+
   .version {
     color: #707C88;
   }
+
   .buttons a {
-    color: #273340;
+    color:        #273340;
     border-color: #273340;
   }
+
   .buttons a.active {
-    color:            #FFF;
+    color:            #FFFFFF;
     background-color: #273340;
   }
 }
@@ -102,39 +112,46 @@
 
 
 
-article {
-  section[lv="1"] > .content,
-  section[lv="2"] > .content,
-  section[lv="3"] > .content { border-top-color: @border-color }
-  section[lv="1"] > .example,
-  section[lv="2"] > .example,
-  section[lv="3"] > .example { border-top-color: #33383B }
+#article {
+
+  .section h1,
+  .section h2,
+  .section h3 {
+    &::before { border-top-color: @border-color }
+    &::after  { border-top-color: #33383B }
+  }
+
+  .section > h1,
+  .section > h2,
+  .section > h3,
+  .section > h4,
+  .section > h5,
+  .section > h6 { color: #273340 }
 
   td { border-color: rgb(235, 239, 242) }
 }
 
 
-article .content { color: #273340 }
-article .content {
-  h1, h2, h3, h4, h5, h6 { color: #273340 }
-  blockquote             { color: #A2AEBA }
-  a                      { color: #5C7CAA }
-  p   > code             { color: #1890FF }
-  pre > code             { color: #E3E3E3 }
-  p   > code             { background-color: #F9F9F9 }
-  pre > code             { background-color: #272B2D }
+#article .content { color: #273340 }
+#article .content {
+  blockquote      { color: #A2AEBA }
+  a               { color: #5C7CAA }
+  strong          { color: #000000 }
+  p   > code      { color: #1890FF }
+  pre > code      { color: #E3E3E3 }
+  p   > code      { background-color: #F9F9F9 }
+  pre > code      { background-color: #272B2D }
 }
 
 
-article .example { color: #E3E3E3 }
-article .example {
-  h1, h2, h3, h4, h5, h6 { color: #273340 }
-  blockquote             { color: #A2AEBA }
-  a                      { color: #5C7CAA }
-  p   > code             { color: #1890FF }
-  pre > code             { color: #E3E3E3 }
-  p   > code             { background-color: #272B2D }
-  pre > code             { background-color: #272B2D }
+#article .example { color: #E3E3E3 }
+#article .example {
+  blockquote      { color: #A2AEBA }
+  a               { color: #5C7CAA }
+  p   > code      { color: #1890FF }
+  pre > code      { color: #E3E3E3 }
+  p   > code      { background-color: #272B2D }
+  pre > code      { background-color: #272B2D }
 }
 
 
@@ -142,8 +159,8 @@ article .example {
 
 
 .api {
-  .item             { border-bottom-color: rgb(235, 239, 242) }
-  .item:first-child { border-top-color:    rgb(225, 232, 237) }
+  .item             { border-bottom-color: #EBEFF2 }
+  .item:first-child { border-top-color:    #E1E8ED }
   .name             { color: #273340 }
   .type             { color: #A2AEBA }
   .desc             { color: #445669 }

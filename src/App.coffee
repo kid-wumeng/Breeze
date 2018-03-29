@@ -17,6 +17,8 @@ module.exports = class App
 
 
 
+
+
    constructor: ( isJIT ) ->
 
       ########################################
@@ -60,9 +62,9 @@ module.exports = class App
       page = @pageCache[path]
 
       if page
-         @_mount(page)
+         @_mount( page )
       else
-         util.ajax(path, @_renderPage)
+         util.ajax( path, @_renderPage )
 
 
 
@@ -78,12 +80,12 @@ module.exports = class App
 
       path = @router.filePath
 
-      page = new Page(text)
-      page = page.render(@router)
+      page = new Page( text )
+      page = page.render( @router )
 
       @pageCache[path] = page
 
-      @_mount(page)
+      @_mount( page )
 
 
 

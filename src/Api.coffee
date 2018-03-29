@@ -6,51 +6,70 @@ module.exports = class API
 
 
 
-   constructor: ( $raw ) ->
+   constructor: ( html ) ->
 
-      @_$raw = $raw
+      ########################################
+      #/
+      #/   @params {string} html
+      #/
+      ########################################
 
-
-
-
-   render: =>
-
-      $api   = util.element('.api')
-      $items = @_$raw.querySelectorAll('item')
-
-      for $item in $items
-          $item = @renderItem( $item )
-          $api.appendChild( $item )
-
-      return $api
+      @html = html
 
 
 
 
+   compile: =>
 
-   renderItem: ( $item ) =>
+      ########################################
+      #/
+      #/   @params {string} html
+      #/   @return {string} html
+      #/
+      ########################################
 
-      $name = $item.querySelector('name')
-      $type = $item.querySelector('type')
-      $desc = $item.querySelector('desc')
+      dom = util.dom(@html)
+      api = util.dom('.api')
 
-      $left  = util.element('.left')
-      $right = util.element('.right')
+      items = dom.findAll('item')
 
-      if $name
-         $name = util.element('.name', $name.innerHTML)
-         $left.appendChild( $name )
+      for item in items
+          api.append(@_compileItem( item ))
 
-      if $type
-         $type = util.element('.type', $type.innerHTML)
-         $left.appendChild( $type )
+      return api.htmlSelf()
 
-      if $desc
-         $desc = util.element('.desc', $desc.innerHTML)
-         $right.appendChild( $desc )
 
-      $item = util.element('.item')
-      $item.appendChild( $left )
-      $item.appendChild( $right )
 
-      return $item
+
+
+   _compileItem: ( item ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} item
+      #/   @return {DOM} item
+      #/
+      ########################################
+
+      name = item.find('name')
+      type = item.find('type')
+      desc = item.find('desc')
+
+      left  = util.dom('.left')
+      right = util.dom('.right')
+
+      if name
+         name = util.dom('.name').text(name.text())
+         left.append(name)
+
+      if type
+         type = util.dom('.type').text(type.text())
+         left.append(type)
+
+      if desc
+         desc = util.dom('.desc').text(desc.text())
+         right.append(desc)
+
+      item = util.dom('.item').append(left).append(right)
+
+      return item

@@ -293,7 +293,7 @@ exports.isUrl = (href) => {
 };
 
 exports.filePath = (href = '') => {
-  var path;
+  var basePath, path;
   //#######################################
   ///
   ///   @params {string} href
@@ -307,8 +307,8 @@ exports.filePath = (href = '') => {
   } else {
     path = href;
   }
-  if (typeof Breeze !== "undefined" && Breeze !== null ? Breeze.basePath : void 0) {
-    path = Breeze.basePath + '/' + path;
+  if (basePath = Breeze.get('basePath')) {
+    path = basePath + '/' + path;
   }
   if (path) {
     path = path.replace(/\/{2,}/g, '/');
@@ -2701,10 +2701,11 @@ var Cover_1 = Cover = class Cover {
     return ul;
   }
 
-  render() {
+  render(bus) {
     var cover, html;
     //#######################################
     ///
+    ///   @params {Bus} bus
     ///   @return {DOM} cover
     ///
     //#######################################
@@ -2738,6 +2739,180 @@ var Cover_1 = Cover = class Cover {
     ///
     //#######################################
     return cover.css('display', 'none');
+  }
+
+};
+
+var Summary;
+
+var Summary_1 = Summary = class Summary {
+  //#######################################
+  ///
+  ///   Be responsible for rendering summary's dom.
+  ///
+  //#######################################
+  constructor(html) {
+    this.compile = this.compile.bind(this);
+    this.render = this.render.bind(this);
+    this.removeLv4 = this.removeLv4.bind(this);
+    this.setClass = this.setClass.bind(this);
+    this.bindEvent = this.bindEvent.bind(this);
+    this.onSelect = this.onSelect.bind(this);
+    this.active = this.active.bind(this);
+    this.scroll = this.scroll.bind(this);
+    this.html = html;
+  }
+
+  compile() {
+    console.log(this.html);
+    return this.html;
+  }
+
+  render(bus) {
+    return this.compile();
+  }
+
+  removeLv4($dom) {
+    var $lv4, $lv4s, i, len, results;
+    //#######################################
+    //|
+    //|  @params {HTMLElement} $dom
+    //|
+    //|  Remove the lv4(~lv6) item.
+    //|
+    //#######################################
+    $lv4s = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > ul');
+    results = [];
+    for (i = 0, len = $lv4s.length; i < len; i++) {
+      $lv4 = $lv4s[i];
+      results.push($lv4.parentNode.removeChild($lv4));
+    }
+    return results;
+  }
+
+  setClass($dom) {
+    var $lv1, $lv2, $lv3, i, j, k, l, len, len1, len2, len3, len4, len5, len6, len7, len8, m, n, o, p, q, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, results;
+    ref = $dom.querySelectorAll('#summary > ul');
+    for (i = 0, len = ref.length; i < len; i++) {
+      $lv1 = ref[i];
+      //#######################################
+      //|
+      //|  @params {HTMLElement} $dom
+      //|
+      //|  Set class .lv1, .lv2, .lv3 to item.
+      //|
+      //#######################################
+      $lv1.classList.add('lv1');
+    }
+    ref1 = $dom.querySelectorAll('#summary > ul > li > ul');
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      $lv2 = ref1[j];
+      $lv2.classList.add('lv2');
+    }
+    ref2 = $dom.querySelectorAll('#summary > ul > li > ul > li > ul');
+    for (k = 0, len2 = ref2.length; k < len2; k++) {
+      $lv3 = ref2[k];
+      $lv3.classList.add('lv3');
+    }
+    ref3 = $dom.querySelectorAll('#summary > ul > li');
+    for (l = 0, len3 = ref3.length; l < len3; l++) {
+      $lv1 = ref3[l];
+      $lv1.classList.add('lv1');
+    }
+    ref4 = $dom.querySelectorAll('#summary > ul > li > ul > li');
+    for (m = 0, len4 = ref4.length; m < len4; m++) {
+      $lv2 = ref4[m];
+      $lv2.classList.add('lv2');
+    }
+    ref5 = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li');
+    for (n = 0, len5 = ref5.length; n < len5; n++) {
+      $lv3 = ref5[n];
+      $lv3.classList.add('lv3');
+    }
+    ref6 = $dom.querySelectorAll('#summary > ul > li > a');
+    for (o = 0, len6 = ref6.length; o < len6; o++) {
+      $lv1 = ref6[o];
+      $lv1.classList.add('lv1');
+    }
+    ref7 = $dom.querySelectorAll('#summary > ul > li > ul > li > a');
+    for (p = 0, len7 = ref7.length; p < len7; p++) {
+      $lv2 = ref7[p];
+      $lv2.classList.add('lv2');
+    }
+    ref8 = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > a');
+    results = [];
+    for (q = 0, len8 = ref8.length; q < len8; q++) {
+      $lv3 = ref8[q];
+      results.push($lv3.classList.add('lv3'));
+    }
+    return results;
+  }
+
+  bindEvent($dom) {
+    var $link, $links, i, len, results;
+    //#######################################
+    //|
+    //|  @params {HTMLElement} $dom
+    //|
+    //#######################################
+    $links = $dom.querySelectorAll('a');
+    results = [];
+    for (i = 0, len = $links.length; i < len; i++) {
+      $link = $links[i];
+      results.push($link.addEventListener('click', this.onSelect));
+    }
+    return results;
+  }
+
+  onSelect(e) {
+    var href;
+    //#######################################
+    //|
+    //|  @params {MouseEvent} e
+    //|
+    //#######################################
+    href = e.target.getAttribute('href');
+    if (href[0] === '#') {
+      this.emit('select', href.slice(1));
+    } else {
+      this.emit('reload', href);
+    }
+    return e.preventDefault();
+  }
+
+  active(id) {
+    var $el, $link, i, len, ref;
+    ref = document.querySelectorAll('#summary .active');
+    //#######################################
+    //|
+    //|  @params {MouseEvent} e
+    //|
+    //#######################################
+    for (i = 0, len = ref.length; i < len; i++) {
+      $el = ref[i];
+      $el.classList.remove('active');
+    }
+    $link = document.querySelector(`#summary a[href="#${id}"]`);
+    if ($link) {
+      $link.classList.add('active'); // <a>
+      $link.parentNode.classList.add('active'); // <li>
+      return $link.parentNode.parentNode.classList.add('active'); // <ul>
+    }
+  }
+
+  scroll(id) {
+    var $link, $side, bottom, top;
+    $side = document.querySelector('#side');
+    $link = document.querySelector(`#summary a[href="#${id}"]`);
+    if ($link) {
+      top = $link.getBoundingClientRect().top;
+      bottom = $link.getBoundingClientRect().bottom;
+      if (top + 200 > window.innerHeight) {
+        return $side.scrollBy(0, top + 200 - window.innerHeight);
+      } else if (bottom < 200) {
+        return $side.scrollBy(0, bottom - 200);
+      }
+    }
   }
 
 };
@@ -3609,58 +3784,75 @@ var API, util$5;
 util$5 = util;
 
 var Api = API = class API {
-  constructor($raw) {
-    this.render = this.render.bind(this);
-    this.renderItem = this.renderItem.bind(this);
-    this._$raw = $raw;
+  constructor(html) {
+    this.compile = this.compile.bind(this);
+    this._compileItem = this._compileItem.bind(this);
+    //#######################################
+    ///
+    ///   @params {string} html
+    ///
+    //#######################################
+    this.html = html;
   }
 
-  render() {
-    var $api, $item, $items, i, len;
-    $api = util$5.element('.api');
-    $items = this._$raw.querySelectorAll('item');
-    for (i = 0, len = $items.length; i < len; i++) {
-      $item = $items[i];
-      $item = this.renderItem($item);
-      $api.appendChild($item);
+  compile() {
+    var api, dom, i, item, items, len;
+    //#######################################
+    ///
+    ///   @params {string} html
+    ///   @return {string} html
+    ///
+    //#######################################
+    dom = util$5.dom(this.html);
+    api = util$5.dom('.api');
+    items = dom.findAll('item');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      api.append(this._compileItem(item));
     }
-    return $api;
+    return api.htmlSelf();
   }
 
-  renderItem($item) {
-    var $desc, $left, $name, $right, $type;
-    $name = $item.querySelector('name');
-    $type = $item.querySelector('type');
-    $desc = $item.querySelector('desc');
-    $left = util$5.element('.left');
-    $right = util$5.element('.right');
-    if ($name) {
-      $name = util$5.element('.name', $name.innerHTML);
-      $left.appendChild($name);
+  _compileItem(item) {
+    var desc, left, name, right, type;
+    //#######################################
+    ///
+    ///   @params {DOM} item
+    ///   @return {DOM} item
+    ///
+    //#######################################
+    name = item.find('name');
+    type = item.find('type');
+    desc = item.find('desc');
+    left = util$5.dom('.left');
+    right = util$5.dom('.right');
+    if (name) {
+      name = util$5.dom('.name').text(name.text());
+      left.append(name);
     }
-    if ($type) {
-      $type = util$5.element('.type', $type.innerHTML);
-      $left.appendChild($type);
+    if (type) {
+      type = util$5.dom('.type').text(type.text());
+      left.append(type);
     }
-    if ($desc) {
-      $desc = util$5.element('.desc', $desc.innerHTML);
-      $right.appendChild($desc);
+    if (desc) {
+      desc = util$5.dom('.desc').text(desc.text());
+      right.append(desc);
     }
-    $item = util$5.element('.item');
-    $item.appendChild($left);
-    $item.appendChild($right);
-    return $item;
+    item = util$5.dom('.item').append(left).append(right);
+    return item;
   }
 
 };
 
-var Api$1, Article, Prism, marked$4;
+var Api$1, Article, Prism, marked$4, util$6;
 
 marked$4 = marked;
 
 Prism = prism;
 
 Api$1 = Api;
+
+util$6 = util;
 
 marked$4.setOptions({
   gfm: true,
@@ -3684,17 +3876,14 @@ var Article_1 = Article = class Article {
     this._parseHeading = this._parseHeading.bind(this);
     this._parseOrder = this._parseOrder.bind(this);
     this.compile = this.compile.bind(this);
-    // markdown = @markdown
-
-    // sections            = @parseSections(markdown)
-
-    // @trimFirst(sections)
-
-    // { html, sections } = @compileSections(sections)
-
-    // @html     = html
-    // @sections = sections
-    // @cover    = cover
+    this._compileSection = this._compileSection.bind(this);
+    this._compileHeading = this._compileHeading.bind(this);
+    this._compileContent = this._compileContent.bind(this);
+    this._compileExample = this._compileExample.bind(this);
+    this._compileHTML = this._compileHTML.bind(this);
+    this._isTag = this._isTag.bind(this);
+    this._formatID = this._formatID.bind(this);
+    this.render = this.render.bind(this);
     this.parseSections = this.parseSections.bind(this);
     this.formatHeading = this.formatHeading.bind(this);
     this.trimFirst = this.trimFirst.bind(this);
@@ -3708,7 +3897,7 @@ var Article_1 = Article = class Article {
     this.createSummary = this.createSummary.bind(this);
     this.createSummaryItem = this.createSummaryItem.bind(this);
     this.getID = this.getID.bind(this);
-    this.render = this.render.bind(this);
+    this.render2 = this.render2.bind(this);
     this.wrapParams = this.wrapParams.bind(this);
     this.bindScrollEvent = this.bindScrollEvent.bind(this);
     this.getSectionStats = this.getSectionStats.bind(this);
@@ -3809,6 +3998,9 @@ var Article_1 = Article = class Article {
         content += `${line}\n`;
       }
     }
+    heading = heading.trim();
+    content = content.trim();
+    example = example.trim();
     return {heading, content, example};
   }
 
@@ -3908,17 +4100,149 @@ var Article_1 = Article = class Article {
   }
 
   compile() {
+    var article, sections;
+    //#######################################
+    ///
+    ///   Compile article-markdown to html.
+    ///
+    ///   @return {string} html
+    ///
+    //#######################################
+    sections = this.parse();
+    sections = sections.map(this._compileSection).join('');
+    article = util$6.dom('#article');
+    article.html(sections);
+    return article.htmlSelf();
+  }
+
+  _compileSection(section) {
+    var content, example, heading, id, lv, order, text;
+    //#######################################
+    ///
+    ///   @params {object} section - {object} heading
+    ///                              {string} content
+    ///                              {string} example
+    ///   @return {string} section
+    ///
+    //#######################################
+    ({heading, content, example} = section);
+    lv = heading != null ? heading.lv : void 0;
+    text = heading != null ? heading.text : void 0;
+    order = heading != null ? heading.order : void 0;
+    id = this._formatID(text, order);
+    heading = heading ? this._compileHeading(heading) : '';
+    content = content ? this._compileContent(content) : '';
+    example = example ? this._compileExample(example) : '';
+    section = heading + content + example;
+    section = util$6.dom('.section').html(section);
+    if (lv) {
+      section.attr('lv', lv);
+    }
+    if (id) {
+      section.attr('id', id);
+    }
+    return section.htmlSelf();
+  }
+
+  _compileHeading(heading) {
+    var lv, order, text;
+    //#######################################
+    ///
+    ///   @params {object} heading - {number} lv
+    ///                              {string} text
+    ///                              {string} order
+    ///   @params {string} heading
+    ///
+    //#######################################
+    ({lv, text, order} = heading);
+    if (lv <= Breeze.get('article.heading.showOrder')) {
+      text = `${order} ${text}`;
+    }
+    return `<h${lv}>${text.trim()}</h${lv}>`;
+  }
+
+  _compileContent(content) {
     var renderer;
     //#######################################
-    //|
-    //|  Compile article-markdown to html.
-    //|
+    ///
+    ///   @params {string} content ( markdown )
+    ///   @return {string} content ( html )
+    ///
     //#######################################
     renderer = new marked$4.Renderer();
-    renderer.html = (html) => {
+    renderer.html = this._compileHTML;
+    content = marked$4(content, {renderer});
+    return `<div class="content">${content}</div>`;
+  }
+
+  _compileExample(example) {
+    var renderer;
+    //#######################################
+    ///
+    ///   @params {string} example ( markdown )
+    ///   @return {string} example ( html )
+    ///
+    //#######################################
+    renderer = new marked$4.Renderer();
+    renderer.html = this._compileHTML;
+    example = marked$4(example, {renderer});
+    return `<div class="example">${example}</div>`;
+  }
+
+  _compileHTML(html) {
+    var dom;
+    html = html.trim();
+    switch (false) {
+      case !this._isTag('api', html):
+        dom = new Api$1(html);
+    }
+    if (dom) {
+      return dom.compile();
+    } else {
       return html;
-    };
-    return marked$4(this.markdown, {renderer});
+    }
+  }
+
+  _isTag(name, html) {
+    var reg;
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @params {string} html
+    ///
+    ///   @return {boolean}
+    ///
+    //#######################################
+    reg = new RegExp(`^<\\s*${name}\\s*>(.|\n)*?<\\s*/\\s*${name}\\s*>$`);
+    return reg.test(html);
+  }
+
+  _formatID(text = '', order) {
+    //#######################################
+    //|
+    //|  @params {string} text
+    //|  @params {string} order
+    //|  @return {string} id
+    //|
+    //#######################################
+    text = text.replace(/\s+/g, '-');
+    if (text) {
+      return order + '-' + text;
+    } else {
+      return order;
+    }
+  }
+
+  render(bus) {
+    var html;
+    //#######################################
+    ///
+    ///   @params {Bus} bus
+    ///   @return {DOM} article
+    ///
+    //#######################################
+    html = this.compile();
+    return util$6.dom(html);
   }
 
   parseSections(markdown) {
@@ -4197,7 +4521,7 @@ var Article_1 = Article = class Article {
     }
   }
 
-  render() {
+  render2() {
     this.$dom = document.createElement('article');
     this.$dom.innerHTML = this.html;
     this.wrapParams();
@@ -4270,7 +4594,7 @@ var Article_1 = Article = class Article {
 
 };
 
-var Article$1, Cover$1, Markdown$1, ObservableObject$3, Page, util$7,
+var Article$1, Cover$1, Markdown$1, ObservableObject$3, Page, Summary$1, util$8,
   boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
 ObservableObject$3 = ObservableObject_1;
@@ -4279,9 +4603,11 @@ Markdown$1 = Markdown_1;
 
 Cover$1 = Cover_1;
 
+Summary$1 = Summary_1;
+
 Article$1 = Article_1;
 
-util$7 = util;
+util$8 = util;
 
 var Page_1 = Page = class Page extends ObservableObject$3 {
   constructor(text, common = '') {
@@ -4341,20 +4667,29 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     markdown = new Markdown$1(this.text);
     ({nav, cover, summary, article} = markdown.parse());
     cover = new Cover$1(cover);
+    summary = new Summary$1(summary);
     article = new Article$1(article);
     return {nav, cover, summary, article};
   }
 
   compile() {
-    var article, cover, nav, page, summary;
+    var article, cover, main, nav, page, side, summary;
     boundMethodCheck$2(this, Page);
     ({nav, cover, summary, article} = this.parse());
-    page = util$7.dom('#page').append(cover.compile());
+    page = util$8.dom('#page');
+    side = util$8.dom('#side');
+    main = util$8.dom('#main');
+    if (cover.exist()) {
+      page.append(cover.compile());
+    }
+    main.append(article.compile());
+    page.append(side);
+    page.append(main);
     return page.htmlSelf();
   }
 
   render(router) {
-    var article, bus, cover, nav, page, summary;
+    var article, bus, cover, main, nav, page, side, summary;
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
@@ -4363,7 +4698,16 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     //#######################################
     ({nav, cover, summary, article} = this.parse());
     bus = new ObservableObject$3;
-    page = util$7.dom('#page').append(cover.render(bus));
+    page = util$8.dom('#page');
+    side = util$8.dom('#side');
+    main = util$8.dom('#main');
+    summary.render(bus);
+    if (cover.exist()) {
+      page.append(cover.render(bus));
+    }
+    main.append(article.render(bus));
+    page.append(side);
+    page.append(main);
     this._bindLinkEvent(router, page);
     return page;
   }
@@ -4397,7 +4741,7 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     ///
     //#######################################
     href = link.attr('href');
-    if (util$7.isUrl(href)) {
+    if (util$8.isUrl(href)) {
       return window.open(href, '_blank');
     } else {
       return router.go(href);
@@ -4406,13 +4750,13 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
 
 };
 
-var App, Page$1, Router$1, util$8;
+var App, Page$1, Router$1, util$9;
 
 Router$1 = Router_1;
 
 Page$1 = Page_1;
 
-util$8 = util;
+util$9 = util;
 
 var App_1 = App = class App {
   //#######################################
@@ -4443,7 +4787,7 @@ var App_1 = App = class App {
     if (this.isJIT) {
       return this._loadPage();
     } else {
-      return util$8.dom(document.querySelector('#page'));
+      return util$9.dom(document.querySelector('#page'));
     }
   }
 
@@ -4459,7 +4803,7 @@ var App_1 = App = class App {
     if (page) {
       return this._mount(page);
     } else {
-      return util$8.ajax(path, this._renderPage);
+      return util$9.ajax(path, this._renderPage);
     }
   }
 
@@ -4494,11 +4838,54 @@ var App_1 = App = class App {
 
 };
 
-var App$1, DOM$2;
+var Main;
+
+var Main_1 = Main = class Main {
+  //#######################################
+  ///
+  ///   window.Breeze = new Main
+  ///
+  //#######################################
+  constructor() {
+    this.set = this.set.bind(this);
+    this.get = this.get.bind(this);
+    this._config = {};
+    this.set('basePath', '');
+    this.set('article.heading.showOrder', 0);
+  }
+
+  set(name, value) {
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @params {*}      value
+    ///
+    ///   @return {Main}   this
+    ///
+    //#######################################
+    this._config[name] = value;
+    return this;
+  }
+
+  get(name) {
+    //#######################################
+    ///
+    ///   @params {string} name
+    ///   @return {string} value
+    ///
+    //#######################################
+    return this._config[name];
+  }
+
+};
+
+var App$1, DOM$2, Main$1;
 
 DOM$2 = DOM_web;
 
 App$1 = App_1;
+
+Main$1 = Main_1;
 
 window.DOM = DOM$2;
 
@@ -4507,9 +4894,7 @@ window.onload = () => {
   return new App$1(isJIT = true);
 };
 
-var src = {
-
-};
+var src = new Main$1;
 
 return src;
 

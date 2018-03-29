@@ -98,7 +98,7 @@ module.exports = class Summary
       #/
       ########################################
 
-      li = util.dom('li').addClass("lv#{lv}")
+      li = util.dom('li').attr('href', href).addClass("lv#{lv}")
       a  = util.dom('a').attr('href', href)
 
       if name
@@ -163,21 +163,59 @@ module.exports = class Summary
       items = summary.findAll('li')
 
       for li in items
-          li.on('click', @_active.bind(@, bus, summary, li))
+          li.on('click', @_onClickItem.bind(@, bus, summary, li))
+
+      bus.on('article.scroll', @_onArticleScroll.bind(@, summary))
 
 
 
 
 
-   _active: ( bus, summary, li, e ) =>
+   _onClickItem: ( bus, summary, li ) =>
 
       ########################################
-      #|
-      #|  @params {Bus} bus
-      #|  @params {DOM} summary
-      #|  @params {DOM} li
-      #|  @params {MouseEvent} e
-      #|
+      #/
+      #/   @params {Bus} bus
+      #/   @params {DOM} summary
+      #/   @params {DOM} li
+      #/
+      ########################################
+
+      @_active( summary, li )
+
+      if href = li.attr('href')
+         bus.emit('summary.select', href)
+
+
+
+
+
+   _onArticleScroll: ( summary, href ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM}    summary
+      #/   @params {string} href
+      #/
+      ########################################
+
+      li = summary.find("li[href=\"##{href}\"]")
+
+      if li
+         @_active( summary, li )
+         @_scroll( summary, li )
+
+
+
+
+
+   _active: ( summary, li ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} summary
+      #/   @params {DOM} li
+      #/
       ########################################
 
       if li.find('a')
@@ -191,21 +229,18 @@ module.exports = class Summary
 
 
 
-   scroll: ( id ) =>
+   _scroll: ( summary, li ) =>
 
-      $side = document.querySelector('#side')
-      $link = document.querySelector("#summary a[href=\"##{id}\"]")
+      side = util.dom(document.querySelector('#side'))
 
-      if $link
+      top    = li.top()
+      bottom = li.bottom()
 
-         top    = $link.getBoundingClientRect().top
-         bottom = $link.getBoundingClientRect().bottom
+      if top + 200 > window.innerHeight
+         side.scroll(top + 200 - window.innerHeight)
 
-         if top + 200 > window.innerHeight
-            $side.scrollBy( 0, top + 200 - window.innerHeight )
-
-         else if bottom < 200
-            $side.scrollBy( 0, bottom - 200 )
+      else if bottom < 200
+         side.scroll(bottom - 200)
 
 
 

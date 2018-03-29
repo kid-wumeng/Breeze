@@ -23,6 +23,11 @@ var DOM_web = DOM$1 = class DOM {
     this.removeClass = this.removeClass.bind(this);
     this.append = this.append.bind(this);
     this.css = this.css.bind(this);
+    this.width = this.width.bind(this);
+    this.height = this.height.bind(this);
+    this.top = this.top.bind(this);
+    this.bottom = this.bottom.bind(this);
+    this.scroll = this.scroll.bind(this);
     this.on = this.on.bind(this);
     //#######################################
     ///
@@ -214,6 +219,61 @@ var DOM_web = DOM$1 = class DOM {
     return this.root.style[name] = value;
   }
 
+  width() {
+    //#######################################
+    ///
+    ///   @return {number} width
+    ///
+    ///   This method only exists in DOM.web
+    ///
+    //#######################################
+    return this.root.getBoundingClientRect().width;
+  }
+
+  height() {
+    //#######################################
+    ///
+    ///   @return {number} height
+    ///
+    ///   This method only exists in DOM.web
+    ///
+    //#######################################
+    return this.root.getBoundingClientRect().height;
+  }
+
+  top() {
+    //#######################################
+    ///
+    ///   @return {number} top
+    ///
+    ///   This method only exists in DOM.web
+    ///
+    //#######################################
+    return this.root.getBoundingClientRect().top;
+  }
+
+  bottom() {
+    //#######################################
+    ///
+    ///   @return {number} top
+    ///
+    ///   This method only exists in DOM.web
+    ///
+    //#######################################
+    return this.root.getBoundingClientRect().top;
+  }
+
+  scroll(deltaY) {
+    //#######################################
+    ///
+    ///   @return {number} delta Y
+    ///
+    ///   This method only exists in DOM.web
+    ///
+    //#######################################
+    return this.root.scrollBy(0, deltaY);
+  }
+
   on(name, callback) {
     //#######################################
     ///
@@ -230,45 +290,6 @@ var DOM_web = DOM$1 = class DOM {
       callback(dom, e);
       return e.preventDefault();
     });
-  }
-
-};
-
-var ObservableObject;
-
-var ObservableObject_1 = ObservableObject = class ObservableObject {
-  constructor() {
-    this.on = this.on.bind(this);
-    this.emit = this.emit.bind(this);
-    this.events = {};
-  }
-
-  on(name, callback) {
-    if (!this.events[name]) {
-      this.events[name] = [];
-    }
-    this.events[name].push(callback);
-    return this;
-  }
-
-  emit(name, ...params) {
-    var callback, callbacks, i, len, ref;
-    //#######################################
-    //|
-    //|  Trigger an event.
-    //|
-    //|  @params {string} event's name
-    //|  @params {*...}   params...
-    //|
-    //|  @return {ObservableObject} this
-    //|
-    //#######################################
-    callbacks = (ref = this.events[name]) != null ? ref : [];
-    for (i = 0, len = callbacks.length; i < len; i++) {
-      callback = callbacks[i];
-      callback(...params);
-    }
-    return this;
   }
 
 };
@@ -348,6 +369,8 @@ exports.id = (order, text = '') => {
   //|
   //#######################################
   text = text.replace(/\s+/g, '-');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
   if (text) {
     return order + '-' + text;
   } else {
@@ -491,6 +514,45 @@ var util_4 = util.id;
 var util_5 = util.dom;
 var util_6 = util.element;
 
+var ObservableObject;
+
+var ObservableObject_1 = ObservableObject = class ObservableObject {
+  constructor() {
+    this.on = this.on.bind(this);
+    this.emit = this.emit.bind(this);
+    this.events = {};
+  }
+
+  on(name, callback) {
+    if (!this.events[name]) {
+      this.events[name] = [];
+    }
+    this.events[name].push(callback);
+    return this;
+  }
+
+  emit(name, ...params) {
+    var callback, callbacks, i, len, ref;
+    //#######################################
+    //|
+    //|  Trigger an event.
+    //|
+    //|  @params {string} event's name
+    //|  @params {*...}   params...
+    //|
+    //|  @return {ObservableObject} this
+    //|
+    //#######################################
+    callbacks = (ref = this.events[name]) != null ? ref : [];
+    for (i = 0, len = callbacks.length; i < len; i++) {
+      callback = callbacks[i];
+      callback(...params);
+    }
+    return this;
+  }
+
+};
+
 var ObservableObject$1, Router, util$1,
   boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
@@ -513,9 +575,9 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     this._parseQuery = this._parseQuery.bind(this);
     this._parseFilePath = this._parseFilePath.bind(this);
     this.go = this.go.bind(this);
-    this._open = this._open.bind(this);
-    this._push = this._push.bind(this);
-    this._replace = this._replace.bind(this);
+    this._goUrl = this._goUrl.bind(this);
+    this._goPath = this._goPath.bind(this);
+    this._goID = this._goID.bind(this);
     this._wrapQuery = this._wrapQuery.bind(this);
     this._parseHref = this._parseHref.bind(this);
     this._formatFullPath = this._formatFullPath.bind(this);
@@ -663,18 +725,18 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     ///
     //#######################################
     if (util$1.isUrl(href)) {
-      return this._open(href);
+      return this._goUrl(href);
     } else {
       ({path, id} = this._parseHref(href));
       if (path) {
-        return this._push(path, id);
+        return this._goPath(path, id);
       } else {
-        return this._replace(id);
+        return this._goID(id);
       }
     }
   }
 
-  _open(url) {
+  _goUrl(url) {
     boundMethodCheck(this, Router);
     //#######################################
     ///
@@ -684,8 +746,8 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     return window.open(url, '_blank');
   }
 
-  _push(path, id) {
-    var fullPath, query;
+  _goPath(path, id) {
+    var query;
     boundMethodCheck(this, Router);
     //#######################################
     ///
@@ -693,10 +755,10 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     ///   @params {string} id
     ///
     //#######################################
-    query = this._wrapQuery(id);
-    fullPath = this._formatFullPath(path, query);
     if (this.isJIT) {
-      history.pushState(null, null, fullPath);
+      query = this._wrapQuery(id);
+      path = this._formatFullPath(path, query);
+      history.pushState(null, null, path);
       this._parse();
       return this.emit('reload');
     } else {
@@ -704,18 +766,17 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     }
   }
 
-  _replace(id) {
-    var fullPath, query;
+  _goID(id) {
+    var path, query;
     boundMethodCheck(this, Router);
-    if (!id && !this.query.id) {
-      return false;
-    }
-    if (id === this.query.id) {
-      return false;
-    }
+    //#######################################
+    ///
+    ///   @params {string} fullPath
+    ///
+    //#######################################
     query = this._wrapQuery(id);
-    fullPath = this._formatFullPath(this.path, query);
-    history.replaceState(null, null, fullPath);
+    path = this._formatFullPath(this.path, query);
+    history.replaceState(null, null, path);
     return this._parse();
   }
 
@@ -2799,8 +2860,10 @@ var Summary_1 = Summary = class Summary {
     this._compileItemByHint = this._compileItemByHint.bind(this);
     this.render = this.render.bind(this);
     this._bindEvent = this._bindEvent.bind(this);
+    this._onClickItem = this._onClickItem.bind(this);
+    this._onArticleScroll = this._onArticleScroll.bind(this);
     this._active = this._active.bind(this);
-    this.scroll = this.scroll.bind(this);
+    this._scroll = this._scroll.bind(this);
     this.html = html;
   }
 
@@ -2858,7 +2921,7 @@ var Summary_1 = Summary = class Summary {
     ///   @return {DOM}    li.lvX
     ///
     //#######################################
-    li = util$4.dom('li').addClass(`lv${lv}`);
+    li = util$4.dom('li').attr('href', href).addClass(`lv${lv}`);
     a = util$4.dom('a').attr('href', href);
     if (name) {
       a.text(name.text());
@@ -2898,30 +2961,57 @@ var Summary_1 = Summary = class Summary {
   }
 
   _bindEvent(bus, summary) {
-    var i, items, len, li, results;
+    var i, items, len, li;
     //#######################################
     ///
     ///   @params {DOM} summary
     ///
     //#######################################
     items = summary.findAll('li');
-    results = [];
     for (i = 0, len = items.length; i < len; i++) {
       li = items[i];
-      results.push(li.on('click', this._active.bind(this, bus, summary, li)));
+      li.on('click', this._onClickItem.bind(this, bus, summary, li));
     }
-    return results;
+    return bus.on('article.scroll', this._onArticleScroll.bind(this, summary));
   }
 
-  _active(bus, summary, li, e) {
+  _onClickItem(bus, summary, li) {
+    var href;
+    //#######################################
+    ///
+    ///   @params {Bus} bus
+    ///   @params {DOM} summary
+    ///   @params {DOM} li
+    ///
+    //#######################################
+    this._active(summary, li);
+    if (href = li.attr('href')) {
+      return bus.emit('summary.select', href);
+    }
+  }
+
+  _onArticleScroll(summary, href) {
+    var li;
+    //#######################################
+    ///
+    ///   @params {DOM}    summary
+    ///   @params {string} href
+    ///
+    //#######################################
+    li = summary.find(`li[href="#${href}"]`);
+    if (li) {
+      this._active(summary, li);
+      return this._scroll(summary, li);
+    }
+  }
+
+  _active(summary, li) {
     var old;
     //#######################################
-    //|
-    //|  @params {Bus} bus
-    //|  @params {DOM} summary
-    //|  @params {DOM} li
-    //|  @params {MouseEvent} e
-    //|
+    ///
+    ///   @params {DOM} summary
+    ///   @params {DOM} li
+    ///
     //#######################################
     if (li.find('a')) {
       if (old = summary.find('li.active')) {
@@ -2931,18 +3021,15 @@ var Summary_1 = Summary = class Summary {
     }
   }
 
-  scroll(id) {
-    var $link, $side, bottom, top;
-    $side = document.querySelector('#side');
-    $link = document.querySelector(`#summary a[href="#${id}"]`);
-    if ($link) {
-      top = $link.getBoundingClientRect().top;
-      bottom = $link.getBoundingClientRect().bottom;
-      if (top + 200 > window.innerHeight) {
-        return $side.scrollBy(0, top + 200 - window.innerHeight);
-      } else if (bottom < 200) {
-        return $side.scrollBy(0, bottom - 200);
-      }
+  _scroll(summary, li) {
+    var bottom, side, top;
+    side = util$4.dom(document.querySelector('#side'));
+    top = li.top();
+    bottom = li.bottom();
+    if (top + 200 > window.innerHeight) {
+      return side.scroll(top + 200 - window.innerHeight);
+    } else if (bottom < 200) {
+      return side.scroll(bottom - 200);
     }
   }
 
@@ -3963,9 +4050,12 @@ var Article_1 = Article = class Article {
     this._isTag = this._isTag.bind(this);
     this.render = this.render.bind(this);
     this._bindEvent = this._bindEvent.bind(this);
-    this._redirect = this._redirect.bind(this);
+    this._onWindowScroll = this._onWindowScroll.bind(this);
+    this._isVisible = this._isVisible.bind(this);
     this._getSectionStats = this._getSectionStats.bind(this);
-    this.scroll = this.scroll.bind(this);
+    this._locateID = this._locateID.bind(this);
+    this._isDifferentID = this._isDifferentID.bind(this);
+    this._onSummarySelect = this._onSummarySelect.bind(this);
     this.markdown = markdown;
   }
 
@@ -4195,6 +4285,9 @@ var Article_1 = Article = class Article {
     if (id) {
       section.attr('id', id);
     }
+    if (id) {
+      section.attr('href', '#' + id);
+    }
     if (lv) {
       section.addClass('lv' + lv);
     }
@@ -4310,56 +4403,95 @@ var Article_1 = Article = class Article {
     ///   @params {DOM} article
     ///
     //#######################################
-    return window.addEventListener('scroll', this._redirect.bind(this, bus, article));
+    window.addEventListener('scroll', this._onWindowScroll.bind(this, bus, article));
+    return bus.on('summary.select', this._onSummarySelect.bind(this, article));
   }
 
-  _redirect(bus, article, e) {
-    var i, id, isVisible, j, len, ref, stat, stats;
+  _onWindowScroll(bus, article) {
+    var id, stats;
     //#######################################
     ///
-    ///   @params {Bus}   bus
-    ///   @params {DOM}   article
-    ///   @params {Event} e
+    ///   @params {Bus} bus
+    ///   @params {DOM} article
     ///
     //#######################################
-    isVisible = article.$el.getBoundingClientRect().width > 0;
-    if (isVisible) {
+    if (this._isVisible(article)) {
       stats = this._getSectionStats(article);
-      for (i = j = 0, len = stats.length; j < len; i = ++j) {
-        stat = stats[i];
-        if (stat.top > 0) {
-          break;
-        }
+      id = this._locateID(stats);
+      if (this._isDifferentID(id)) {
+        return bus.emit('article.scroll', id);
       }
-      id = (ref = stats[i - 1].id) != null ? ref : '';
-      return bus.emit('article:scroll', id);
     }
   }
 
-  _getSectionStats(article) {
-    var id, j, len, section, sections, stats, top;
+  _isVisible(article) {
     //#######################################
     ///
     ///   @params {DOM} article
+    ///   @return {boolean}
+    ///
+    //#######################################
+    return article.width() > 0;
+  }
+
+  _getSectionStats(article) {
+    var j, len, ref, section, stats;
+    //#######################################
+    ///
+    ///   @params {DOM}      article
     ///   @return {object[]} stats - [{ id, top }]
     ///
     //#######################################
-    sections = article.findAll('.section');
     stats = [];
-    for (j = 0, len = sections.length; j < len; j++) {
-      section = sections[j];
-      id = section.attr('id');
-      top = section.$el.getBoundingClientRect().top;
-      stats.push({id, top});
+    ref = article.findAll('.section');
+    for (j = 0, len = ref.length; j < len; j++) {
+      section = ref[j];
+      stats.push({
+        id: section.attr('id'),
+        top: section.top()
+      });
     }
     return stats;
   }
 
-  scroll(id) {
-    var $section, top;
-    $section = this.$dom.querySelector(`section[id="${id}"]`);
-    if ($section) {
-      top = $section.getBoundingClientRect().top;
+  _locateID(stats) {
+    var i, j, len, ref, stat;
+//#######################################
+///
+///   @params {object[]} stats - [{ id, top }]
+///   @return {string}   id
+///
+//#######################################
+    for (i = j = 0, len = stats.length; j < len; i = ++j) {
+      stat = stats[i];
+      if (stat.top > 0) {
+        break;
+      }
+    }
+    return (ref = stats[i - 1].id) != null ? ref : '';
+  }
+
+  _isDifferentID(id) {
+    if (!id && !router.query.id) {
+      return false;
+    } else if (id === router.query.id) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  _onSummarySelect(article, href) {
+    var section, top;
+    //#######################################
+    ///
+    ///   @params {DOM} article
+    ///   @params {string} href
+    ///
+    //#######################################
+    section = article.find(`.section[href="${href}"]`);
+    if (section) {
+      top = section.top();
       return window.scrollBy(0, top);
     } else {
       return window.scrollTo(0, 0);
@@ -4368,10 +4500,10 @@ var Article_1 = Article = class Article {
 
 };
 
-var Article$1, Cover$1, Markdown$1, ObservableObject$3, Page, Summary$1, util$8,
+var Article$1, Cover$1, Markdown$1, ObservableObject$4, Page, Summary$1, util$8,
   boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
-ObservableObject$3 = ObservableObject_1;
+ObservableObject$4 = ObservableObject_1;
 
 Markdown$1 = Markdown_1;
 
@@ -4383,7 +4515,7 @@ Article$1 = Article_1;
 
 util$8 = util;
 
-var Page_1 = Page = class Page extends ObservableObject$3 {
+var Page_1 = Page = class Page extends ObservableObject$4 {
   constructor(text, common = '') {
     super();
     // super()
@@ -4467,16 +4599,16 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     return page.htmlSelf();
   }
 
-  render(router) {
+  render() {
     var article, bus, cover, main, nav, page, side, summary;
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
-    ///   @params {Router} router
+    ///   @return {DOM} page
     ///
     //#######################################
     ({nav, cover, summary, article} = this.parse());
-    bus = new ObservableObject$3;
+    bus = new ObservableObject$4;
     page = util$8.dom('#page');
     side = util$8.dom('#side');
     main = util$8.dom('#main');
@@ -4487,16 +4619,15 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     main.append(article.render(bus));
     page.append(side);
     page.append(main);
-    this._bindEvent(router, bus, page);
+    this._bindEvent(bus, page);
     return page;
   }
 
-  _bindEvent(router, bus, page) {
+  _bindEvent(bus, page) {
     var i, len, link, links;
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
-    ///   @params {Router} router
     ///   @params {Bus}    bus
     ///   @params {DOM}    page
     ///
@@ -4504,18 +4635,17 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     links = page.findAll('a');
     for (i = 0, len = links.length; i < len; i++) {
       link = links[i];
-      link.on('click', this._onClickLink.bind(this, router));
+      link.on('click', this._onClickLink);
     }
-    return bus.on('article:scroll', this._onArticleScroll.bind(this, router));
+    return bus.on('article.scroll', this._onArticleScroll);
   }
 
-  _onClickLink(router, link) {
+  _onClickLink(link) {
     var href;
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
-    ///   @params {Router}     router
-    ///   @params {DOM}        link
+    ///   @params {DOM} link
     ///   @params {MouseEvent} e
     ///
     //#######################################
@@ -4524,11 +4654,10 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     }
   }
 
-  _onArticleScroll(router, id) {
+  _onArticleScroll(id) {
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
-    ///   @params {Router} router
     ///   @params {string} id
     ///
     //#######################################
@@ -4537,9 +4666,7 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
 
 };
 
-var App, Page$1, Router$1, util$9;
-
-Router$1 = Router_1;
+var App, Page$1, util$9;
 
 Page$1 = Page_1;
 
@@ -4564,9 +4691,8 @@ var App_1 = App = class App {
     ///
     //#######################################
     this.isJIT = isJIT;
-    this.pageCache = {};
-    this.router = new Router$1(isJIT);
-    this.router.on('reload', this._loadPage);
+    this.cache = {};
+    router.on('reload', this._loadPage);
     this._run();
   }
 
@@ -4585,8 +4711,8 @@ var App_1 = App = class App {
     ///   Load current page.
     ///
     //#######################################
-    path = this.router.filePath;
-    page = this.pageCache[path];
+    path = router.filePath;
+    page = this.cache[path];
     if (page) {
       return this._mount(page);
     } else {
@@ -4595,16 +4721,15 @@ var App_1 = App = class App {
   }
 
   _renderPage(text) {
-    var page, path;
+    var page;
     //#######################################
     ///
     ///   @params {string} text
     ///
     //#######################################
-    path = this.router.filePath;
     page = new Page$1(text);
-    page = page.render(this.router);
-    this.pageCache[path] = page;
+    page = page.render();
+    this.cache[router.filePath] = page;
     return this._mount(page);
   }
 
@@ -4667,19 +4792,21 @@ var Main_1 = Main = class Main {
 
 };
 
-var App$1, DOM$2, Main$1;
+var App$1, DOM$2, Main$1, Router$1;
 
 DOM$2 = DOM_web;
+
+Router$1 = Router_1;
 
 App$1 = App_1;
 
 Main$1 = Main_1;
 
-window.DOM = DOM$2;
-
 window.onload = () => {
   var isJIT;
-  return new App$1(isJIT = true);
+  window.DOM = DOM$2;
+  window.router = new Router$1(isJIT = true);
+  return window.app = new App$1(isJIT = true);
 };
 
 var src = new Main$1;

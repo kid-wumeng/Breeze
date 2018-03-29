@@ -265,6 +265,86 @@ module.exports = class DOM
 
 
 
+   width: =>
+
+      ########################################
+      #/
+      #/   @return {number} width
+      #/
+      #/   This method only exists in DOM.web
+      #/
+      ########################################
+
+      return @root.getBoundingClientRect().width
+
+
+
+
+
+   height: =>
+
+      ########################################
+      #/
+      #/   @return {number} height
+      #/
+      #/   This method only exists in DOM.web
+      #/
+      ########################################
+
+      return @root.getBoundingClientRect().height
+
+
+
+
+
+   top: =>
+
+      ########################################
+      #/
+      #/   @return {number} top
+      #/
+      #/   This method only exists in DOM.web
+      #/
+      ########################################
+
+      return @root.getBoundingClientRect().top
+
+
+
+
+
+   bottom: =>
+
+      ########################################
+      #/
+      #/   @return {number} top
+      #/
+      #/   This method only exists in DOM.web
+      #/
+      ########################################
+
+      return @root.getBoundingClientRect().top
+
+
+
+
+
+   scroll: ( deltaY ) =>
+
+      ########################################
+      #/
+      #/   @return {number} delta Y
+      #/
+      #/   This method only exists in DOM.web
+      #/
+      ########################################
+
+      return @root.scrollBy(0, deltaY)
+
+
+
+
+
    on: ( name, callback ) =>
 
       ########################################

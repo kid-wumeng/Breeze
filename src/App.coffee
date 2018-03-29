@@ -1,7 +1,6 @@
-ObservableObject = require('./ObservableObject')
-Router           = require('./Router')
-Page             = require('./Page')
-util             = require('./util')
+Bus  = require('./Bus')
+Page = require('./Page')
+util = require('./util')
 
 
 
@@ -27,11 +26,10 @@ module.exports = class App
       #/
       ########################################
 
-      @isJIT     = isJIT
-      @pageCache = {}
+      @isJIT = isJIT
+      @cache = {}
 
-      @router = new Router( isJIT )
-      @router.on('reload', @_loadPage)
+      router.on('reload', @_loadPage)
 
       @_run()
 
@@ -58,8 +56,8 @@ module.exports = class App
       #/
       ########################################
 
-      path = @router.filePath
-      page = @pageCache[path]
+      path = router.filePath
+      page = @cache[path]
 
       if page
          @_mount( page )
@@ -78,12 +76,10 @@ module.exports = class App
       #/
       ########################################
 
-      path = @router.filePath
-
       page = new Page( text )
-      page = page.render( @router )
+      page = page.render()
 
-      @pageCache[path] = page
+      @cache[router.filePath] = page
 
       @_mount( page )
 

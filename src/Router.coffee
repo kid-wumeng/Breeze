@@ -192,21 +192,21 @@ module.exports = class Router extends ObservableObject
       ########################################
 
       if util.isUrl( href )
-         @_open( href )
+            @_goUrl( href )
 
       else
          { path, id } = @_parseHref( href )
 
          if path
-            @_push( path, id )
+            @_goPath( path, id )
          else
-            @_replace( id )
+            @_goID( id )
 
 
 
 
 
-   _open: ( url ) =>
+   _goUrl: ( url ) =>
 
       ########################################
       #/
@@ -220,7 +220,7 @@ module.exports = class Router extends ObservableObject
 
 
 
-   _push: ( path, id ) =>
+   _goPath: ( path, id ) =>
 
       ########################################
       #/
@@ -229,12 +229,16 @@ module.exports = class Router extends ObservableObject
       #/
       ########################################
 
-      query    = @_wrapQuery( id )
-      fullPath = @_formatFullPath( path, query )
-
       if @isJIT
-         history.pushState( null, null, fullPath )
+
+         query = @_wrapQuery( id )
+
+         path  = @_formatFullPath( path, query )
+
+         history.pushState( null, null, path )
+
          @_parse()
+
          @emit('reload')
 
       else
@@ -244,24 +248,20 @@ module.exports = class Router extends ObservableObject
 
 
 
-   _replace: ( id ) =>
+   _goID: ( id ) =>
 
       ########################################
       #/
-      #/   @params {string} id
+      #/   @params {string} fullPath
       #/
       ########################################
 
-      if !id and !@query.id
-         return false
+      query = @_wrapQuery( id )
 
-      if id is @query.id
-         return false
+      path  = @_formatFullPath( @path, query )
 
-      query    = @_wrapQuery( id )
-      fullPath = @_formatFullPath( @path, query )
+      history.replaceState( null, null, path )
 
-      history.replaceState( null, null, fullPath )
       @_parse()
 
 
@@ -300,12 +300,15 @@ module.exports = class Router extends ObservableObject
       parts = href.split('#')
 
       switch parts.length
+
          when 1
             path = parts[0]
             id   = ''
+
          when 2
             path = parts[0]
             id   = parts[1]
+
          else
             path = ''
             id   = ''
@@ -329,6 +332,7 @@ module.exports = class Router extends ObservableObject
       fullPath = @_formatPath(path) + @_formatQuery(query)
 
       if @isJIT
+
          if path is '/'
             return        fullPath
          else

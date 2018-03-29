@@ -1,11 +1,15 @@
-DOM  = require('./DOM.web')
-App  = require('./App')
-Main = require('./Main')
+DOM    = require('./DOM.web')
+Router = require('./Router')
+App    = require('./App')
+Main   = require('./Main')
 
 
 
-window.DOM = DOM
-window.onload = => new App( isJIT = true )
+window.onload = =>
+
+   window.DOM    = DOM
+   window.router = new Router( isJIT = true )
+   window.app    = new App( isJIT = true )
 
 
 

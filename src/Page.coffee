@@ -109,11 +109,11 @@ module.exports = class Page extends ObservableObject
 
 
 
-   render: ( router ) =>
+   render: =>
 
       ########################################
       #/
-      #/   @params {Router} router
+      #/   @return {DOM} page
       #/
       ########################################
 
@@ -132,7 +132,7 @@ module.exports = class Page extends ObservableObject
       page.append(side)
       page.append(main)
 
-      @_bindEvent( router, bus, page )
+      @_bindEvent( bus, page )
 
       return page
 
@@ -140,11 +140,10 @@ module.exports = class Page extends ObservableObject
 
 
 
-   _bindEvent: ( router, bus, page ) =>
+   _bindEvent: ( bus, page ) =>
 
       ########################################
       #/
-      #/   @params {Router} router
       #/   @params {Bus}    bus
       #/   @params {DOM}    page
       #/
@@ -153,20 +152,19 @@ module.exports = class Page extends ObservableObject
       links = page.findAll('a')
 
       for link in links
-          link.on('click', @_onClickLink.bind(@, router))
+          link.on('click', @_onClickLink)
 
-      bus.on('article:scroll', @_onArticleScroll.bind(@, router))
-
-
+      bus.on('article.scroll', @_onArticleScroll)
 
 
 
-   _onClickLink: ( router, link ) =>
+
+
+   _onClickLink: ( link ) =>
 
       ########################################
       #/
-      #/   @params {Router}     router
-      #/   @params {DOM}        link
+      #/   @params {DOM} link
       #/   @params {MouseEvent} e
       #/
       ########################################
@@ -178,11 +176,10 @@ module.exports = class Page extends ObservableObject
 
 
 
-   _onArticleScroll: ( router, id ) =>
+   _onArticleScroll: ( id ) =>
 
       ########################################
       #/
-      #/   @params {Router} router
       #/   @params {string} id
       #/
       ########################################

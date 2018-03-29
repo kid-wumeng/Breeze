@@ -313,7 +313,8 @@ module.exports = class Article
 
       section = util.dom('.section').html(section)
       section.attr('id', id)         if id
-      section.addClass('lv'+ lv)     if lv
+      section.attr('href', '#'+id)   if id
+      section.addClass('lv'+lv)      if lv
       section.addClass('no-heading') if !text
 
       return section.htmlSelf()
@@ -466,35 +467,44 @@ module.exports = class Article
       #/
       ########################################
 
-      window.addEventListener('scroll', @_redirect.bind(@, bus, article))
+      window.addEventListener('scroll', @_onWindowScroll.bind( @, bus, article ))
+      bus.on('summary.select', @_onSummarySelect.bind( @, article ))
 
 
 
 
 
-   _redirect: ( bus, article, e ) =>
+   _onWindowScroll: ( bus, article ) =>
 
       ########################################
       #/
-      #/   @params {Bus}   bus
-      #/   @params {DOM}   article
-      #/   @params {Event} e
+      #/   @params {Bus} bus
+      #/   @params {DOM} article
       #/
       ########################################
 
-      isVisible = article.$el.getBoundingClientRect().width > 0
-
-      if isVisible
+      if @_isVisible( article )
 
          stats = @_getSectionStats( article )
+         id    = @_locateID( stats )
 
-         for stat, i in stats
-            if stat.top > 0
-               break
+         if @_isDifferentID( id )
+            bus.emit('article.scroll', id)
 
-         id = stats[i-1].id ? ''
 
-         bus.emit('article:scroll', id)
+
+
+
+   _isVisible: ( article ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} article
+      #/   @return {boolean}
+      #/
+      ########################################
+
+      return article.width() > 0
 
 
 
@@ -504,18 +514,19 @@ module.exports = class Article
 
       ########################################
       #/
-      #/   @params {DOM} article
+      #/   @params {DOM}      article
       #/   @return {object[]} stats - [{ id, top }]
       #/
       ########################################
 
-      sections = article.findAll('.section')
-      stats    = []
+      stats = []
 
-      for section in sections
-          id  = section.attr('id')
-          top = section.$el.getBoundingClientRect().top
-          stats.push({ id, top })
+      for section in article.findAll('.section')
+
+          stats.push({
+             id:  section.attr('id')
+             top: section.top()
+          })
 
       return stats
 
@@ -523,12 +534,60 @@ module.exports = class Article
 
 
 
-   scroll: ( id ) =>
+   _locateID: ( stats ) =>
 
-      $section = @$dom.querySelector("section[id=\"#{id}\"]")
+      ########################################
+      #/
+      #/   @params {object[]} stats - [{ id, top }]
+      #/   @return {string}   id
+      #/
+      ########################################
 
-      if $section
-         top = $section.getBoundingClientRect().top
+      for stat, i in stats
+         if stat.top > 0
+            break
+
+      return stats[i-1].id ? ''
+
+
+
+
+
+   _isDifferentID: ( id ) =>
+
+      ########################################
+      #/
+      #/   @params {string} id
+      #/   @return {boolean}
+      #/
+      ########################################
+
+      if !id and !router.query.id
+         return false
+
+      else if id is router.query.id
+         return false
+
+      else
+         return true
+
+
+
+
+
+   _onSummarySelect: ( article, href ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} article
+      #/   @params {string} href
+      #/
+      ########################################
+
+      section = article.find(".section[href=\"#{href}\"]")
+
+      if section
+         top = section.top()
          window.scrollBy(0, top)
       else
          window.scrollTo(0, 0)

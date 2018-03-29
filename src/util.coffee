@@ -77,7 +77,9 @@ exports.id = ( order, text = '' ) =>
    #|
    ########################################
 
-   text = text.replace(/\s+/g, '-')
+   text = text.replace(/\s+/g,  '-')
+   text = text.replace(/&lt;/g, '<')
+   text = text.replace(/&gt;/g, '>')
 
    if text
       return order + '-' + text

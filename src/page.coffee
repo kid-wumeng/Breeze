@@ -94,6 +94,7 @@ module.exports = class Page extends ObservableObject
       main = util.dom('#main')
 
       page.append(cover.compile()) if cover.exist()
+      side.append(summary.compile())
       main.append(article.compile())
 
       page.append(side)
@@ -121,9 +122,8 @@ module.exports = class Page extends ObservableObject
       side = util.dom('#side')
       main = util.dom('#main')
 
-      summary.render( bus )
-
       page.append(cover.render( bus )) if cover.exist()
+      side.append(summary.render( bus ))
       main.append(article.render( bus ))
 
       page.append(side)

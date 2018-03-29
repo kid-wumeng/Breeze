@@ -13,6 +13,8 @@ module.exports = class Summary
 
 
 
+
+
    constructor: ( html ) ->
 
       @html = html
@@ -21,11 +23,111 @@ module.exports = class Summary
 
 
 
+   exist: =>
+
+      ########################################
+      #/
+      #/   @return {boolean}
+      #/
+      ########################################
+
+      return !!@html
+
+
+
+
+
    compile: =>
 
-      console.log @html
+      ########################################
+      #/
+      #/   @params {string} html
+      #/   @return {string} html
+      #/
+      ########################################
 
-      return @html
+      model   = util.dom(@html)
+      summary = util.dom('#summary')
+      ul      = util.dom('ul')
+
+      items = model.findAll('item')
+
+      for item in items
+          li = @_compileItem( item )
+          ul.append(li)
+
+      summary.append(ul)
+
+      return summary.htmlSelf()
+
+
+
+
+
+   _compileItem: ( item ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} item
+      #/   @return {DOM} li
+      #/
+      ########################################
+
+      name = item.find('name')
+      href = item.attr('href')
+      lv   = item.attr('lv')
+
+      if href
+         return @_compileItemByLink( name, href, lv )
+      else
+         return @_compileItemByHint( name, href, lv )
+
+
+
+
+
+   _compileItemByLink: ( name, href, lv = '1' ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM}    name
+      #/   @params {string} href
+      #/   @params {string} lv
+      #/
+      #/   @return {DOM}    li.lvX
+      #/
+      ########################################
+
+      li = util.dom('li').addClass("lv#{lv}")
+      a  = util.dom('a').attr('href', href)
+
+      if name
+         a.text(name.text())
+
+      return li.append(a)
+
+
+
+
+
+   _compileItemByHint: ( name, href, lv = '1' ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM}    name
+      #/   @params {string} href
+      #/   @params {string} lv
+      #/
+      #/   @return {DOM}    li.label.lvX
+      #/
+      ########################################
+
+      li = util.dom('li.hint').addClass("lv#{lv}")
+
+      if name
+         li.text(name.text())
+
+      return li
 
 
 
@@ -33,114 +135,57 @@ module.exports = class Summary
 
    render: ( bus ) =>
 
-      return @compile()
+      ########################################
+      #/
+      #/   @params {Bus} bus
+      #/   @return {DOM} summary
+      #/
+      ########################################
+
+      summary = util.dom(@compile())
+
+      @_bindEvent( bus, summary )
+
+      return summary
 
 
 
 
 
+   _bindEvent: ( bus, summary ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} summary
+      #/
+      ########################################
+
+      items = summary.findAll('li')
+
+      for li in items
+          li.on('click', @_active.bind(@, bus, summary, li))
 
 
-   removeLv4: ( $dom ) =>
+
+
+
+   _active: ( bus, summary, li, e ) =>
 
       ########################################
       #|
-      #|  @params {HTMLElement} $dom
-      #|
-      #|  Remove the lv4(~lv6) item.
-      #|
-      ########################################
-
-      $lv4s = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > ul')
-
-      for $lv4 in $lv4s
-          $lv4.parentNode.removeChild($lv4)
-
-
-
-
-
-   setClass: ( $dom ) =>
-
-      ########################################
-      #|
-      #|  @params {HTMLElement} $dom
-      #|
-      #|  Set class .lv1, .lv2, .lv3 to item.
-      #|
-      ########################################
-
-      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('#summary > ul')
-      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('#summary > ul > li > ul')
-      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('#summary > ul > li > ul > li > ul')
-
-      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('#summary > ul > li')
-      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('#summary > ul > li > ul > li')
-      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li')
-
-      $lv1.classList.add('lv1') for $lv1 in $dom.querySelectorAll('#summary > ul > li > a')
-      $lv2.classList.add('lv2') for $lv2 in $dom.querySelectorAll('#summary > ul > li > ul > li > a')
-      $lv3.classList.add('lv3') for $lv3 in $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > a')
-
-
-
-
-
-   bindEvent: ( $dom ) =>
-
-      ########################################
-      #|
-      #|  @params {HTMLElement} $dom
-      #|
-      ########################################
-
-      $links = $dom.querySelectorAll('a')
-
-      for $link in $links
-          $link.addEventListener('click', @onSelect)
-
-
-
-
-
-   onSelect: ( e ) =>
-
-      ########################################
-      #|
+      #|  @params {Bus} bus
+      #|  @params {DOM} summary
+      #|  @params {DOM} li
       #|  @params {MouseEvent} e
       #|
       ########################################
 
-      href = e.target.getAttribute('href')
+      if li.find('a')
 
-      if href[0] is '#'
-         @emit('select', href.slice(1))
-      else
-         @emit('reload', href)
+         if old = summary.find('li.active')
+            old.removeClass('active')
 
-      e.preventDefault()
-
-
-
-
-
-   active: ( id ) =>
-
-      ########################################
-      #|
-      #|  @params {MouseEvent} e
-      #|
-      ########################################
-
-      for $el in document.querySelectorAll('#summary .active')
-          $el.classList.remove('active')
-
-      $link = document.querySelector("#summary a[href=\"##{id}\"]")
-
-      if $link
-         $link.classList.add('active')                        # <a>
-         $link.parentNode.classList.add('active')             # <li>
-         $link.parentNode.parentNode.classList.add('active')  # <ul>
+         li.addClass('active')
 
 
 

@@ -2583,8 +2583,8 @@ var Cover_1 = Cover = class Cover {
     ///
     //#######################################
     dom = util$3.dom(this.html);
-    wrap = util$3.dom('.wrap');
     cover = util$3.dom('#cover');
+    wrap = util$3.dom('.wrap');
     logo = dom.find('cover > logo');
     name = dom.find('cover > name');
     descs = dom.findAll('cover > desc');
@@ -2702,15 +2702,14 @@ var Cover_1 = Cover = class Cover {
   }
 
   render(bus) {
-    var cover, html;
+    var cover;
     //#######################################
     ///
     ///   @params {Bus} bus
     ///   @return {DOM} cover
     ///
     //#######################################
-    html = this.compile();
-    cover = util$3.dom(html);
+    cover = util$3.dom(this.compile());
     this._bindEvent(cover);
     return cover;
   }
@@ -2743,7 +2742,9 @@ var Cover_1 = Cover = class Cover {
 
 };
 
-var Summary;
+var Summary, util$4;
+
+util$4 = util;
 
 var Summary_1 = Summary = class Summary {
   //#######################################
@@ -2752,151 +2753,142 @@ var Summary_1 = Summary = class Summary {
   ///
   //#######################################
   constructor(html) {
+    this.exist = this.exist.bind(this);
     this.compile = this.compile.bind(this);
+    this._compileItem = this._compileItem.bind(this);
+    this._compileItemByLink = this._compileItemByLink.bind(this);
+    this._compileItemByHint = this._compileItemByHint.bind(this);
     this.render = this.render.bind(this);
-    this.removeLv4 = this.removeLv4.bind(this);
-    this.setClass = this.setClass.bind(this);
-    this.bindEvent = this.bindEvent.bind(this);
-    this.onSelect = this.onSelect.bind(this);
-    this.active = this.active.bind(this);
+    this._bindEvent = this._bindEvent.bind(this);
+    this._active = this._active.bind(this);
     this.scroll = this.scroll.bind(this);
     this.html = html;
   }
 
+  exist() {
+    return !!this.html;
+  }
+
   compile() {
-    console.log(this.html);
-    return this.html;
+    var i, item, items, len, li, model, summary, ul;
+    //#######################################
+    ///
+    ///   @params {string} html
+    ///   @return {string} html
+    ///
+    //#######################################
+    model = util$4.dom(this.html);
+    summary = util$4.dom('#summary');
+    ul = util$4.dom('ul');
+    items = model.findAll('item');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      li = this._compileItem(item);
+      ul.append(li);
+    }
+    summary.append(ul);
+    return summary.htmlSelf();
+  }
+
+  _compileItem(item) {
+    var href, lv, name;
+    //#######################################
+    ///
+    ///   @params {DOM} item
+    ///   @return {DOM} li
+    ///
+    //#######################################
+    name = item.find('name');
+    href = item.attr('href');
+    lv = item.attr('lv');
+    if (href) {
+      return this._compileItemByLink(name, href, lv);
+    } else {
+      return this._compileItemByHint(name, href, lv);
+    }
+  }
+
+  _compileItemByLink(name, href, lv = '1') {
+    var a, li;
+    //#######################################
+    ///
+    ///   @params {DOM}    name
+    ///   @params {string} href
+    ///   @params {string} lv
+    ///
+    ///   @return {DOM}    li.lvX
+    ///
+    //#######################################
+    li = util$4.dom('li').addClass(`lv${lv}`);
+    a = util$4.dom('a').attr('href', href);
+    if (name) {
+      a.text(name.text());
+    }
+    return li.append(a);
+  }
+
+  _compileItemByHint(name, href, lv = '1') {
+    var li;
+    //#######################################
+    ///
+    ///   @params {DOM}    name
+    ///   @params {string} href
+    ///   @params {string} lv
+    ///
+    ///   @return {DOM}    li.label.lvX
+    ///
+    //#######################################
+    li = util$4.dom('li.hint').addClass(`lv${lv}`);
+    if (name) {
+      li.text(name.text());
+    }
+    return li;
   }
 
   render(bus) {
-    return this.compile();
+    var summary;
+    //#######################################
+    ///
+    ///   @params {Bus} bus
+    ///   @return {DOM} summary
+    ///
+    //#######################################
+    summary = util$4.dom(this.compile());
+    this._bindEvent(bus, summary);
+    return summary;
   }
 
-  removeLv4($dom) {
-    var $lv4, $lv4s, i, len, results;
+  _bindEvent(bus, summary) {
+    var i, items, len, li, results;
     //#######################################
-    //|
-    //|  @params {HTMLElement} $dom
-    //|
-    //|  Remove the lv4(~lv6) item.
-    //|
+    ///
+    ///   @params {DOM} summary
+    ///
     //#######################################
-    $lv4s = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > ul');
+    items = summary.findAll('li');
     results = [];
-    for (i = 0, len = $lv4s.length; i < len; i++) {
-      $lv4 = $lv4s[i];
-      results.push($lv4.parentNode.removeChild($lv4));
+    for (i = 0, len = items.length; i < len; i++) {
+      li = items[i];
+      results.push(li.on('click', this._active.bind(this, bus, summary, li)));
     }
     return results;
   }
 
-  setClass($dom) {
-    var $lv1, $lv2, $lv3, i, j, k, l, len, len1, len2, len3, len4, len5, len6, len7, len8, m, n, o, p, q, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7, ref8, results;
-    ref = $dom.querySelectorAll('#summary > ul');
-    for (i = 0, len = ref.length; i < len; i++) {
-      $lv1 = ref[i];
-      //#######################################
-      //|
-      //|  @params {HTMLElement} $dom
-      //|
-      //|  Set class .lv1, .lv2, .lv3 to item.
-      //|
-      //#######################################
-      $lv1.classList.add('lv1');
-    }
-    ref1 = $dom.querySelectorAll('#summary > ul > li > ul');
-    for (j = 0, len1 = ref1.length; j < len1; j++) {
-      $lv2 = ref1[j];
-      $lv2.classList.add('lv2');
-    }
-    ref2 = $dom.querySelectorAll('#summary > ul > li > ul > li > ul');
-    for (k = 0, len2 = ref2.length; k < len2; k++) {
-      $lv3 = ref2[k];
-      $lv3.classList.add('lv3');
-    }
-    ref3 = $dom.querySelectorAll('#summary > ul > li');
-    for (l = 0, len3 = ref3.length; l < len3; l++) {
-      $lv1 = ref3[l];
-      $lv1.classList.add('lv1');
-    }
-    ref4 = $dom.querySelectorAll('#summary > ul > li > ul > li');
-    for (m = 0, len4 = ref4.length; m < len4; m++) {
-      $lv2 = ref4[m];
-      $lv2.classList.add('lv2');
-    }
-    ref5 = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li');
-    for (n = 0, len5 = ref5.length; n < len5; n++) {
-      $lv3 = ref5[n];
-      $lv3.classList.add('lv3');
-    }
-    ref6 = $dom.querySelectorAll('#summary > ul > li > a');
-    for (o = 0, len6 = ref6.length; o < len6; o++) {
-      $lv1 = ref6[o];
-      $lv1.classList.add('lv1');
-    }
-    ref7 = $dom.querySelectorAll('#summary > ul > li > ul > li > a');
-    for (p = 0, len7 = ref7.length; p < len7; p++) {
-      $lv2 = ref7[p];
-      $lv2.classList.add('lv2');
-    }
-    ref8 = $dom.querySelectorAll('#summary > ul > li > ul > li > ul > li > a');
-    results = [];
-    for (q = 0, len8 = ref8.length; q < len8; q++) {
-      $lv3 = ref8[q];
-      results.push($lv3.classList.add('lv3'));
-    }
-    return results;
-  }
-
-  bindEvent($dom) {
-    var $link, $links, i, len, results;
+  _active(bus, summary, li, e) {
+    var old;
     //#######################################
     //|
-    //|  @params {HTMLElement} $dom
-    //|
-    //#######################################
-    $links = $dom.querySelectorAll('a');
-    results = [];
-    for (i = 0, len = $links.length; i < len; i++) {
-      $link = $links[i];
-      results.push($link.addEventListener('click', this.onSelect));
-    }
-    return results;
-  }
-
-  onSelect(e) {
-    var href;
-    //#######################################
-    //|
+    //|  @params {Bus} bus
+    //|  @params {DOM} summary
+    //|  @params {DOM} li
     //|  @params {MouseEvent} e
     //|
     //#######################################
-    href = e.target.getAttribute('href');
-    if (href[0] === '#') {
-      this.emit('select', href.slice(1));
-    } else {
-      this.emit('reload', href);
-    }
-    return e.preventDefault();
-  }
-
-  active(id) {
-    var $el, $link, i, len, ref;
-    ref = document.querySelectorAll('#summary .active');
-    //#######################################
-    //|
-    //|  @params {MouseEvent} e
-    //|
-    //#######################################
-    for (i = 0, len = ref.length; i < len; i++) {
-      $el = ref[i];
-      $el.classList.remove('active');
-    }
-    $link = document.querySelector(`#summary a[href="#${id}"]`);
-    if ($link) {
-      $link.classList.add('active'); // <a>
-      $link.parentNode.classList.add('active'); // <li>
-      return $link.parentNode.parentNode.classList.add('active'); // <ul>
+    if (li.find('a')) {
+      if (old = summary.find('li.active')) {
+        old.removeClass('active');
+      }
+      return li.addClass('active');
     }
   }
 
@@ -3884,6 +3876,7 @@ var Article_1 = Article = class Article {
     this._isTag = this._isTag.bind(this);
     this._formatID = this._formatID.bind(this);
     this.render = this.render.bind(this);
+    this._trimCode = this._trimCode.bind(this);
     this.parseSections = this.parseSections.bind(this);
     this.formatHeading = this.formatHeading.bind(this);
     this.trimFirst = this.trimFirst.bind(this);
@@ -4234,15 +4227,32 @@ var Article_1 = Article = class Article {
   }
 
   render(bus) {
-    var html;
+    var article;
     //#######################################
     ///
     ///   @params {Bus} bus
     ///   @return {DOM} article
     ///
     //#######################################
-    html = this.compile();
-    return util$6.dom(html);
+    article = util$6.dom(this.compile());
+    this._trimCode(article);
+    return article;
+  }
+
+  _trimCode(article) {
+    var code, codes, j, len, results1;
+    //#######################################
+    ///
+    ///   @params {DOM} article
+    ///
+    //#######################################
+    codes = article.findAll('code');
+    results1 = [];
+    for (j = 0, len = codes.length; j < len; j++) {
+      code = codes[j];
+      results1.push(code.html(code.html().trim()));
+    }
+    return results1;
   }
 
   parseSections(markdown) {
@@ -4682,6 +4692,7 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     if (cover.exist()) {
       page.append(cover.compile());
     }
+    side.append(summary.compile());
     main.append(article.compile());
     page.append(side);
     page.append(main);
@@ -4701,10 +4712,10 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     page = util$8.dom('#page');
     side = util$8.dom('#side');
     main = util$8.dom('#main');
-    summary.render(bus);
     if (cover.exist()) {
       page.append(cover.render(bus));
     }
+    side.append(summary.render(bus));
     main.append(article.render(bus));
     page.append(side);
     page.append(main);

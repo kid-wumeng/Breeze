@@ -51,8 +51,8 @@ module.exports = class Cover
       ########################################
 
       dom   = util.dom(@html)
-      wrap  = util.dom('.wrap')
       cover = util.dom('#cover')
+      wrap  = util.dom('.wrap')
 
       logo    = dom.find('cover > logo')
       name    = dom.find('cover > name')
@@ -204,8 +204,7 @@ module.exports = class Cover
       #/
       ########################################
 
-      html  = @compile()
-      cover = util.dom( html )
+      cover = util.dom(@compile())
 
       @_bindEvent( cover )
 

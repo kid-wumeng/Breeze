@@ -451,8 +451,28 @@ module.exports = class Article
       #/
       ########################################
 
-      html = @compile()
-      return util.dom( html )
+      article = util.dom(@compile())
+
+      @_trimCode(article)
+
+      return article
+
+
+
+
+
+   _trimCode: ( article ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} article
+      #/
+      ########################################
+
+      codes = article.findAll('code')
+
+      for code in codes
+          code.html(code.html().trim())
 
 
 

@@ -11,7 +11,7 @@
 
 
 
-@default-font-family: "Helvetica Neue", "Arial", "Verdana", "Roboto", "PingFang SC", "Hiragino Sans GB", sans-serif;
+@default-font-family: "Ubuntu", "Helvetica Neue", "Arial", "Verdana", "Roboto", "PingFang SC", "Hiragino Sans GB", sans-serif;
 
 @border: 1px solid @border-color;
 @border-color: #F6F6F6;
@@ -100,12 +100,14 @@ html {
 
 
 #summary {
-  a.lv1    { color: #364149 }
-  a.lv2    { color: #505D6B }
-  a.lv3    { color: #505D6B }
-  a:hover  { color: #69C0FF }
-  a.active { color: #FFFFFF }
-  a.active { background-color: #69c0ff }
+  li.hint     { color: #A2AEBA }
+  li.lv1    a { color: #364149 }
+  li.lv2    a { color: #505d6b }
+  li.lv3    a { color: #505d6b }
+  li.active a { color: #FFFFFF }
+
+  li:hover  a { background-color: #F8FAFB }
+  li.active a { background-image: linear-gradient(160deg, #553FFB 0%, #49D7E6 100%) }
 }
 
 

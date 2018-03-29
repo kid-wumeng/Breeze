@@ -206,3 +206,69 @@ module.exports = class Summary
 
          else if bottom < 200
             $side.scrollBy( 0, bottom - 200 )
+
+
+
+
+
+Summary.parse = ( sections ) =>
+
+   ########################################
+   #/
+   #/   @params {object[]} sections - [{ heading, content, example }]
+   #/   @return {string}   html
+   #/
+   ########################################
+
+   sections = sections.filter( Summary._filterSection )
+   sections = sections.map( Summary._mapSection )
+
+   return "<summary>#{sections.join('')}</summary>"
+
+
+
+
+
+Summary._filterSection = ( section ) =>
+
+   ########################################
+   #/
+   #/   @params {object} section - {object} heading - { lv, text, order }
+   #/                              {string} content
+   #/                              {string} example
+   #/
+   #/   @return {boolean}
+   #/
+   ########################################
+
+   if section.heading
+      if section.heading.lv <= Breeze.get('summary.maxLevel')
+         return true
+
+   return false
+
+
+
+
+
+Summary._mapSection = ( section ) =>
+
+   ########################################
+   #/
+   #/   @params {object} section - {object} heading - { lv, text, order }
+   #/                              {string} content
+   #/                              {string} example
+   #/
+   #/   @return {string} html
+   #/
+   ########################################
+
+   { lv, text, order } = section.heading
+
+   href = util.id( order, text )
+
+   return """
+      <item lv="#{ lv }" href="##{ href }">
+         <name>#{ text }</name>
+      </item>
+   """

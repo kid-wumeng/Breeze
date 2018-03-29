@@ -73,11 +73,14 @@ module.exports = class Page extends ObservableObject
 
       markdown = new Markdown(@text)
 
-      { nav, cover, summary, article } = markdown.parse()
+      { article, nav, cover, summary } = markdown.parse()
 
-      cover   = new Cover(cover)
-      summary = new Summary(summary)
       article = new Article(article)
+      cover   = new Cover(cover)
+
+      if !summary
+        summary = Summary.parse(sections = article.parse())
+      summary = new Summary(summary)
 
       return { nav, cover, summary, article }
 

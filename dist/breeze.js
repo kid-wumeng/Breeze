@@ -339,6 +339,22 @@ exports.ajax = (path, done) => {
   };
 };
 
+exports.id = (order, text = '') => {
+  //#######################################
+  //|
+  //|  @params {string} order
+  //|  @params {string} text
+  //|  @return {string} id
+  //|
+  //#######################################
+  text = text.replace(/\s+/g, '-');
+  if (text) {
+    return order + '-' + text;
+  } else {
+    return order;
+  }
+};
+
 exports.dom = (html) => {
   var $el, selector;
   //#######################################
@@ -471,8 +487,9 @@ parseSelector = (selector = 'div') => {
 var util_1 = util.isUrl;
 var util_2 = util.filePath;
 var util_3 = util.ajax;
-var util_4 = util.dom;
-var util_5 = util.element;
+var util_4 = util.id;
+var util_5 = util.dom;
+var util_6 = util.element;
 
 var ObservableObject$1, Router, util$1,
   boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
@@ -727,9 +744,13 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
   _formatFullPath(path, query) {
     var fullPath;
     boundMethodCheck(this, Router);
-    if (!path) {
-      path = this.path;
-    }
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @params {object} query
+    ///   @return {string} fullPath
+    ///
+    //#######################################
     fullPath = this._formatPath(path) + this._formatQuery(query);
     if (this.isJIT) {
       if (path === '/') {
@@ -743,12 +764,9 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
 
   _formatPath(path = '') {
     boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} path
-    ///   @return {string} path
-    ///
-    //#######################################
+    if (!path) {
+      path = this.path;
+    }
     path = '/' + path;
     path = path.replace(/\/+/g, '/');
     return path;
@@ -2909,6 +2927,52 @@ var Summary_1 = Summary = class Summary {
 
 };
 
+Summary.parse = (sections) => {
+  //#######################################
+  ///
+  ///   @params {object[]} sections - [{ heading, content, example }]
+  ///   @return {string}   html
+  ///
+  //#######################################
+  sections = sections.filter(Summary._filterSection);
+  sections = sections.map(Summary._mapSection);
+  return `<summary>${sections.join('')}</summary>`;
+};
+
+Summary._filterSection = (section) => {
+  //#######################################
+  ///
+  ///   @params {object} section - {object} heading - { lv, text, order }
+  ///                              {string} content
+  ///                              {string} example
+  ///
+  ///   @return {boolean}
+  ///
+  //#######################################
+  if (section.heading) {
+    if (section.heading.lv <= Breeze.get('summary.maxLevel')) {
+      return true;
+    }
+  }
+  return false;
+};
+
+Summary._mapSection = (section) => {
+  var href, lv, order, text;
+  //#######################################
+  ///
+  ///   @params {object} section - {object} heading - { lv, text, order }
+  ///                              {string} content
+  ///                              {string} example
+  ///
+  ///   @return {string} html
+  ///
+  //#######################################
+  ({lv, text, order} = section.heading);
+  href = util$4.id(order, text);
+  return `<item lv="${lv}" href="#${href}">\n   <name>${text}</name>\n</item>`;
+};
+
 var prism = createCommonjsModule(function (module) {
 /* **********************************************
      Begin prism-core.js
@@ -3874,7 +3938,6 @@ var Article_1 = Article = class Article {
     this._compileExample = this._compileExample.bind(this);
     this._compileHTML = this._compileHTML.bind(this);
     this._isTag = this._isTag.bind(this);
-    this._formatID = this._formatID.bind(this);
     this.render = this.render.bind(this);
     this._trimCode = this._trimCode.bind(this);
     this.parseSections = this.parseSections.bind(this);
@@ -4122,7 +4185,7 @@ var Article_1 = Article = class Article {
     lv = heading != null ? heading.lv : void 0;
     text = heading != null ? heading.text : void 0;
     order = heading != null ? heading.order : void 0;
-    id = this._formatID(text, order);
+    id = util$6.id(order, text);
     heading = heading ? this._compileHeading(heading) : '';
     content = content ? this._compileContent(content) : '';
     example = example ? this._compileExample(example) : '';
@@ -4148,7 +4211,7 @@ var Article_1 = Article = class Article {
     ///
     //#######################################
     ({lv, text, order} = heading);
-    if (lv <= Breeze.get('article.heading.showOrder')) {
+    if (lv <= Breeze.get('article.showOrderLevel')) {
       text = `${order} ${text}`;
     }
     return `<h${lv}>${text.trim()}</h${lv}>`;
@@ -4208,22 +4271,6 @@ var Article_1 = Article = class Article {
     //#######################################
     reg = new RegExp(`^<\\s*${name}\\s*>(.|\n)*?<\\s*/\\s*${name}\\s*>$`);
     return reg.test(html);
-  }
-
-  _formatID(text = '', order) {
-    //#######################################
-    //|
-    //|  @params {string} text
-    //|  @params {string} order
-    //|  @return {string} id
-    //|
-    //#######################################
-    text = text.replace(/\s+/g, '-');
-    if (text) {
-      return order + '-' + text;
-    } else {
-      return order;
-    }
   }
 
   render(bus) {
@@ -4664,7 +4711,7 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
   }
 
   parse() {
-    var article, cover, markdown, nav, summary;
+    var article, cover, markdown, nav, sections, summary;
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
@@ -4675,10 +4722,13 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     ///
     //#######################################
     markdown = new Markdown$1(this.text);
-    ({nav, cover, summary, article} = markdown.parse());
-    cover = new Cover$1(cover);
-    summary = new Summary$1(summary);
+    ({article, nav, cover, summary} = markdown.parse());
     article = new Article$1(article);
+    cover = new Cover$1(cover);
+    if (!summary) {
+      summary = Summary$1.parse(sections = article.parse());
+    }
+    summary = new Summary$1(summary);
     return {nav, cover, summary, article};
   }
 
@@ -4809,6 +4859,7 @@ var App_1 = App = class App {
     ///   Load current page.
     ///
     //#######################################
+    console.log('----');
     path = this.router.filePath;
     page = this.pageCache[path];
     if (page) {
@@ -4862,7 +4913,8 @@ var Main_1 = Main = class Main {
     this.get = this.get.bind(this);
     this._config = {};
     this.set('basePath', '');
-    this.set('article.heading.showOrder', 0);
+    this.set('summary.maxLevel', 3);
+    this.set('article.showOrderLevel', 0);
   }
 
   set(name, value) {

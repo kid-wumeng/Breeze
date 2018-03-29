@@ -301,9 +301,6 @@ module.exports = class Router extends ObservableObject
       #/
       ########################################
 
-      if !path
-          path = @path
-
       fullPath = @_formatPath(path) + @_formatQuery(query)
 
       if @isJIT
@@ -326,6 +323,9 @@ module.exports = class Router extends ObservableObject
       #/   @return {string} path
       #/
       ########################################
+
+      if !path
+          path = @path
 
       path = '/' + path
       path = path.replace(/\/+/g, '/')

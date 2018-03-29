@@ -16,7 +16,7 @@
 This is Breeze.
 
 
-<summary>
+<summary2>
   <item lv="1" href="#qs">
     <name>Quick Start</name>
   </item>
@@ -32,7 +32,7 @@ This is Breeze.
   <item lv="3" href="#jade">
     <name>Jade</name>
   </item>
-</summary>
+</summary2>
 
 
 

@@ -309,7 +309,7 @@ module.exports = class Article
       text  = heading?.text
       order = heading?.order
 
-      id = @_formatID( text, order )
+      id = util.id( order, text )
 
       heading = if heading then @_compileHeading( heading ) else ''
       content = if content then @_compileContent( content ) else ''
@@ -340,7 +340,7 @@ module.exports = class Article
 
       { lv, text, order } = heading
 
-      if lv <= Breeze.get('article.heading.showOrder')
+      if lv <= Breeze.get('article.showOrderLevel')
          text = "#{order} #{text}"
 
       return "<h#{lv}>#{text.trim()}</h#{lv}>"
@@ -416,27 +416,6 @@ module.exports = class Article
       reg = new RegExp("^<\\s*#{name}\\s*>(.|\n)*?<\\s*/\\s*#{name}\\s*>$")
 
       return reg.test( html )
-
-
-
-
-
-   _formatID: ( text = '', order ) =>
-
-      ########################################
-      #|
-      #|  @params {string} text
-      #|  @params {string} order
-      #|  @return {string} id
-      #|
-      ########################################
-
-      text = text.replace(/\s+/g, '-')
-
-      if text
-         return order + '-' + text
-      else
-         return order
 
 
 

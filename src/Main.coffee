@@ -15,7 +15,8 @@ module.exports = class Main
       @_config = {}
 
       @set('basePath', '')
-      @set('article.heading.showOrder', 0)
+      @set('summary.maxLevel', 3)
+      @set('article.showOrderLevel', 0)
 
 
 

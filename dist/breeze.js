@@ -513,10 +513,11 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     this._parseQuery = this._parseQuery.bind(this);
     this._parseFilePath = this._parseFilePath.bind(this);
     this.go = this.go.bind(this);
-    this._parseHref = this._parseHref.bind(this);
-    this._redirect = this._redirect.bind(this);
-    this._replace = this._replace.bind(this);
+    this._open = this._open.bind(this);
     this._push = this._push.bind(this);
+    this._replace = this._replace.bind(this);
+    this._wrapQuery = this._wrapQuery.bind(this);
+    this._parseHref = this._parseHref.bind(this);
     this._formatFullPath = this._formatFullPath.bind(this);
     this._formatPath = this._formatPath.bind(this);
     this._formatQuery = this._formatQuery.bind(this);
@@ -654,20 +655,85 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
   }
 
   go(href = '') {
-    var id, path, query;
+    var id, path;
     boundMethodCheck(this, Router);
     //#######################################
     ///
-    ///   @params {string} href - 'path#id'
+    ///   @params {string} href - url or path#id
     ///
     //#######################################
-    ({path, id} = this._parseHref(href));
+    if (util$1.isUrl(href)) {
+      return this._open(href);
+    } else {
+      ({path, id} = this._parseHref(href));
+      if (path) {
+        return this._push(path, id);
+      } else {
+        return this._replace(id);
+      }
+    }
+  }
+
+  _open(url) {
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} url
+    ///
+    //#######################################
+    return window.open(url, '_blank');
+  }
+
+  _push(path, id) {
+    var fullPath, query;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @params {string} id
+    ///
+    //#######################################
+    query = this._wrapQuery(id);
+    fullPath = this._formatFullPath(path, query);
+    if (this.isJIT) {
+      history.pushState(null, null, fullPath);
+      this._parse();
+      return this.emit('reload');
+    } else {
+      return location.href = fullPath;
+    }
+  }
+
+  _replace(id) {
+    var fullPath, query;
+    boundMethodCheck(this, Router);
+    if (!id && !this.query.id) {
+      return false;
+    }
+    if (id === this.query.id) {
+      return false;
+    }
+    query = this._wrapQuery(id);
+    fullPath = this._formatFullPath(this.path, query);
+    history.replaceState(null, null, fullPath);
+    return this._parse();
+  }
+
+  _wrapQuery(id) {
+    var query;
+    boundMethodCheck(this, Router);
+    //#######################################
+    ///
+    ///   @params {string} id
+    ///   @params {object} query
+    ///
+    //#######################################
     if (id) {
       query = {id};
     } else {
       query = {};
     }
-    return this._redirect(path, query);
+    return query;
   }
 
   _parseHref(href = '') {
@@ -694,51 +760,6 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
         id = '';
     }
     return {path, id};
-  }
-
-  _redirect(path, query) {
-    var fullPath, isSamePage;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} path
-    ///   @params {object} query
-    ///
-    //#######################################
-    fullPath = this._formatFullPath(path, query);
-    if (this.isJIT) {
-      isSamePage = this._formatPath(path) === this.path;
-      if (isSamePage) {
-        return this._replace(fullPath);
-      } else {
-        return this._push(fullPath);
-      }
-    } else {
-      return location.href = fullPath;
-    }
-  }
-
-  _replace(fullPath) {
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} fullPath
-    ///
-    //#######################################
-    history.replaceState(null, null, fullPath);
-    return this._parse();
-  }
-
-  _push(fullPath) {
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} fullPath
-    ///
-    //#######################################
-    history.pushState(null, null, fullPath);
-    this._parse();
-    return this.emit('redirect');
   }
 
   _formatFullPath(path, query) {
@@ -3937,22 +3958,15 @@ var Article_1 = Article = class Article {
     this._compileContent = this._compileContent.bind(this);
     this._compileExample = this._compileExample.bind(this);
     this._compileHTML = this._compileHTML.bind(this);
+    this._compilePre = this._compilePre.bind(this);
+    this._compileApi = this._compileApi.bind(this);
     this._isTag = this._isTag.bind(this);
     this.render = this.render.bind(this);
-    this._trimCode = this._trimCode.bind(this);
-    this.getOrder = this.getOrder.bind(this);
-    this.bindScrollEvent = this.bindScrollEvent.bind(this);
-    this.getSectionStats = this.getSectionStats.bind(this);
+    this._bindEvent = this._bindEvent.bind(this);
+    this._redirect = this._redirect.bind(this);
+    this._getSectionStats = this._getSectionStats.bind(this);
     this.scroll = this.scroll.bind(this);
     this.markdown = markdown;
-    this.html = '';
-    this.lastOrder = '0';
-    this.sections = [];
-    this.$dom = null;
-    this.$sections = [];
-    this.cover = '';
-    this.summary = '';
-    this.lastID = '';
   }
 
   parse() {
@@ -4178,11 +4192,14 @@ var Article_1 = Article = class Article {
     example = example ? this._compileExample(example) : '';
     section = heading + content + example;
     section = util$6.dom('.section').html(section);
-    if (lv) {
-      section.attr('lv', lv);
-    }
     if (id) {
       section.attr('id', id);
+    }
+    if (lv) {
+      section.addClass('lv' + lv);
+    }
+    if (!text) {
+      section.addClass('no-heading');
     }
     return section.htmlSelf();
   }
@@ -4233,17 +4250,31 @@ var Article_1 = Article = class Article {
   }
 
   _compileHTML(html) {
-    var dom;
     html = html.trim();
     switch (false) {
+      case !this._isTag('pre', html):
+        return this._compilePre(html);
       case !this._isTag('api', html):
-        dom = new Api$1(html);
+        return this._compileApi(html);
+      default:
+        return html;
     }
-    if (dom) {
-      return dom.compile();
-    } else {
-      return html;
+  }
+
+  _compilePre(html) {
+    var code, pre;
+    pre = util$6.dom(html);
+    pre.html(pre.html().trim());
+    if (code = pre.find('code')) {
+      code.html(code.html().trim());
     }
+    return pre.htmlSelf();
+  }
+
+  _compileApi(html) {
+    var api;
+    api = new Api$1(html);
+    return api.compile();
   }
 
   _isTag(name, html) {
@@ -4269,85 +4300,56 @@ var Article_1 = Article = class Article {
     ///
     //#######################################
     article = util$6.dom(this.compile());
-    this._trimCode(article);
+    this._bindEvent(bus, article);
     return article;
   }
 
-  _trimCode(article) {
-    var code, codes, j, len, results1;
+  _bindEvent(bus, article) {
     //#######################################
     ///
     ///   @params {DOM} article
     ///
     //#######################################
-    codes = article.findAll('code');
-    results1 = [];
-    for (j = 0, len = codes.length; j < len; j++) {
-      code = codes[j];
-      results1.push(code.html(code.html().trim()));
-    }
-    return results1;
+    return window.addEventListener('scroll', this._redirect.bind(this, bus, article));
   }
 
-  getOrder(lv) {
-    var _, i, j, len, part, parts, ref;
+  _redirect(bus, article, e) {
+    var i, id, isVisible, j, len, ref, stat, stats;
     //#######################################
-    //|
-    //|  @params {number} lv
-    //|  @return {string} order
-    //|
+    ///
+    ///   @params {Bus}   bus
+    ///   @params {DOM}   article
+    ///   @params {Event} e
+    ///
     //#######################################
-    parts = this.lastOrder.split('.');
-    i = lv - 1;
-    part = (ref = parts[i]) != null ? ref : '0';
-    part = parseInt(part);
-    part = part + 1;
-    parts[i] = part;
-    parts = parts.slice(0, i + 1);
-    for (i = j = 0, len = parts.length; j < len; i = ++j) {
-      _ = parts[i];
-      if (!parts[i]) {
-        parts[i] = '0';
-      }
-    }
-    return this.lastOrder = parts.join('.');
-  }
-
-  bindScrollEvent() {
-    return window.addEventListener('scroll', () => {
-      var i, id, isExisted, isVisible, j, len, stat, stats;
-      isExisted = this.$dom.innerHTML !== '';
-      isVisible = this.$dom.getBoundingClientRect().width > 0;
-      if (isExisted && isVisible) {
-        stats = this.getSectionStats();
-        for (i = j = 0, len = stats.length; j < len; i = ++j) {
-          stat = stats[i];
-          if (stat.top > 0) {
-            break;
-          }
-        }
-        id = stats[i - 1].id;
-        if (this.lastID !== id) {
-          this.lastID = id;
-          return this.emit('scroll', id);
+    isVisible = article.$el.getBoundingClientRect().width > 0;
+    if (isVisible) {
+      stats = this._getSectionStats(article);
+      for (i = j = 0, len = stats.length; j < len; i = ++j) {
+        stat = stats[i];
+        if (stat.top > 0) {
+          break;
         }
       }
-    });
+      id = (ref = stats[i - 1].id) != null ? ref : '';
+      return bus.emit('article:scroll', id);
+    }
   }
 
-  getSectionStats() {
-    var $section, id, j, len, ref, stats, top;
+  _getSectionStats(article) {
+    var id, j, len, section, sections, stats, top;
     //#######################################
-    //|
-    //|  @params {object[]} sectionStats
-    //|
+    ///
+    ///   @params {DOM} article
+    ///   @return {object[]} stats - [{ id, top }]
+    ///
     //#######################################
+    sections = article.findAll('.section');
     stats = [];
-    ref = this.$sections;
-    for (j = 0, len = ref.length; j < len; j++) {
-      $section = ref[j];
-      id = $section.getAttribute('id');
-      top = $section.getBoundingClientRect().top;
+    for (j = 0, len = sections.length; j < len; j++) {
+      section = sections[j];
+      id = section.attr('id');
+      top = section.$el.getBoundingClientRect().top;
       stats.push({id, top});
     }
     return stats;
@@ -4420,8 +4422,9 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     this.parse = this.parse.bind(this);
     this.compile = this.compile.bind(this);
     this.render = this.render.bind(this);
-    this._bindLinkEvent = this._bindLinkEvent.bind(this);
-    this._redirect = this._redirect.bind(this);
+    this._bindEvent = this._bindEvent.bind(this);
+    this._onClickLink = this._onClickLink.bind(this);
+    this._onArticleScroll = this._onArticleScroll.bind(this);
     this.text = text + common;
   }
 
@@ -4484,29 +4487,29 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     main.append(article.render(bus));
     page.append(side);
     page.append(main);
-    this._bindLinkEvent(router, page);
+    this._bindEvent(router, bus, page);
     return page;
   }
 
-  _bindLinkEvent(router, page) {
-    var i, len, link, links, results;
+  _bindEvent(router, bus, page) {
+    var i, len, link, links;
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
     ///   @params {Router} router
+    ///   @params {Bus}    bus
     ///   @params {DOM}    page
     ///
     //#######################################
     links = page.findAll('a');
-    results = [];
     for (i = 0, len = links.length; i < len; i++) {
       link = links[i];
-      results.push(link.on('click', this._redirect.bind(this, router)));
+      link.on('click', this._onClickLink.bind(this, router));
     }
-    return results;
+    return bus.on('article:scroll', this._onArticleScroll.bind(this, router));
   }
 
-  _redirect(router, link) {
+  _onClickLink(router, link) {
     var href;
     boundMethodCheck$2(this, Page);
     //#######################################
@@ -4516,12 +4519,20 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     ///   @params {MouseEvent} e
     ///
     //#######################################
-    href = link.attr('href');
-    if (util$8.isUrl(href)) {
-      return window.open(href, '_blank');
-    } else {
+    if (href = link.attr('href')) {
       return router.go(href);
     }
+  }
+
+  _onArticleScroll(router, id) {
+    boundMethodCheck$2(this, Page);
+    //#######################################
+    ///
+    ///   @params {Router} router
+    ///   @params {string} id
+    ///
+    //#######################################
+    return router.go(`#${id}`);
   }
 
 };
@@ -4555,7 +4566,7 @@ var App_1 = App = class App {
     this.isJIT = isJIT;
     this.pageCache = {};
     this.router = new Router$1(isJIT);
-    this.router.on('redirect', this._loadPage);
+    this.router.on('reload', this._loadPage);
     this._run();
   }
 

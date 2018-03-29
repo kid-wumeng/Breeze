@@ -132,7 +132,7 @@ module.exports = class Page extends ObservableObject
       page.append(side)
       page.append(main)
 
-      @_bindLinkEvent( router, page )
+      @_bindEvent( router, bus, page )
 
       return page
 
@@ -140,11 +140,12 @@ module.exports = class Page extends ObservableObject
 
 
 
-   _bindLinkEvent: ( router, page ) =>
+   _bindEvent: ( router, bus, page ) =>
 
       ########################################
       #/
       #/   @params {Router} router
+      #/   @params {Bus}    bus
       #/   @params {DOM}    page
       #/
       ########################################
@@ -152,13 +153,15 @@ module.exports = class Page extends ObservableObject
       links = page.findAll('a')
 
       for link in links
-          link.on('click', @_redirect.bind(@, router))
+          link.on('click', @_onClickLink.bind(@, router))
+
+      bus.on('article:scroll', @_onArticleScroll.bind(@, router))
 
 
 
 
 
-   _redirect: ( router, link ) =>
+   _onClickLink: ( router, link ) =>
 
       ########################################
       #/
@@ -168,9 +171,20 @@ module.exports = class Page extends ObservableObject
       #/
       ########################################
 
-      href = link.attr('href')
-
-      if util.isUrl( href )
-         window.open( href, '_blank' )
-      else
+      if href = link.attr('href')
          router.go( href )
+
+
+
+
+
+   _onArticleScroll: ( router, id ) =>
+
+      ########################################
+      #/
+      #/   @params {Router} router
+      #/   @params {string} id
+      #/
+      ########################################
+
+      router.go("##{id}")

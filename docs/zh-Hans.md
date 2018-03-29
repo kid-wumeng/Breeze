@@ -12,11 +12,23 @@
 
 
 
+<cover>
+  <logo src="logo.svg"/>
+  <!-- <name>Breeze</name> -->
+  <desc>超简单、超漂亮的 API 文档生成器！</desc>
+
+  <item>无需 build 成 HTML，愉快的撰写体验</item>
+  <item>轻量 ( ~15kB gzipped )</item>
+  <item>多主题，易扩展</item>
+
+  <button href="https://github.com/kid-wumeng/Breeze">Github</button>
+  <button active href="#dff">阅读文档</button>
+</cover>
+
 
 This is Breeze.
 
-
-<summary2>
+<div>
   <item lv="1" href="#qs">
     <name>Quick Start</name>
   </item>
@@ -32,7 +44,7 @@ This is Breeze.
   <item lv="3" href="#jade">
     <name>Jade</name>
   </item>
-</summary2>
+</div>
 
 
 
@@ -116,9 +128,9 @@ Markdown 本身支持 HTML 标签，理论上，你可以使用任何符合规�
 
 
 
-
 <pre>
-<code>&lt;example&gt;
+<code>
+&lt;example&gt;
 
 this is a method example,
 
@@ -131,8 +143,10 @@ function add (a, b) {
 }
 ```
 
-&lt;/example&gt;</code>
+&lt;/example&gt;
+</code>
 </pre>
+
 
 
 <example>
@@ -155,12 +169,10 @@ Breeze 将同一个标题下的内容视为一个整体，假设有如下内容�
 
 ####
 
-<pre>
-<code>&#35; A heading
+<pre><code>&#35; A heading
 this is content 1.
 this is content 2.
-&lt;example&gt;this is example 2.&lt;/example&gt;</code>
-</pre>
+&lt;example&gt;this is example 2.&lt;/example&gt;</code></pre>
 
 这段标签文本，实际上会形成以下HTML结构：
 
@@ -184,14 +196,12 @@ this is content 2.
 
 ####
 
-<pre>
-<code>&#35; A heading
+<pre><code>&#35; A heading
 this is content 1.
 
 &#35;&#35;&#35;&#35;
 this is content 2.
-&lt;example&gt;this is example 2.&lt;/example&gt;</code>
-</pre>
+&lt;example&gt;this is example 2.&lt;/example&gt;</code></pre>
 
 <example>
 ```html

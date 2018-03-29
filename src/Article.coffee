@@ -30,14 +30,6 @@ module.exports = class Article
    constructor: ( markdown ) ->
 
       @markdown  = markdown
-      @html      = ''
-      @lastOrder = '0'
-      @sections  = []
-      @$dom      = null
-      @$sections = []
-      @cover     = ''
-      @summary   = ''
-      @lastID    = ''
 
 
 
@@ -320,8 +312,9 @@ module.exports = class Article
       section = heading + content + example
 
       section = util.dom('.section').html(section)
-      section.attr('lv', lv) if lv
-      section.attr('id', id) if id
+      section.attr('id', id)         if id
+      section.addClass('lv'+ lv)     if lv
+      section.addClass('no-heading') if !text
 
       return section.htmlSelf()
 
@@ -396,9 +389,32 @@ module.exports = class Article
       html = html.trim()
 
       switch
-         when @_isTag('api', html) then dom = new Api( html )
+         when @_isTag('pre', html) then @_compilePre( html )
+         when @_isTag('api', html) then @_compileApi( html )
+         else html
 
-      return if dom then dom.compile() else html
+
+
+
+
+   _compilePre: ( html ) =>
+
+      pre = util.dom( html )
+      pre.html(pre.html().trim())
+
+      if code = pre.find('code')
+         code.html(code.html().trim())
+
+      return pre.htmlSelf()
+
+
+
+
+
+   _compileApi: ( html ) =>
+
+      api = new Api( html )
+      return api.compile()
 
 
 
@@ -434,7 +450,7 @@ module.exports = class Article
 
       article = util.dom(@compile())
 
-      @_trimCode(article)
+      @_bindEvent( bus, article )
 
       return article
 
@@ -442,7 +458,7 @@ module.exports = class Article
 
 
 
-   _trimCode: ( article ) =>
+   _bindEvent: ( bus, article ) =>
 
       ########################################
       #/
@@ -450,82 +466,56 @@ module.exports = class Article
       #/
       ########################################
 
-      codes = article.findAll('code')
-
-      for code in codes
-          code.html(code.html().trim())
+      window.addEventListener('scroll', @_redirect.bind(@, bus, article))
 
 
 
 
 
-   getOrder: ( lv ) =>
+   _redirect: ( bus, article, e ) =>
 
       ########################################
-      #|
-      #|  @params {number} lv
-      #|  @return {string} order
-      #|
+      #/
+      #/   @params {Bus}   bus
+      #/   @params {DOM}   article
+      #/   @params {Event} e
+      #/
       ########################################
 
-      parts = @lastOrder.split('.')
-      i = lv - 1
+      isVisible = article.$el.getBoundingClientRect().width > 0
 
-      part = parts[i] ? '0'
-      part = parseInt(part)
-      part = part + 1
+      if isVisible
 
-      parts[i] = part
-      parts = parts.slice(0, i+1)
+         stats = @_getSectionStats( article )
 
-      for _, i in parts
-         if !parts[i]
-             parts[i] = '0'
+         for stat, i in stats
+            if stat.top > 0
+               break
 
-      return @lastOrder = parts.join('.')
+         id = stats[i-1].id ? ''
 
-
-
-
-   bindScrollEvent: =>
-
-      window.addEventListener 'scroll', =>
-
-         isExisted = @$dom.innerHTML isnt ''
-         isVisible = @$dom.getBoundingClientRect().width > 0
-
-         if isExisted and isVisible
-
-            stats = @getSectionStats()
-
-            for stat, i in stats
-               if stat.top > 0
-                  break
-
-            id = stats[i-1].id
-
-            if @lastID isnt id
-               @lastID = id
-               @emit('scroll', id)
+         bus.emit('article:scroll', id)
 
 
 
 
 
-   getSectionStats: =>
+   _getSectionStats: ( article ) =>
 
       ########################################
-      #|
-      #|  @params {object[]} sectionStats
-      #|
+      #/
+      #/   @params {DOM} article
+      #/   @return {object[]} stats - [{ id, top }]
+      #/
       ########################################
 
-      stats = []
+      sections = article.findAll('.section')
+      stats    = []
 
-      for $section in @$sections
-         id  = $section.getAttribute('id')
-         top = $section.getBoundingClientRect().top
-         stats.push({ id, top })
+      for section in sections
+          id  = section.attr('id')
+          top = section.$el.getBoundingClientRect().top
+          stats.push({ id, top })
 
       return stats
 

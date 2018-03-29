@@ -31,7 +31,7 @@ module.exports = class App
       @pageCache = {}
 
       @router = new Router( isJIT )
-      @router.on('redirect', @_loadPage)
+      @router.on('reload', @_loadPage)
 
       @_run()
 

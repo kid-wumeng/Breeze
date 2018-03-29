@@ -187,18 +187,102 @@ module.exports = class Router extends ObservableObject
 
       ########################################
       #/
-      #/   @params {string} href - 'path#id'
+      #/   @params {string} href - url or path#id
       #/
       ########################################
 
-      { path, id } = @_parseHref( href )
+      if util.isUrl( href )
+         @_open( href )
+
+      else
+         { path, id } = @_parseHref( href )
+
+         if path
+            @_push( path, id )
+         else
+            @_replace( id )
+
+
+
+
+
+   _open: ( url ) =>
+
+      ########################################
+      #/
+      #/   @params {string} url
+      #/
+      ########################################
+
+      window.open(url, '_blank')
+
+
+
+
+
+   _push: ( path, id ) =>
+
+      ########################################
+      #/
+      #/   @params {string} path
+      #/   @params {string} id
+      #/
+      ########################################
+
+      query    = @_wrapQuery( id )
+      fullPath = @_formatFullPath( path, query )
+
+      if @isJIT
+         history.pushState( null, null, fullPath )
+         @_parse()
+         @emit('reload')
+
+      else
+         location.href = fullPath
+
+
+
+
+
+   _replace: ( id ) =>
+
+      ########################################
+      #/
+      #/   @params {string} id
+      #/
+      ########################################
+
+      if !id and !@query.id
+         return false
+
+      if id is @query.id
+         return false
+
+      query    = @_wrapQuery( id )
+      fullPath = @_formatFullPath( @path, query )
+
+      history.replaceState( null, null, fullPath )
+      @_parse()
+
+
+
+
+
+   _wrapQuery: ( id ) =>
+
+      ########################################
+      #/
+      #/   @params {string} id
+      #/   @params {object} query
+      #/
+      ########################################
 
       if id
-         query = {id}
+         query = { id }
       else
          query = {}
 
-      @_redirect( path, query )
+      return query
 
 
 
@@ -227,65 +311,6 @@ module.exports = class Router extends ObservableObject
             id   = ''
 
       return { path, id }
-
-
-
-
-
-   _redirect: ( path, query ) =>
-
-      ########################################
-      #/
-      #/   @params {string} path
-      #/   @params {object} query
-      #/
-      ########################################
-
-      fullPath = @_formatFullPath( path, query )
-
-      if @isJIT
-
-         isSamePage = @_formatPath( path ) is @path
-
-         if isSamePage
-            @_replace( fullPath )
-         else
-            @_push( fullPath )
-
-      else
-         location.href = fullPath
-
-
-
-
-
-   _replace: ( fullPath ) =>
-
-      ########################################
-      #/
-      #/   @params {string} fullPath
-      #/
-      ########################################
-
-      history.replaceState(null, null, fullPath)
-      @_parse()
-
-
-
-
-
-   _push: ( fullPath ) =>
-
-      ########################################
-      #/
-      #/   @params {string} fullPath
-      #/
-      ########################################
-
-      history.pushState(null, null, fullPath)
-      @_parse()
-
-      @emit('redirect')
 
 
 

@@ -11,13 +11,43 @@
 
 
 @section-padding-x: 40px;
-@section-padding-y: 40px;
+@section-padding-y: 50px;
 @element-gap:       24px;
 
 
 #article {
+
   .section {
     overflow: hidden;
+  }
+
+  .section:first-child {
+    padding-top: @section-padding-y - 10px;
+  }
+
+  .section.lv1:not(:first-child) {
+    margin-top: @section-padding-y - @element-gap - 1;
+    position: relative;
+
+    &::before,
+    &::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      display: block;
+      width: 50%;
+      border-top-width: 1px;
+      border-top-style: solid;
+    }
+
+    &::before { left: 0 }
+    &::after { right: 0 }
+  }
+
+  .section.lv1,
+  .section.lv2,
+  .section.lv3 {
+    padding-top: @section-padding-y;
   }
 
   .section > h1,
@@ -29,40 +59,7 @@
     font-weight: 500;
     padding-left:  @section-padding-x;
     padding-right: @section-padding-x;
-  }
-
-  .section > h1,
-  .section > h2,
-  .section > h3 {
-     padding-top:   @section-padding-y;
-     margin-bottom: @section-padding-y;
-  }
-
-  .section > h4,
-  .section > h5,
-  .section > h6 {
-     margin-bottom: @element-gap;
-  }
-
-  .section:not(:first-child) > h1,
-  .section:not(:first-child) > h2,
-  .section:not(:first-child) > h3 {
-     margin-top: @section-padding-y;
-     position: relative;
-
-     &::before,
-     &::after {
-       content: "";
-       position: absolute;
-       top: 0;
-       display: block;
-       width: 50%;
-       border-top-width: 1px;
-       border-top-style: solid;
-     }
-
-     &::before { left: 0 }
-     &::after { right: 0 }
+    margin-bottom: @element-gap;
   }
 
   .section > h1 { font-size: 24px }
@@ -119,7 +116,7 @@
   }
 
   a {
-    font-weight: 600;
+    font-weight: 500;
     text-decoration: underline;
   }
 

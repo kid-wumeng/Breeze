@@ -489,7 +489,7 @@ module.exports = class Article
          id    = @_locateID( stats )
 
          if @_isDifferentID( id )
-            bus.emit('article.scroll', id)
+            bus.emit('article.scroll', '#' + id)
 
 
 

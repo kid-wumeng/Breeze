@@ -1,4 +1,5 @@
 ObservableObject = require('./ObservableObject')
+Bus              = require('./Bus')
 Markdown         = require('./Markdown')
 Navigator        = require('./Navigator')
 Cover            = require('./Cover')
@@ -39,17 +40,8 @@ module.exports = class Page extends ObservableObject
          # @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
          # @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
          #
-         # @cover.on('select', @rehash)
-         #
-         # @summary.on('select', @rehash)
-         # @summary.on('select', @summary.active)
-         # @summary.on('select', @article.scroll)
-         #
          # @search.on('select',  @rehash)
          # @search.on('select',  @article.scroll)
-         #
-         # @ready()
-         # @render()
          #
          # if @query.id
          #    @article.scroll(@query.id)
@@ -119,7 +111,7 @@ module.exports = class Page extends ObservableObject
 
       { nav, cover, summary, article } = @parse()
 
-      bus = new ObservableObject
+      bus = new Bus
 
       page = util.dom('#page')
       side = util.dom('#side')
@@ -176,12 +168,12 @@ module.exports = class Page extends ObservableObject
 
 
 
-   _onArticleScroll: ( id ) =>
+   _onArticleScroll: ( href ) =>
 
       ########################################
       #/
-      #/   @params {string} id
+      #/   @params {string} href
       #/
       ########################################
 
-      router.go("##{id}")
+      router.go( href )

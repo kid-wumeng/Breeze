@@ -881,6 +881,25 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
 
 };
 
+var Bus, ObservableObject$2;
+
+ObservableObject$2 = ObservableObject_1;
+
+var Bus_1 = Bus = class Bus extends ObservableObject$2 {
+  //#######################################
+  ///
+  ///   This is a common event bus, one page need one bus.
+  ///
+  ///   summary.select( href )
+  ///   article.scroll( href )
+  ///
+  //#######################################
+  constructor() {
+    super();
+  }
+
+};
+
 var marked = createCommonjsModule(function (module, exports) {
 (function(root) {
 
@@ -2998,7 +3017,7 @@ var Summary_1 = Summary = class Summary {
     ///   @params {string} href
     ///
     //#######################################
-    li = summary.find(`li[href="#${href}"]`);
+    li = summary.find(`li[href="${href}"]`);
     if (li) {
       this._active(summary, li);
       return this._scroll(summary, li);
@@ -3023,6 +3042,12 @@ var Summary_1 = Summary = class Summary {
 
   _scroll(summary, li) {
     var bottom, side, top;
+    //#######################################
+    ///
+    ///   @params {DOM} summary
+    ///   @params {DOM} li
+    ///
+    //#######################################
     side = util$4.dom(document.querySelector('#side'));
     top = li.top();
     bottom = li.bottom();
@@ -4419,7 +4444,7 @@ var Article_1 = Article = class Article {
       stats = this._getSectionStats(article);
       id = this._locateID(stats);
       if (this._isDifferentID(id)) {
-        return bus.emit('article.scroll', id);
+        return bus.emit('article.scroll', '#' + id);
       }
     }
   }
@@ -4500,10 +4525,12 @@ var Article_1 = Article = class Article {
 
 };
 
-var Article$1, Cover$1, Markdown$1, ObservableObject$4, Page, Summary$1, util$8,
+var Article$1, Bus$1, Cover$1, Markdown$1, ObservableObject$4, Page, Summary$1, util$8,
   boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
 ObservableObject$4 = ObservableObject_1;
+
+Bus$1 = Bus_1;
 
 Markdown$1 = Markdown_1;
 
@@ -4535,17 +4562,8 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
     // @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
     // @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
 
-    // @cover.on('select', @rehash)
-
-    // @summary.on('select', @rehash)
-    // @summary.on('select', @summary.active)
-    // @summary.on('select', @article.scroll)
-
     // @search.on('select',  @rehash)
     // @search.on('select',  @article.scroll)
-
-    // @ready()
-    // @render()
 
     // if @query.id
     //    @article.scroll(@query.id)
@@ -4608,7 +4626,7 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
     ///
     //#######################################
     ({nav, cover, summary, article} = this.parse());
-    bus = new ObservableObject$4;
+    bus = new Bus$1;
     page = util$8.dom('#page');
     side = util$8.dom('#side');
     main = util$8.dom('#main');
@@ -4654,14 +4672,14 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
     }
   }
 
-  _onArticleScroll(id) {
+  _onArticleScroll(href) {
     boundMethodCheck$2(this, Page);
     //#######################################
     ///
-    ///   @params {string} id
+    ///   @params {string} href
     ///
     //#######################################
-    return router.go(`#${id}`);
+    return router.go(href);
   }
 
 };

@@ -199,7 +199,7 @@ module.exports = class Summary
       #/
       ########################################
 
-      li = summary.find("li[href=\"##{href}\"]")
+      li = summary.find("li[href=\"#{href}\"]")
 
       if li
          @_active( summary, li )
@@ -230,6 +230,13 @@ module.exports = class Summary
 
 
    _scroll: ( summary, li ) =>
+
+      ########################################
+      #/
+      #/   @params {DOM} summary
+      #/   @params {DOM} li
+      #/
+      ########################################
 
       side = util.dom(document.querySelector('#side'))
 

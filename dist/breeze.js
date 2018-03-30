@@ -514,6 +514,157 @@ var util_4 = util.id;
 var util_5 = util.dom;
 var util_6 = util.element;
 
+var Loader, util$1;
+
+util$1 = util;
+
+var Loader_web = Loader = class Loader {
+  //#######################################
+  ///
+  ///   Be responsible for
+  ///      loading the normal and common pages.
+  ///
+  //#######################################
+  constructor() {
+    this.load = this.load.bind(this);
+    this._findOrReadCommon = this._findOrReadCommon.bind(this);
+    this._readCommon = this._readCommon.bind(this);
+    this._formatNormalPath = this._formatNormalPath.bind(this);
+    this._formatCommonPaths = this._formatCommonPaths.bind(this);
+    this._read = this._read.bind(this);
+    this._commonCache = {};
+  }
+
+  load(path, done, fail) {
+    var commonPaths, normalPath;
+    //#######################################
+    ///
+    ///   @params {string}   path
+    ///   @params {function} done( common + normal )
+    ///   @params {function} fail()
+    ///
+    //#######################################
+    normalPath = this._formatNormalPath(path);
+    commonPaths = this._formatCommonPaths(path);
+    return this._read(normalPath, (normal) => {
+      if (normal != null) {
+        return this._findOrReadCommon(commonPaths, (common) => {
+          return done(common + normal);
+        });
+      } else {
+        return fail();
+      }
+    });
+  }
+
+  _findOrReadCommon(paths, done) {
+    var path;
+    //#######################################
+    ///
+    ///   @params {string[]} paths
+    ///   @return {function} done( common )
+    ///
+    //#######################################
+    path = paths.pop();
+    return this._readCommon(path, (common) => {
+      if (common != null) {
+        return done(common);
+      } else {
+        if (paths.length) {
+          return this._findOrReadCommon(paths, done);
+        } else {
+          return done('');
+        }
+      }
+    });
+  }
+
+  _readCommon(path, done) {
+    var common;
+    //#######################################
+    ///
+    ///   @params {string}   path
+    ///   @return {function} done( common )
+    ///
+    //#######################################
+    common = this._commonCache[path];
+    if (common === void 0) {
+      return this._read(path, (common) => {
+        return done(this._commonCache[path] = common);
+      });
+    } else {
+      return done(common);
+    }
+  }
+
+  _formatNormalPath(path) {
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @return {string} path
+    ///
+    //#######################################
+    path = util$1.filePath(path);
+    if (path === '') {
+      path = 'README';
+    }
+    if (path[path.length - 1] === '/') {
+      path += 'README';
+    }
+    return path + '.md';
+  }
+
+  _formatCommonPaths(path) {
+    var part, parts, paths, queue;
+    //#######################################
+    ///
+    ///   @params {string}   path
+    ///   @return {string[]} paths
+    ///
+    ///   basePath = '/docs'
+    ///   path     = '/api/math'  =>  ['@.md', 'docs/@.md', 'docs/api/@.md']
+    ///
+    //#######################################
+    paths = [];
+    queue = [];
+    path = util$1.filePath(path); // path  = 'docs/api/math'
+    parts = path.split('/'); // parts = ['docs', 'api', 'math']
+    parts.pop(); // parts = ['docs', 'api']
+    while (parts.length) {
+      part = parts.shift(); // part  = 'docs'        | part  = 'api'
+      queue.push(part); // queue = ['docs']      | queue = ['docs', 'api']
+      path = queue.join('/') + '/@.md'; // path  = 'docs/@.md'   | path  = 'docs/api/@.md'
+      paths.push(path); // paths = ['docs/@.md'] | paths = ['docs/@.md', 'docs/api/@.md']
+    }
+    paths.unshift('@.md'); // paths = ['@.md', 'docs/@.md', 'docs/api/@.md']
+    return paths;
+  }
+
+  _read(path, done) {
+    var xhr;
+    //#######################################
+    ///
+    ///   @params {string}   path
+    ///   @params {function} done( text ) - text = null if not found,
+    ///                                     should check by text? ( a coffeescript syntactic sugar )
+    ///
+    //#######################################
+    xhr = new XMLHttpRequest;
+    xhr.open('GET', path, true);
+    xhr.send(null);
+    return xhr.onreadystatechange = () => {
+      if (xhr.readyState === 4) {
+        if (xhr.status === 200) {
+          return done(xhr.responseText);
+        } else {
+          return done(null);
+        }
+      }
+    };
+  }
+
+};
+
 var ObservableObject;
 
 var ObservableObject_1 = ObservableObject = class ObservableObject {
@@ -553,10 +704,10 @@ var ObservableObject_1 = ObservableObject = class ObservableObject {
 
 };
 
-var ObservableObject$1, Router, util$1,
+var ObservableObject$1, Router, util$2,
   boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
-util$1 = util;
+util$2 = util;
 
 ObservableObject$1 = ObservableObject_1;
 
@@ -706,7 +857,7 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     ///
     //#######################################
     path = this._parsePath();
-    path = util$1.filePath(path);
+    path = util$2.filePath(path);
     if (path === '') {
       path = 'README';
     }
@@ -724,7 +875,7 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     ///   @params {string} href - url or path#id
     ///
     //#######################################
-    if (util$1.isUrl(href)) {
+    if (util$2.isUrl(href)) {
       return this._goUrl(href);
     } else {
       ({path, id} = this._parseHref(href));
@@ -2661,9 +2812,9 @@ var Markdown_1 = Markdown = class Markdown {
 
 };
 
-var Cover, util$3;
+var Cover, util$4;
 
-util$3 = util;
+util$4 = util;
 
 var Cover_1 = Cover = class Cover {
   //#######################################
@@ -2701,9 +2852,9 @@ var Cover_1 = Cover = class Cover {
     ///   @return {string} html
     ///
     //#######################################
-    dom = util$3.dom(this.html);
-    cover = util$3.dom('#cover');
-    wrap = util$3.dom('.wrap');
+    dom = util$4.dom(this.html);
+    cover = util$4.dom('#cover');
+    wrap = util$4.dom('.wrap');
     logo = dom.find('cover > logo');
     name = dom.find('cover > name');
     descs = dom.findAll('cover > desc');
@@ -2737,8 +2888,8 @@ var Cover_1 = Cover = class Cover {
     ///
     //#######################################
     src = logo.attr('src');
-    src = util$3.filePath(src);
-    logo = util$3.dom('img.logo');
+    src = util$4.filePath(src);
+    logo = util$4.dom('img.logo');
     logo.attr('src', src);
     return logo;
   }
@@ -2753,8 +2904,8 @@ var Cover_1 = Cover = class Cover {
     //#######################################
     text = name.text();
     version = (ref = name.attr('version')) != null ? ref : '';
-    name = util$3.dom('.name').text(text);
-    version = util$3.dom('.version').text(version);
+    name = util$4.dom('.name').text(text);
+    version = util$4.dom('.version').text(version);
     name.append(version);
     return name;
   }
@@ -2767,10 +2918,10 @@ var Cover_1 = Cover = class Cover {
     ///   @return {DOM}   ul.descs
     ///
     //#######################################
-    ul = util$3.dom('ul.descs');
+    ul = util$4.dom('ul.descs');
     for (i = 0, len = descs.length; i < len; i++) {
       desc = descs[i];
-      li = util$3.dom('li').text(desc.text());
+      li = util$4.dom('li').text(desc.text());
       ul.append(li);
     }
     return ul;
@@ -2784,10 +2935,10 @@ var Cover_1 = Cover = class Cover {
     ///   @return {DOM}   ul.items
     ///
     //#######################################
-    ul = util$3.dom('ul.items');
+    ul = util$4.dom('ul.items');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
-      li = util$3.dom('li').text(item.text());
+      li = util$4.dom('li').text(item.text());
       ul.append(li);
     }
     return ul;
@@ -2801,11 +2952,11 @@ var Cover_1 = Cover = class Cover {
     ///   @return {DOM}   ul.buttons
     ///
     //#######################################
-    ul = util$3.dom('ul.buttons');
+    ul = util$4.dom('ul.buttons');
     for (i = 0, len = buttons.length; i < len; i++) {
       button = buttons[i];
-      li = util$3.dom('li');
-      a = util$3.dom('a');
+      li = util$4.dom('li');
+      a = util$4.dom('a');
       if (button.attr('active') != null) {
         li.addClass('active');
         a.addClass('active');
@@ -2828,7 +2979,7 @@ var Cover_1 = Cover = class Cover {
     ///   @return {DOM} cover
     ///
     //#######################################
-    cover = util$3.dom(this.compile());
+    cover = util$4.dom(this.compile());
     this._bindEvent(cover);
     return cover;
   }
@@ -2861,9 +3012,9 @@ var Cover_1 = Cover = class Cover {
 
 };
 
-var Summary, util$4;
+var Summary, util$5;
 
-util$4 = util;
+util$5 = util;
 
 var Summary_1 = Summary = class Summary {
   //#######################################
@@ -2898,9 +3049,9 @@ var Summary_1 = Summary = class Summary {
     ///   @return {string} html
     ///
     //#######################################
-    model = util$4.dom(this.html);
-    summary = util$4.dom('#summary');
-    ul = util$4.dom('ul');
+    model = util$5.dom(this.html);
+    summary = util$5.dom('#summary');
+    ul = util$5.dom('ul');
     items = model.findAll('item');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
@@ -2940,8 +3091,8 @@ var Summary_1 = Summary = class Summary {
     ///   @return {DOM}    li.lvX
     ///
     //#######################################
-    li = util$4.dom('li').attr('href', href).addClass(`lv${lv}`);
-    a = util$4.dom('a').attr('href', href);
+    li = util$5.dom('li').attr('href', href).addClass(`lv${lv}`);
+    a = util$5.dom('a').attr('href', href);
     if (name) {
       a.text(name.text());
     }
@@ -2959,7 +3110,7 @@ var Summary_1 = Summary = class Summary {
     ///   @return {DOM}    li.label.lvX
     ///
     //#######################################
-    li = util$4.dom('li.hint').addClass(`lv${lv}`);
+    li = util$5.dom('li.hint').addClass(`lv${lv}`);
     if (name) {
       li.text(name.text());
     }
@@ -2974,7 +3125,7 @@ var Summary_1 = Summary = class Summary {
     ///   @return {DOM} summary
     ///
     //#######################################
-    summary = util$4.dom(this.compile());
+    summary = util$5.dom(this.compile());
     this._bindEvent(bus, summary);
     return summary;
   }
@@ -3048,7 +3199,7 @@ var Summary_1 = Summary = class Summary {
     ///   @params {DOM} li
     ///
     //#######################################
-    side = util$4.dom(document.querySelector('#side'));
+    side = util$5.dom(document.querySelector('#side'));
     top = li.top();
     bottom = li.bottom();
     if (top + 200 > window.innerHeight) {
@@ -3102,7 +3253,7 @@ Summary._mapSection = (section) => {
   ///
   //#######################################
   ({lv, text, order} = section.heading);
-  href = util$4.id(order, text);
+  href = util$5.id(order, text);
   return `<item lv="${lv}" href="#${href}">\n   <name>${text}</name>\n</item>`;
 };
 
@@ -3968,9 +4119,9 @@ Prism.languages.js = Prism.languages.javascript;
 })();
 });
 
-var API, util$5;
+var API, util$6;
 
-util$5 = util;
+util$6 = util;
 
 var Api = API = class API {
   constructor(html) {
@@ -3992,8 +4143,8 @@ var Api = API = class API {
     ///   @return {string} html
     ///
     //#######################################
-    dom = util$5.dom(this.html);
-    api = util$5.dom('.api');
+    dom = util$6.dom(this.html);
+    api = util$6.dom('.api');
     items = dom.findAll('item');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
@@ -4013,27 +4164,27 @@ var Api = API = class API {
     name = item.find('name');
     type = item.find('type');
     desc = item.find('desc');
-    left = util$5.dom('.left');
-    right = util$5.dom('.right');
+    left = util$6.dom('.left');
+    right = util$6.dom('.right');
     if (name) {
-      name = util$5.dom('.name').text(name.text());
+      name = util$6.dom('.name').text(name.text());
       left.append(name);
     }
     if (type) {
-      type = util$5.dom('.type').text(type.text());
+      type = util$6.dom('.type').text(type.text());
       left.append(type);
     }
     if (desc) {
-      desc = util$5.dom('.desc').text(desc.text());
+      desc = util$6.dom('.desc').text(desc.text());
       right.append(desc);
     }
-    item = util$5.dom('.item').append(left).append(right);
+    item = util$6.dom('.item').append(left).append(right);
     return item;
   }
 
 };
 
-var Api$1, Article, Prism, marked$4, util$6;
+var Api$1, Article, Prism, marked$4, util$7;
 
 marked$4 = marked;
 
@@ -4041,7 +4192,7 @@ Prism = prism;
 
 Api$1 = Api;
 
-util$6 = util;
+util$7 = util;
 
 marked$4.setOptions({
   gfm: true,
@@ -4282,7 +4433,7 @@ var Article_1 = Article = class Article {
     //#######################################
     sections = this.parse();
     sections = sections.map(this._compileSection).join('');
-    article = util$6.dom('#article');
+    article = util$7.dom('#article');
     article.html(sections);
     return article.htmlSelf();
   }
@@ -4301,12 +4452,12 @@ var Article_1 = Article = class Article {
     lv = heading != null ? heading.lv : void 0;
     text = heading != null ? heading.text : void 0;
     order = heading != null ? heading.order : void 0;
-    id = util$6.id(order, text);
+    id = util$7.id(order, text);
     heading = heading ? this._compileHeading(heading) : '';
     content = content ? this._compileContent(content) : '';
     example = example ? this._compileExample(example) : '';
     section = heading + content + example;
-    section = util$6.dom('.section').html(section);
+    section = util$7.dom('.section').html(section);
     if (id) {
       section.attr('id', id);
     }
@@ -4381,7 +4532,7 @@ var Article_1 = Article = class Article {
 
   _compilePre(html) {
     var code, pre;
-    pre = util$6.dom(html);
+    pre = util$7.dom(html);
     pre.html(pre.html().trim());
     if (code = pre.find('code')) {
       code.html(code.html().trim());
@@ -4417,7 +4568,7 @@ var Article_1 = Article = class Article {
     ///   @return {DOM} article
     ///
     //#######################################
-    article = util$6.dom(this.compile());
+    article = util$7.dom(this.compile());
     this._bindEvent(bus, article);
     return article;
   }
@@ -4525,7 +4676,7 @@ var Article_1 = Article = class Article {
 
 };
 
-var Article$1, Bus$1, Cover$1, Markdown$1, ObservableObject$4, Page, Summary$1, util$8,
+var Article$1, Bus$1, Cover$1, Markdown$1, ObservableObject$4, Page, Summary$1, util$9,
   boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
 ObservableObject$4 = ObservableObject_1;
@@ -4540,7 +4691,7 @@ Summary$1 = Summary_1;
 
 Article$1 = Article_1;
 
-util$8 = util;
+util$9 = util;
 
 var Page_1 = Page = class Page extends ObservableObject$4 {
   constructor(text, common = '') {
@@ -4604,9 +4755,9 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
     var article, cover, main, nav, page, side, summary;
     boundMethodCheck$2(this, Page);
     ({nav, cover, summary, article} = this.parse());
-    page = util$8.dom('#page');
-    side = util$8.dom('#side');
-    main = util$8.dom('#main');
+    page = util$9.dom('#page');
+    side = util$9.dom('#side');
+    main = util$9.dom('#main');
     if (cover.exist()) {
       page.append(cover.compile());
     }
@@ -4627,9 +4778,9 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
     //#######################################
     ({nav, cover, summary, article} = this.parse());
     bus = new Bus$1;
-    page = util$8.dom('#page');
-    side = util$8.dom('#side');
-    main = util$8.dom('#main');
+    page = util$9.dom('#page');
+    side = util$9.dom('#side');
+    main = util$9.dom('#main');
     if (cover.exist()) {
       page.append(cover.render(bus));
     }
@@ -4684,11 +4835,11 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
 
 };
 
-var App, Page$1, util$9;
+var App, Page$1, util$10;
 
 Page$1 = Page_1;
 
-util$9 = util;
+util$10 = util;
 
 var App_1 = App = class App {
   //#######################################
@@ -4702,6 +4853,7 @@ var App_1 = App = class App {
     this._run = this._run.bind(this);
     this._loadPage = this._loadPage.bind(this);
     this._renderPage = this._renderPage.bind(this);
+    this._render404 = this._render404.bind(this);
     this._mount = this._mount.bind(this);
     //#######################################
     ///
@@ -4718,7 +4870,7 @@ var App_1 = App = class App {
     if (this.isJIT) {
       return this._loadPage();
     } else {
-      return util$9.dom(document.querySelector('#page'));
+      return util$10.dom(document.querySelector('#page'));
     }
   }
 
@@ -4734,7 +4886,7 @@ var App_1 = App = class App {
     if (page) {
       return this._mount(page);
     } else {
-      return util$9.ajax(path, this._renderPage);
+      return loader.load(router.path, this._renderPage, this._render404);
     }
   }
 
@@ -4749,6 +4901,15 @@ var App_1 = App = class App {
     page = page.render();
     this.cache[router.filePath] = page;
     return this._mount(page);
+  }
+
+  _render404() {
+    //#######################################
+    ///
+    ///   @params {string} text
+    ///
+    //#######################################
+    return console.log('render 404');
   }
 
   _mount(page) {
@@ -4810,9 +4971,11 @@ var Main_1 = Main = class Main {
 
 };
 
-var App$1, DOM$2, Main$1, Router$1;
+var App$1, DOM$2, Loader$1, Main$1, Router$1;
 
 DOM$2 = DOM_web;
+
+Loader$1 = Loader_web;
 
 Router$1 = Router_1;
 
@@ -4823,6 +4986,7 @@ Main$1 = Main_1;
 window.onload = () => {
   var isJIT;
   window.DOM = DOM$2;
+  window.loader = new Loader$1();
   window.router = new Router$1(isJIT = true);
   return window.app = new App$1(isJIT = true);
 };

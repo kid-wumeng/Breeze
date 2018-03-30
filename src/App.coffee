@@ -62,7 +62,8 @@ module.exports = class App
       if page
          @_mount( page )
       else
-         util.ajax( path, @_renderPage )
+         loader.load( router.path, @_renderPage, @_render404 )
+
 
 
 
@@ -82,6 +83,21 @@ module.exports = class App
       @cache[router.filePath] = page
 
       @_mount( page )
+
+
+
+
+
+
+   _render404: =>
+
+      ########################################
+      #/
+      #/   @params {string} text
+      #/
+      ########################################
+
+      console.log 'render 404'
 
 
 

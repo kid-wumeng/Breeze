@@ -329,6 +329,22 @@ module.exports = class DOM
 
 
 
+   isVisible: =>
+
+      ########################################
+      #/
+      #/   @return {boolean}
+      #/
+      #/   This method only exists in DOM.web
+      #/
+      ########################################
+
+      return @width() > 0
+
+
+
+
+
    scroll: ( deltaY ) =>
 
       ########################################

@@ -205,9 +205,6 @@ module.exports = class Cover
       ########################################
 
       cover = util.dom(@compile())
-
-      @_bindEvent( cover )
-
       return cover
 
 

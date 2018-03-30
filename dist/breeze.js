@@ -1,9 +1,9 @@
 var Breeze = (function () {
 'use strict';
 
-var DOM$1;
+var DOM;
 
-var DOM_web = DOM$1 = class DOM {
+var DOM_web = DOM = class DOM {
   //#######################################
   ///
   ///   Be responsible for querying and operating dom ( html-string ).
@@ -27,6 +27,7 @@ var DOM_web = DOM$1 = class DOM {
     this.height = this.height.bind(this);
     this.top = this.top.bind(this);
     this.bottom = this.bottom.bind(this);
+    this.isVisible = this.isVisible.bind(this);
     this.scroll = this.scroll.bind(this);
     this.on = this.on.bind(this);
     //#######################################
@@ -263,6 +264,17 @@ var DOM_web = DOM$1 = class DOM {
     return this.root.getBoundingClientRect().top;
   }
 
+  isVisible() {
+    //#######################################
+    ///
+    ///   @return {boolean}
+    ///
+    ///   This method only exists in DOM.web
+    ///
+    //#######################################
+    return this.width() > 0;
+  }
+
   scroll(deltaY) {
     //#######################################
     ///
@@ -392,19 +404,19 @@ exports.dom = (html) => {
   //#######################################
   if (typeof html === 'string') {
     if (html[0] === '<') {
-      return new DOM(html);
+      return new Breeze.DOM(html);
     } else {
       return _domBySelector(selector = html);
     }
   } else {
-    return new DOM($el = html);
+    return new Breeze.DOM($el = html);
   }
 };
 
 _domBySelector = (selector) => {
   var classname, dom, id, tag;
   ({tag, id, classname} = parseSelector(selector));
-  dom = new DOM('<' + tag + '>');
+  dom = new Breeze.DOM('<' + tag + '>');
   if (id) {
     dom.attr('id', id);
   }
@@ -665,6 +677,418 @@ var Loader_web = Loader = class Loader {
 
 };
 
+var Router, util$2;
+
+util$2 = util;
+
+var Router_1 = Router = class Router {
+  //#######################################
+  ///
+  ///   Be responsible for
+  ///      managing the singleton router.
+  ///
+  //#######################################
+  constructor(isJIT = false) {
+    this._getFullPath = this._getFullPath.bind(this);
+    this._getPath = this._getPath.bind(this);
+    this._getQueryString = this._getQueryString.bind(this);
+    this._getQuery = this._getQuery.bind(this);
+    this._formatFullPath = this._formatFullPath.bind(this);
+    this._formatPath = this._formatPath.bind(this);
+    this._formatQueryString = this._formatQueryString.bind(this);
+    this._resolvePath = this._resolvePath.bind(this);
+    this._resolveID = this._resolveID.bind(this);
+    this._isCurrentPath = this._isCurrentPath.bind(this);
+    this._isCurrentID = this._isCurrentID.bind(this);
+    this._go = this._go.bind(this);
+    this._goUrl = this._goUrl.bind(this);
+    this._goPath = this._goPath.bind(this);
+    this._goID = this._goID.bind(this);
+    //#######################################
+    ///
+    ///   < Router >
+    ///
+    ///      @params {bool} isJIT
+    ///      @events emit('reload')
+    ///
+    ///      router.getPath()              ->  path
+    ///      router.getQuery()             ->  query
+    ///      router.isCurrentPath( href )  ->  bool
+    ///      router.isCurrentID( href )    ->  bool
+    ///      router.go( href )
+    ///
+    //#######################################
+    this._isJIT = isJIT;
+    this.getPath = this._getPath;
+    this.getQuery = this._getQuery;
+    this.isCurrentPath = this._isCurrentPath;
+    this.isCurrentID = this._isCurrentID;
+    this.go = this._go;
+    window.addEventListener('popstate', () => {
+      return Breeze.emit('reload');
+    });
+  }
+
+  _getFullPath() {
+    var path;
+    //#######################################
+    ///
+    ///   @return {string} fullPath
+    ///
+    ///   when JIT,
+    ///      host:port                        ->  '/'
+    ///      host:port/#/                     ->  '/'
+    ///      host:port/#/?id=abc              ->  '/?id=abc'
+    ///      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
+    ///
+    ///   when no-JIT,
+    ///      host:port                        ->  '/'
+    ///      host:port?id=abc                 ->  '/?id=abc'
+    ///      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
+    ///
+    //#######################################
+    if (this._isJIT) {
+      path = location.hash.slice(1);
+    } else {
+      path = location.pathname;
+    }
+    if (path[0] !== '/') {
+      path = '/' + path;
+    }
+    return path;
+  }
+
+  _getPath() {
+    var path;
+    //#######################################
+    ///
+    ///   @return {string} path
+    ///
+    ///   /path/subPath?id=abc  ->  '/path/subPath'
+    ///
+    //#######################################
+    path = this._getFullPath();
+    path = path.replace(/\?.*$/, '');
+    return decodeURI(path);
+  }
+
+  _getQueryString() {
+    var match, path;
+    //#######################################
+    ///
+    ///   @return {string} queryString
+    ///
+    ///   /path/subPath?id=abc  ->  'id=abc'
+    ///
+    //#######################################
+    path = this._getFullPath();
+    if (match = path.match(/\?.+$/)) {
+      return decodeURI(match[0].slice(1));
+    } else {
+      return '';
+    }
+  }
+
+  _getQuery() {
+    var field, fields, i, len, name, parts, query, queryString, ref, value;
+    //#######################################
+    ///
+    ///   @return {object} query
+    ///
+    ///   /path/subPath?id=abc       ->  { id: 'abc' }
+    ///   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
+    ///
+    //#######################################
+    queryString = this._getQueryString();
+    query = {};
+    fields = queryString.split('&');
+    fields = fields.filter((field) => {
+      return field;
+    });
+    for (i = 0, len = fields.length; i < len; i++) {
+      field = fields[i];
+      parts = field.split('=');
+      name = parts[0];
+      value = (ref = parts[1]) != null ? ref : true;
+      query[name] = value;
+    }
+    return query;
+  }
+
+  _formatFullPath(path = '', query = {}) {
+    var queryString;
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @params {object} query
+    ///   @return {string} fullPath
+    ///
+    ///   when JIT,
+    ///      ''   ->  /#/...
+    ///      '/'  ->  /...
+    ///
+    ///   when no-JIT,
+    ///      ''   ->  /...
+    ///      '/'  ->  /...
+    ///
+    //#######################################
+    path = this._formatPath(path);
+    queryString = this._formatQueryString(query);
+    if (this._isJIT && path !== '/') {
+      return '/#' + path + queryString;
+    } else {
+      return path + queryString;
+    }
+  }
+
+  _formatPath(path = '') {
+    //#######################################
+    ///
+    ///   @params {string} path
+    ///   @return {string} path
+    ///
+    ///   Assume current is at /path/subPath
+    ///
+    ///   ''        ->  '/path/subPath'
+    ///   '/'       ->  '/'
+    ///   'path'    ->  '/path'
+    ///   '/path'   ->  '/path'
+    ///   '/path/'  ->  '/path/'
+    ///
+    //#######################################
+    if (path) {
+      if (path[0] !== '/') {
+        path = '/' + path;
+      }
+    } else {
+      path = this._getPath();
+    }
+    return path;
+  }
+
+  _formatQueryString(query = {}) {
+    var fields, name, value;
+    //#######################################
+    ///
+    ///   @params {object} qyery
+    ///   @return {string} queryString
+    ///
+    ///   {}                         ->  ''
+    ///   { id: 'abc', flag: true }  ->  '?id=abc&flag'
+    ///
+    //#######################################
+    fields = [];
+    for (name in query) {
+      value = query[name];
+      if (value === true) {
+        fields.push(name);
+      } else {
+        fields.push(name + '=' + value);
+      }
+    }
+    if (fields.length) {
+      return '?' + fields.join('&');
+    } else {
+      return '';
+    }
+  }
+
+  _resolvePath(href = '') {
+    var path;
+    //#######################################
+    ///
+    ///   @params {string} href
+    ///   @return {string} path
+    ///
+    ///   'path/subPath#id'  ->  '/path/subPath'
+    ///   'path#id'          ->  '/path'
+    ///   'path'             ->  '/path'
+    ///   '#id'              ->  ''
+    ///   '/'                ->  '/'
+    ///   ''                 ->  ''
+    ///
+    //#######################################
+    path = href.split('#')[0];
+    if (path && path[0] !== '/') {
+      path = '/' + path;
+    }
+    return path;
+  }
+
+  _resolveID(href = '') {
+    var parts;
+    //#######################################
+    ///
+    ///   @params {string} href
+    ///   @return {string} id
+    ///
+    ///   'path#id'  ->  'id'
+    ///   '#id'      ->  'id'
+    ///   '#'        ->  ''
+    ///   'path'     ->  ''
+    ///   '/'        ->  ''
+    ///   ''         ->  ''
+    ///
+    //#######################################
+    parts = href.split('#');
+    if (parts.length === 2) {
+      return parts[1];
+    } else {
+      return '';
+    }
+  }
+
+  _isCurrentPath(href) {
+    var path;
+    //#######################################
+    ///
+    ///   @params {string} href
+    ///   @return {bool}
+    ///
+    ///   Assume current is at /path/subPath?id=abc
+    ///
+    ///   _isCurrentPath('')           ->  true
+    ///   _isCurrentPath('#')          ->  true
+    ///   _isCurrentPath('#abc')       ->  true
+    ///   _isCurrentPath('path')       ->  true
+    ///   _isCurrentPath('path#abc')   ->  true
+    ///   _isCurrentPath('path#abc2')  ->  true
+    ///   _isCurrentPath('/')          ->  false
+    ///   _isCurrentPath('path2#abc')  ->  false
+    ///
+    //#######################################
+    path = this._resolvePath(href);
+    if (path && path === this._getPath()) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  _isCurrentID(href) {
+    var id;
+    //#######################################
+    ///
+    ///   @params {string} href
+    ///   @return {bool}
+    ///
+    ///   Assume current is at /path/subPath?id=abc
+    ///
+    ///   _isCurrentID('#abc')       ->  true
+    ///   _isCurrentID('path#abc')   ->  true
+    ///   _isCurrentID('')           ->  false
+    ///   _isCurrentID('#')          ->  false
+    ///   _isCurrentID('path')       ->  false
+    ///   _isCurrentID('path#abc2')  ->  false
+    ///   _isCurrentID('/')          ->  false
+    ///   _isCurrentID('path2#abc')  ->  false
+    ///
+    //#######################################
+    id = this._resolveID(href);
+    if (id === this._getQuery().id) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  _go(href = '') {
+    //#######################################
+    ///
+    ///   @params {string} href
+    ///
+    ///   when JIT,
+    ///      _go('/path/subPath#abc')  ->  /#/path/subPath?id=abc
+    ///
+    ///   when no-JIT,
+    ///      _go('/path/subPath#abc')  ->  /path/subPath?id=abc
+    ///
+    //#######################################
+    if (util$2.isUrl(href)) {
+      return this._goUrl(href);
+    } else {
+      if (href[0] === '#') {
+        if (!this._isCurrentID(href)) {
+          return this._goID(href);
+        }
+      } else {
+        if (!this._isCurrentPath(href)) {
+          return this._goPath(href);
+        }
+      }
+    }
+  }
+
+  _goUrl(url) {
+    //#######################################
+    ///
+    ///   @params {string} url
+    ///
+    ///   _goUrl('http://google.com')  ->  http://google.com ( open in new tab )
+    ///
+    //#######################################
+    return window.open(url, '_blank');
+  }
+
+  _goPath(href) {
+    var fullPath, id, path, query;
+    //#######################################
+    ///
+    ///   @params {string} href
+    ///
+    ///   @events emit('reload') - only emit when JIT
+    ///
+    ///   Assume current is at '/path/subPath?id=abc&flag'
+    ///
+    ///      _goPath('subPath2')      ->  /path/subPath2?flag
+    ///      _goPath('subPath2#def')  ->  /path/subPath2?id=def&flag
+    ///      _goPath('/')             ->  /?flag
+    ///      _goPath('/#def')         ->  /?id=def&flag
+    ///
+    //#######################################
+    path = this._resolvePath(href);
+    id = this._resolveID(href);
+    query = this._getQuery();
+    if (id) {
+      query.id = id;
+    } else {
+      delete query.id;
+    }
+    fullPath = this._formatFullPath(path, query);
+    if (this._isJIT) {
+      history.pushState(null, null, fullPath);
+      return Breeze.emit('reload');
+    } else {
+      return location.href = fullPath;
+    }
+  }
+
+  _goID(href) {
+    var fullPath, id, path, query;
+    //#######################################
+    ///
+    ///   @params {string} href
+    ///
+    ///   Assume current is at '/path/subPath?id=abc&flag'
+    ///
+    ///      _goID('#')     ->  /?flag
+    ///      _goID('#def')  ->  /?id=def&flag
+    ///
+    //#######################################
+    id = this._resolveID(href);
+    path = this._getPath();
+    query = this._getQuery();
+    if (id) {
+      query.id = id;
+    } else {
+      delete query.id;
+    }
+    fullPath = this._formatFullPath(path, query);
+    return history.replaceState(null, null, fullPath);
+  }
+
+};
+
 var ObservableObject;
 
 var ObservableObject_1 = ObservableObject = class ObservableObject {
@@ -704,308 +1128,11 @@ var ObservableObject_1 = ObservableObject = class ObservableObject {
 
 };
 
-var ObservableObject$1, Router, util$2,
-  boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
-
-util$2 = util;
+var Bus, ObservableObject$1;
 
 ObservableObject$1 = ObservableObject_1;
 
-var Router_1 = Router = class Router extends ObservableObject$1 {
-  //#######################################
-  ///
-  ///   Be responsible for
-  ///      managing the singleton router.
-  ///
-  //#######################################
-  constructor(isJIT) {
-    super();
-    this._parse = this._parse.bind(this);
-    this._parseFullPath = this._parseFullPath.bind(this);
-    this._parsePath = this._parsePath.bind(this);
-    this._parseQuery = this._parseQuery.bind(this);
-    this.go = this.go.bind(this);
-    this._goUrl = this._goUrl.bind(this);
-    this._goPath = this._goPath.bind(this);
-    this._goID = this._goID.bind(this);
-    this._wrapQuery = this._wrapQuery.bind(this);
-    this._parseHref = this._parseHref.bind(this);
-    this._formatFullPath = this._formatFullPath.bind(this);
-    this._formatPath = this._formatPath.bind(this);
-    this._formatQuery = this._formatQuery.bind(this);
-    this.isJIT = isJIT;
-    this.fullPath = '';
-    this.path = '';
-    this.query = '';
-    this._parse();
-    window.addEventListener('popstate', () => {
-      this._parse();
-      return this.emit('redirect');
-    });
-  }
-
-  _parse() {
-    boundMethodCheck(this, Router);
-    this.fullPath = this._parseFullPath();
-    this.path = this._parsePath();
-    return this.query = this._parseQuery();
-  }
-
-  _parseFullPath() {
-    var path;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @return {string} path
-    ///
-    ///   when JIT,
-    ///      host:port                        ->  /
-    ///      host:port/#/                     ->  /
-    ///      host:port/#/?id=xxx              ->  /?id=xxx
-    ///      host:port/#/path/subPath?id=xxx  ->  /path/subPath?id=xxx
-    ///
-    ///   when no-JIT,
-    ///      host:port                        ->  /
-    ///      host:port?id=xxx                 ->  /?id=xxx
-    ///      host:port/path/subPath?id=xxx    ->  /path/subPath?id=xxx
-    ///
-    //#######################################
-    if (this.isJIT) {
-      path = location.hash.slice(1);
-    } else {
-      path = location.pathname;
-    }
-    path = '/' + path;
-    path = path.replace(/\/+/g, '/');
-    return path;
-  }
-
-  _parsePath() {
-    var path;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @return {string} path
-    ///
-    ///   when JIT,
-    ///      host:port                        ->  /
-    ///      host:port/#/                     ->  /
-    ///      host:port/#/path/subPath?id=xxx  ->  /path/subPath
-    ///
-    ///   when no-JIT,
-    ///      host:port                        ->  /
-    ///      host:port/path/subPath?id=xxx    ->  /path/subPath
-    ///
-    //#######################################
-    path = this._parseFullPath();
-    path = path.replace(/\?.*$/, '');
-    return path;
-  }
-
-  _parseQuery() {
-    var field, fields, i, index, len, name, parts, path, query, ref, string, value;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @return {object} query
-    ///
-    ///   when JIT,
-    ///      host:port/#/path/subPath         ->  {}
-    ///      host:port/#/path/subPath?id=xxx  ->  { id: 'abc' }
-    ///
-    ///   when no-JIT,
-    ///      host:port/#/path/subPath?id=xxx  ->  {}
-    ///      host:port/path/subPath?id=xxx    ->  { id: 'abc' }
-    ///
-    //#######################################
-    path = this._parseFullPath();
-    index = path.indexOf('?');
-    query = {};
-    if (index > -1) {
-      string = path.slice(index + 1);
-      string = decodeURI(string);
-      fields = string.split('&');
-      for (i = 0, len = fields.length; i < len; i++) {
-        field = fields[i];
-        parts = field.split('=');
-        name = parts[0];
-        value = (ref = parts[1]) != null ? ref : true;
-        query[name] = value;
-      }
-    }
-    return query;
-  }
-
-  go(href = '') {
-    var id, path;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} href - url or path#id
-    ///
-    //#######################################
-    if (util$2.isUrl(href)) {
-      return this._goUrl(href);
-    } else {
-      ({path, id} = this._parseHref(href));
-      if (path) {
-        return this._goPath(path, id);
-      } else {
-        return this._goID(id);
-      }
-    }
-  }
-
-  _goUrl(url) {
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} url
-    ///
-    //#######################################
-    return window.open(url, '_blank');
-  }
-
-  _goPath(path, id) {
-    var query;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} path
-    ///   @params {string} id
-    ///
-    //#######################################
-    if (this.isJIT) {
-      query = this._wrapQuery(id);
-      path = this._formatFullPath(path, query);
-      history.pushState(null, null, path);
-      this._parse();
-      return this.emit('reload');
-    } else {
-      return location.href = fullPath;
-    }
-  }
-
-  _goID(id) {
-    var path, query;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} fullPath
-    ///
-    //#######################################
-    query = this._wrapQuery(id);
-    path = this._formatFullPath(this.path, query);
-    history.replaceState(null, null, path);
-    return this._parse();
-  }
-
-  _wrapQuery(id) {
-    var query;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} id
-    ///   @params {object} query
-    ///
-    //#######################################
-    if (id) {
-      query = {id};
-    } else {
-      query = {};
-    }
-    return query;
-  }
-
-  _parseHref(href = '') {
-    var id, parts, path;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} href - 'path#id'
-    ///   @return {object}      - { path: 'path', id: 'id' }
-    ///
-    //#######################################
-    parts = href.split('#');
-    switch (parts.length) {
-      case 1:
-        path = parts[0];
-        id = '';
-        break;
-      case 2:
-        path = parts[0];
-        id = parts[1];
-        break;
-      default:
-        path = '';
-        id = '';
-    }
-    return {path, id};
-  }
-
-  _formatFullPath(path, query) {
-    var fullPath;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {string} path
-    ///   @params {object} query
-    ///   @return {string} fullPath
-    ///
-    //#######################################
-    fullPath = this._formatPath(path) + this._formatQuery(query);
-    if (this.isJIT) {
-      if (path === '/') {
-        return fullPath;
-      } else {
-        return '/#' + fullPath;
-      }
-    }
-    return fullPath;
-  }
-
-  _formatPath(path = '') {
-    boundMethodCheck(this, Router);
-    if (!path) {
-      path = this.path;
-    }
-    path = '/' + path;
-    path = path.replace(/\/+/g, '/');
-    return path;
-  }
-
-  _formatQuery(query = {}) {
-    var name, parts, value;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @params {object} query
-    ///   @return {string} querystring
-    ///
-    //#######################################
-    parts = [];
-    for (name in query) {
-      value = query[name];
-      if (value === true) {
-        parts.push(name);
-      } else {
-        parts.push(name + '=' + value);
-      }
-    }
-    if (parts.length) {
-      return '?' + parts.join('&');
-    } else {
-      return '';
-    }
-  }
-
-};
-
-var Bus, ObservableObject$2;
-
-ObservableObject$2 = ObservableObject_1;
-
-var Bus_1 = Bus = class Bus extends ObservableObject$2 {
+var Bus_1 = Bus = class Bus extends ObservableObject$1 {
   //#######################################
   ///
   ///   This is a common event bus, one page need one bus.
@@ -2949,7 +3076,6 @@ var Cover_1 = Cover = class Cover {
     ///
     //#######################################
     cover = util$3.dom(this.compile());
-    this._bindEvent(cover);
     return cover;
   }
 
@@ -4196,10 +4322,6 @@ var Article_1 = Article = class Article {
     this.render = this.render.bind(this);
     this._bindEvent = this._bindEvent.bind(this);
     this._onWindowScroll = this._onWindowScroll.bind(this);
-    this._isVisible = this._isVisible.bind(this);
-    this._getSectionStats = this._getSectionStats.bind(this);
-    this._locateID = this._locateID.bind(this);
-    this._isDifferentID = this._isDifferentID.bind(this);
     this._onSummarySelect = this._onSummarySelect.bind(this);
     this.markdown = markdown;
   }
@@ -4538,7 +4660,6 @@ var Article_1 = Article = class Article {
     ///
     //#######################################
     article = util$6.dom(this.compile());
-    this._bindEvent(bus, article);
     return article;
   }
 
@@ -4569,63 +4690,6 @@ var Article_1 = Article = class Article {
     }
   }
 
-  _isVisible(article) {
-    //#######################################
-    ///
-    ///   @params {DOM} article
-    ///   @return {boolean}
-    ///
-    //#######################################
-    return article.width() > 0;
-  }
-
-  _getSectionStats(article) {
-    var j, len, ref, section, stats;
-    //#######################################
-    ///
-    ///   @params {DOM}      article
-    ///   @return {object[]} stats - [{ id, top }]
-    ///
-    //#######################################
-    stats = [];
-    ref = article.findAll('.section');
-    for (j = 0, len = ref.length; j < len; j++) {
-      section = ref[j];
-      stats.push({
-        id: section.attr('id'),
-        top: section.top()
-      });
-    }
-    return stats;
-  }
-
-  _locateID(stats) {
-    var i, j, len, ref, stat;
-//#######################################
-///
-///   @params {object[]} stats - [{ id, top }]
-///   @return {string}   id
-///
-//#######################################
-    for (i = j = 0, len = stats.length; j < len; i = ++j) {
-      stat = stats[i];
-      if (stat.top > 0) {
-        break;
-      }
-    }
-    return (ref = stats[i - 1].id) != null ? ref : '';
-  }
-
-  _isDifferentID(id) {
-    if (!id && !router.query.id) {
-      return false;
-    } else if (id === router.query.id) {
-      return false;
-    } else {
-      return true;
-    }
-  }
-
   _onSummarySelect(article, href) {
     var section, top;
     //#######################################
@@ -4645,10 +4709,48 @@ var Article_1 = Article = class Article {
 
 };
 
-var Article$1, Bus$1, Cover$1, Markdown$1, ObservableObject$4, Page, Summary$1, util$8,
-  boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+Article.locateID = (article) => {
+  var i, j, len, ref, stat, stats;
+  //#######################################
+  ///
+  ///   @params {object[]} stats - [{ id, top }]
+  ///   @return {string}   id
+  ///
+  //#######################################
+  stats = Article._getSectionStats(article);
+  for (i = j = 0, len = stats.length; j < len; i = ++j) {
+    stat = stats[i];
+    if (stat.top > 0) {
+      break;
+    }
+  }
+  return (ref = stats[i - 1].id) != null ? ref : '';
+};
 
-ObservableObject$4 = ObservableObject_1;
+Article._getSectionStats = (article) => {
+  var j, len, ref, section, stats;
+  //#######################################
+  ///
+  ///   @params {DOM}      article
+  ///   @return {object[]} stats - [{ id, top }]
+  ///
+  //#######################################
+  stats = [];
+  ref = article.findAll('.section');
+  for (j = 0, len = ref.length; j < len; j++) {
+    section = ref[j];
+    stats.push({
+      id: section.attr('id'),
+      top: section.top()
+    });
+  }
+  return stats;
+};
+
+var Article$1, Bus$1, Cover$1, Markdown$1, ObservableObject$3, Page, Summary$1, util$8,
+  boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+
+ObservableObject$3 = ObservableObject_1;
 
 Bus$1 = Bus_1;
 
@@ -4662,8 +4764,19 @@ Article$1 = Article_1;
 
 util$8 = util;
 
-var Page_1 = Page = class Page extends ObservableObject$4 {
-  constructor(text, common = '') {
+var Page_1 = Page = class Page extends ObservableObject$3 {
+  //#######################################
+  ///
+  ///   new Page( text )
+  ///
+  ///   parse()    ->  { article, nav, cover, summary }
+  ///   compile()  ->  page ( html-string )
+  ///   render()   ->  page ( DOM )
+  ///
+  ///   Page.bindEvent( page )
+  ///
+  //#######################################
+  constructor(text) {
     super();
     // super()
 
@@ -4692,15 +4805,12 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
     this.parse = this.parse.bind(this);
     this.compile = this.compile.bind(this);
     this.render = this.render.bind(this);
-    this._bindEvent = this._bindEvent.bind(this);
-    this._onClickLink = this._onClickLink.bind(this);
-    this._onArticleScroll = this._onArticleScroll.bind(this);
-    this.text = text + common;
+    this.text = text;
   }
 
   parse() {
     var article, cover, markdown, nav, sections, summary;
-    boundMethodCheck$2(this, Page);
+    boundMethodCheck$1(this, Page);
     //#######################################
     ///
     ///   @return {object} - {Nav}     nav
@@ -4722,7 +4832,7 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
 
   compile() {
     var article, cover, main, nav, page, side, summary;
-    boundMethodCheck$2(this, Page);
+    boundMethodCheck$1(this, Page);
     ({nav, cover, summary, article} = this.parse());
     page = util$8.dom('#page');
     side = util$8.dom('#side');
@@ -4739,7 +4849,7 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
 
   render() {
     var article, bus, cover, main, nav, page, side, summary;
-    boundMethodCheck$2(this, Page);
+    boundMethodCheck$1(this, Page);
     //#######################################
     ///
     ///   @return {DOM} page
@@ -4757,56 +4867,151 @@ var Page_1 = Page = class Page extends ObservableObject$4 {
     main.append(article.render(bus));
     page.append(side);
     page.append(main);
-    this._bindEvent(bus, page);
     return page;
-  }
-
-  _bindEvent(bus, page) {
-    var i, len, link, links;
-    boundMethodCheck$2(this, Page);
-    //#######################################
-    ///
-    ///   @params {Bus}    bus
-    ///   @params {DOM}    page
-    ///
-    //#######################################
-    links = page.findAll('a');
-    for (i = 0, len = links.length; i < len; i++) {
-      link = links[i];
-      link.on('click', this._onClickLink);
-    }
-    return bus.on('article.scroll', this._onArticleScroll);
-  }
-
-  _onClickLink(link) {
-    var href;
-    boundMethodCheck$2(this, Page);
-    //#######################################
-    ///
-    ///   @params {DOM} link
-    ///   @params {MouseEvent} e
-    ///
-    //#######################################
-    if (href = link.attr('href')) {
-      return router.go(href);
-    }
-  }
-
-  _onArticleScroll(href) {
-    boundMethodCheck$2(this, Page);
-    //#######################################
-    ///
-    ///   @params {string} href
-    ///
-    //#######################################
-    return router.go(href);
   }
 
 };
 
-var App, Page$1, util$9;
+Page.bindEvent = (page) => {
+  var article, bus, i, len, link, links;
+  //#######################################
+  ///
+  ///   @params {DOM} page
+  ///
+  //#######################################
+  links = page.findAll('a');
+  for (i = 0, len = links.length; i < len; i++) {
+    link = links[i];
+    link.on('click', Page._event_linkClick);
+  }
+  bus = new Bus$1();
+  bus.on('article.scroll', Page._event_articleScroll);
+  article = page.find('#article');
+  Article$1.bindEvent(bus, article);
+  return window.addEventListener('scroll', Page._onWindowScroll);
+};
+
+Page._onWindowScroll = (e) => {
+  //#######################################
+  ///
+  ///   @params {Event} e
+  ///
+  //#######################################
+  return console.log(e);
+};
+
+Page._event_linkClick = (link) => {
+  var href;
+  //#######################################
+  ///
+  ///   @params {DOM} link
+  ///
+  //#######################################
+  href = link.attr('href');
+  return Breeze.go(href);
+};
+
+Page._event_articleScroll = (href) => {
+  //#######################################
+  ///
+  ///   @params {string} href
+  ///
+  //#######################################
+  return Breeze.go(href);
+};
+
+var Article$2, ObservableObject$4, PageEventBus,
+  boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+
+ObservableObject$4 = ObservableObject_1;
+
+Article$2 = Article_1;
+
+var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$4 {
+  constructor(page) {
+    super();
+    this._bindWindowEvents = this._bindWindowEvents.bind(this);
+    this._bindSideEvents = this._bindSideEvents.bind(this);
+    this._bindMainEvents = this._bindMainEvents.bind(this);
+    this._bindArticleEvents = this._bindArticleEvents.bind(this);
+    this._bindLinkEvents = this._bindLinkEvents.bind(this);
+    this._page = page;
+    this._main = page.find('#main');
+    this._side = page.find('#side');
+    this._nav = page.find('#nav');
+    this._cover = page.find('#cover');
+    this._summary = page.find('#summary');
+    this._article = page.find('#article');
+    this._links = page.findAll('a');
+    this._overSide = false;
+    this._overMain = false;
+    this._bindWindowEvents();
+    this._bindSideEvents();
+    this._bindMainEvents();
+    this._bindArticleEvents();
+    this._bindLinkEvents();
+  }
+
+  _bindWindowEvents() {
+    boundMethodCheck$2(this, PageEventBus);
+    return window.addEventListener('scroll', () => {
+      if (this._page.isVisible()) {
+        return this.emit('window.scroll');
+      }
+    });
+  }
+
+  _bindSideEvents() {
+    boundMethodCheck$2(this, PageEventBus);
+    this._side.on('mouseenter', () => {
+      return this._overSide = true;
+    });
+    return this._side.on('mouseleave', () => {
+      return this._overSide = false;
+    });
+  }
+
+  _bindMainEvents() {
+    boundMethodCheck$2(this, PageEventBus);
+    this._main.on('mouseenter', () => {
+      return this._overMain = true;
+    });
+    return this._main.on('mouseleave', () => {
+      return this._overMain = false;
+    });
+  }
+
+  _bindArticleEvents() {
+    boundMethodCheck$2(this, PageEventBus);
+    return this.on('window.scroll', () => {
+      var id;
+      return id = Article$2.locateID(this._article);
+    });
+  }
+
+  _bindLinkEvents() {
+    var i, len, link, ref, results;
+    boundMethodCheck$2(this, PageEventBus);
+    ref = this._links;
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      link = ref[i];
+      results.push(link.on('click', (link) => {
+        var href;
+        href = link.attr('href');
+        return Breeze.go(href);
+      }));
+    }
+    return results;
+  }
+
+};
+
+var App, Page$1, PageEventBus$1, util$9;
 
 Page$1 = Page_1;
+
+PageEventBus$1 = PageEventBus_1;
 
 util$9 = util;
 
@@ -4826,7 +5031,7 @@ var App_1 = App = class App {
     this._mountPage = this._mountPage.bind(this);
     //#######################################
     ///
-    ///   @params {boolean} isJIT - is the Just In Time mode ?
+    ///   @params {boolean} isJIT - is the 'Just In Time' mode ?
     ///
     //#######################################
     this.isJIT = isJIT;
@@ -4837,7 +5042,7 @@ var App_1 = App = class App {
   _run() {
     if (this.isJIT) {
       this._loadPage();
-      return router.on('reload', this._loadPage);
+      return Breeze.on('reload', this._loadPage);
     } else {
       return util$9.dom(document.querySelector('#page'));
     }
@@ -4845,11 +5050,11 @@ var App_1 = App = class App {
 
   _loadPage() {
     var page;
-    page = this._pageCache[router.path];
+    page = this._pageCache[Breeze.getPath()];
     if (page) {
       return this._mountPage(page);
     } else {
-      return loader.load(router.path, this._renderPage, this._render404);
+      return loader.load(Breeze.getPath(), this._renderPage, this._render404);
     }
   }
 
@@ -4862,8 +5067,7 @@ var App_1 = App = class App {
     //#######################################
     page = new Page$1(text);
     page = page.render();
-    this._pageCache[router.path] = page;
-    console.log(1111);
+    this._pageCache[Breeze.getPath()] = page;
     return this._mountPage(page);
   }
 
@@ -4883,6 +5087,7 @@ var App_1 = App = class App {
     ///   @params {DOM} page
     ///
     //#######################################
+    new PageEventBus$1(page);
     old = document.querySelector('body > #page');
     if (old) {
       return document.body.replaceChild(page.$el, old);
@@ -4893,15 +5098,19 @@ var App_1 = App = class App {
 
 };
 
-var Breeze$1;
+var Breeze$1, ObservableObject$5,
+  boundMethodCheck$3 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
-var Breeze_1 = Breeze$1 = class Breeze {
+ObservableObject$5 = ObservableObject_1;
+
+var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$5 {
   //#######################################
   ///
   ///   window.Breeze = new Breeze()
   ///
   //#######################################
   constructor() {
+    super();
     this.config = this.config.bind(this);
     this._options = {};
     this.config('basePath', '');
@@ -4910,6 +5119,7 @@ var Breeze_1 = Breeze$1 = class Breeze {
   }
 
   config(name, value) {
+    boundMethodCheck$3(this, Breeze);
     //#######################################
     ///
     ///   SET   @params {string} name
@@ -4930,9 +5140,9 @@ var Breeze_1 = Breeze$1 = class Breeze {
 
 };
 
-var App$1, Breeze$2, DOM$2, Loader$1, Router$1;
+var App$1, Breeze$2, DOM$1, Loader$1, Router$1, isJIT, router;
 
-DOM$2 = DOM_web;
+DOM$1 = DOM_web;
 
 Loader$1 = Loader_web;
 
@@ -4942,15 +5152,32 @@ App$1 = App_1;
 
 Breeze$2 = Breeze_1;
 
+Breeze$2 = new Breeze$2;
+
+router = new Router$1(isJIT = true);
+
 window.onload = () => {
-  var isJIT;
-  window.DOM = DOM$2;
   window.loader = new Loader$1();
-  window.router = new Router$1(isJIT = true);
   return window.app = new App$1(isJIT = true);
 };
 
-var src = new Breeze$2;
+Breeze$2.DOM = DOM$1;
+
+Breeze$2.config = Breeze$2.config;
+
+Breeze$2.on = Breeze$2.on;
+
+Breeze$2.getPath = router.getPath;
+
+Breeze$2.getQuery = router.getQuery;
+
+Breeze$2.isCurrentPath = router.isCurrentPath;
+
+Breeze$2.isCurrentID = router.isCurrentID;
+
+Breeze$2.go = router.go;
+
+var src = Breeze$2;
 
 return src;
 

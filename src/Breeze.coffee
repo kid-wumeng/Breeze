@@ -1,4 +1,8 @@
-module.exports = class Breeze
+ObservableObject = require('./ObservableObject')
+
+
+
+module.exports = class Breeze extends ObservableObject
 
    ########################################
    #/
@@ -11,6 +15,8 @@ module.exports = class Breeze
 
 
    constructor: ->
+
+      super()
 
       @_options = {}
 
@@ -38,6 +44,6 @@ module.exports = class Breeze
       if value
          @_options[name] = value
          return @
-         
+
       else
          return @_options[name]

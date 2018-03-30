@@ -1,9 +1,8 @@
-util             = require('./util')
-ObservableObject = require('./ObservableObject')
+util = require('./util')
 
 
 
-module.exports = class Router extends ObservableObject
+module.exports = class Router
 
    ########################################
    #/
@@ -16,68 +15,63 @@ module.exports = class Router extends ObservableObject
 
 
 
-   constructor: ( isJIT ) ->
+   constructor: ( isJIT = false ) ->
 
       ########################################
       #/
-      #/   @params {boolean} isJIT - is the Just In Time mode ?
+      #/   < Router >
+      #/
+      #/      @params {bool} isJIT
+      #/      @events emit('reload')
+      #/
+      #/      router.getPath()              ->  path
+      #/      router.getQuery()             ->  query
+      #/      router.isCurrentPath( href )  ->  bool
+      #/      router.isCurrentID( href )    ->  bool
+      #/      router.go( href )
       #/
       ########################################
 
-      super()
+      @_isJIT = isJIT
 
-      @isJIT = isJIT
+      @getPath       = @_getPath
+      @getQuery      = @_getQuery
+      @isCurrentPath = @_isCurrentPath
+      @isCurrentID   = @_isCurrentID
+      @go            = @_go
 
-      @fullPath = ''
-      @path     = ''
-      @query    = ''
-
-      @_parse()
-
-      window.addEventListener 'popstate', =>
-         @_parse()
-         @emit('redirect')
+      window.addEventListener 'popstate', => Breeze.emit('reload')
 
 
 
 
 
-   _parse: =>
-
-      @fullPath = @_parseFullPath()
-      @path     = @_parsePath()
-      @query    = @_parseQuery()
-
-
-
-
-
-   _parseFullPath: =>
+   _getFullPath: =>
 
       ########################################
       #/
-      #/   @return {string} path
+      #/   @return {string} fullPath
       #/
       #/   when JIT,
-      #/      host:port                        ->  /
-      #/      host:port/#/                     ->  /
-      #/      host:port/#/?id=xxx              ->  /?id=xxx
-      #/      host:port/#/path/subPath?id=xxx  ->  /path/subPath?id=xxx
+      #/      host:port                        ->  '/'
+      #/      host:port/#/                     ->  '/'
+      #/      host:port/#/?id=abc              ->  '/?id=abc'
+      #/      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
       #/
       #/   when no-JIT,
-      #/      host:port                        ->  /
-      #/      host:port?id=xxx                 ->  /?id=xxx
-      #/      host:port/path/subPath?id=xxx    ->  /path/subPath?id=xxx
+      #/      host:port                        ->  '/'
+      #/      host:port?id=abc                 ->  '/?id=abc'
+      #/      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
       #/
       ########################################
 
-      if @isJIT
+      if @_isJIT
          path = location.hash.slice(1)
       else
          path = location.pathname
 
-      path = '/' + path
-      path = path.replace(/\/+/g, '/')
+      if path[0] isnt '/'
+         path = '/' + path
 
       return path
 
@@ -85,65 +79,70 @@ module.exports = class Router extends ObservableObject
 
 
 
-   _parsePath: =>
+   _getPath: =>
 
       ########################################
       #/
       #/   @return {string} path
       #/
-      #/   when JIT,
-      #/      host:port                        ->  /
-      #/      host:port/#/                     ->  /
-      #/      host:port/#/path/subPath?id=xxx  ->  /path/subPath
-      #/
-      #/   when no-JIT,
-      #/      host:port                        ->  /
-      #/      host:port/path/subPath?id=xxx    ->  /path/subPath
+      #/   /path/subPath?id=abc  ->  '/path/subPath'
       #/
       ########################################
 
-      path = @_parseFullPath()
+      path = @_getFullPath()
       path = path.replace(/\?.*$/, '')
 
-      return path
+      return decodeURI( path )
 
 
 
 
 
-   _parseQuery: =>
+   _getQueryString: =>
+
+      ########################################
+      #/
+      #/   @return {string} queryString
+      #/
+      #/   /path/subPath?id=abc  ->  'id=abc'
+      #/
+      ########################################
+
+      path = @_getFullPath()
+
+      if match = path.match(/\?.+$/)
+         return decodeURI( match[0].slice(1) )
+      else
+         return ''
+
+
+
+
+
+   _getQuery: =>
 
       ########################################
       #/
       #/   @return {object} query
       #/
-      #/   when JIT,
-      #/      host:port/#/path/subPath         ->  {}
-      #/      host:port/#/path/subPath?id=xxx  ->  { id: 'abc' }
-      #/
-      #/   when no-JIT,
-      #/      host:port/#/path/subPath?id=xxx  ->  {}
-      #/      host:port/path/subPath?id=xxx    ->  { id: 'abc' }
+      #/   /path/subPath?id=abc       ->  { id: 'abc' }
+      #/   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
       #/
       ########################################
 
-      path  = @_parseFullPath()
-      index = path.indexOf('?')
-      query = {}
+      queryString = @_getQueryString()
+      query       = {}
 
-      if index > -1
+      fields = queryString.split('&')
+      fields = fields.filter ( field ) => field
 
-         string = path.slice(index + 1)
-         string = decodeURI(string)
-         fields = string.split('&')
+      for field in fields
 
-         for field in fields
+          parts = field.split('=')
+          name  = parts[0]
+          value = parts[1] ? true
 
-             parts = field.split('=')
-             name  = parts[0]
-             value = parts[1] ? true
-
-             query[name] = value
+          query[name] = value
 
       return query
 
@@ -151,143 +150,7 @@ module.exports = class Router extends ObservableObject
 
 
 
-   go: ( href = '' ) =>
-
-      ########################################
-      #/
-      #/   @params {string} href - url or path#id
-      #/
-      ########################################
-
-      if util.isUrl( href )
-            @_goUrl( href )
-
-      else
-         { path, id } = @_parseHref( href )
-
-         if path
-            @_goPath( path, id )
-         else
-            @_goID( id )
-
-
-
-
-
-   _goUrl: ( url ) =>
-
-      ########################################
-      #/
-      #/   @params {string} url
-      #/
-      ########################################
-
-      window.open(url, '_blank')
-
-
-
-
-
-   _goPath: ( path, id ) =>
-
-      ########################################
-      #/
-      #/   @params {string} path
-      #/   @params {string} id
-      #/
-      ########################################
-
-      if @isJIT
-
-         query = @_wrapQuery( id )
-
-         path  = @_formatFullPath( path, query )
-
-         history.pushState( null, null, path )
-
-         @_parse()
-
-         @emit('reload')
-
-      else
-         location.href = fullPath
-
-
-
-
-
-   _goID: ( id ) =>
-
-      ########################################
-      #/
-      #/   @params {string} fullPath
-      #/
-      ########################################
-
-      query = @_wrapQuery( id )
-
-      path  = @_formatFullPath( @path, query )
-
-      history.replaceState( null, null, path )
-
-      @_parse()
-
-
-
-
-
-   _wrapQuery: ( id ) =>
-
-      ########################################
-      #/
-      #/   @params {string} id
-      #/   @params {object} query
-      #/
-      ########################################
-
-      if id
-         query = { id }
-      else
-         query = {}
-
-      return query
-
-
-
-
-
-   _parseHref: ( href = '' ) =>
-
-      ########################################
-      #/
-      #/   @params {string} href - 'path#id'
-      #/   @return {object}      - { path: 'path', id: 'id' }
-      #/
-      ########################################
-
-      parts = href.split('#')
-
-      switch parts.length
-
-         when 1
-            path = parts[0]
-            id   = ''
-
-         when 2
-            path = parts[0]
-            id   = parts[1]
-
-         else
-            path = ''
-            id   = ''
-
-      return { path, id }
-
-
-
-
-
-   _formatFullPath: ( path, query ) =>
+   _formatFullPath: ( path = '', query = {} ) =>
 
       ########################################
       #/
@@ -295,18 +158,23 @@ module.exports = class Router extends ObservableObject
       #/   @params {object} query
       #/   @return {string} fullPath
       #/
+      #/   when JIT,
+      #/      ''   ->  /#/...
+      #/      '/'  ->  /...
+      #/
+      #/   when no-JIT,
+      #/      ''   ->  /...
+      #/      '/'  ->  /...
+      #/
       ########################################
 
-      fullPath = @_formatPath(path) + @_formatQuery(query)
+      path        = @_formatPath( path )
+      queryString = @_formatQueryString( query )
 
-      if @isJIT
-
-         if path is '/'
-            return        fullPath
-         else
-            return '/#' + fullPath
-
-      return fullPath
+      if @_isJIT and path isnt '/'
+         return '/#' + path + queryString
+      else
+         return        path + queryString
 
 
 
@@ -319,13 +187,21 @@ module.exports = class Router extends ObservableObject
       #/   @params {string} path
       #/   @return {string} path
       #/
+      #/   Assume current is at /path/subPath
+      #/
+      #/   ''        ->  '/path/subPath'
+      #/   '/'       ->  '/'
+      #/   'path'    ->  '/path'
+      #/   '/path'   ->  '/path'
+      #/   '/path/'  ->  '/path/'
+      #/
       ########################################
 
-      if !path
-          path = @path
-
-      path = '/' + path
-      path = path.replace(/\/+/g, '/')
+      if path
+         if path[0] isnt '/'
+            path = '/' + path
+      else
+         path = @_getPath()
 
       return path
 
@@ -333,24 +209,254 @@ module.exports = class Router extends ObservableObject
 
 
 
-   _formatQuery: ( query = {} ) =>
+   _formatQueryString: ( query = {} ) =>
 
       ########################################
       #/
-      #/   @params {object} query
-      #/   @return {string} querystring
+      #/   @params {object} qyery
+      #/   @return {string} queryString
+      #/
+      #/   {}                         ->  ''
+      #/   { id: 'abc', flag: true }  ->  '?id=abc&flag'
       #/
       ########################################
 
-      parts = []
+      fields = []
 
       for name, value of query
-         if value is true
-            parts.push(name)
-         else
-            parts.push(name + '=' + value)
+          if value is true
+             fields.push(name)
+          else
+             fields.push(name + '=' + value)
 
-      if parts.length
-         return '?' + parts.join('&')
+      if fields.length
+         return '?' + fields.join('&')
       else
          return ''
+
+
+
+
+
+   _resolvePath: ( href = '' ) =>
+
+      ########################################
+      #/
+      #/   @params {string} href
+      #/   @return {string} path
+      #/
+      #/   'path/subPath#id'  ->  '/path/subPath'
+      #/   'path#id'          ->  '/path'
+      #/   'path'             ->  '/path'
+      #/   '#id'              ->  ''
+      #/   '/'                ->  '/'
+      #/   ''                 ->  ''
+      #/
+      ########################################
+
+      path = href.split('#')[0]
+
+      if path and path[0] isnt '/'
+         path = '/' + path
+
+      return path
+
+
+
+
+
+   _resolveID: ( href = '' ) =>
+
+      ########################################
+      #/
+      #/   @params {string} href
+      #/   @return {string} id
+      #/
+      #/   'path#id'  ->  'id'
+      #/   '#id'      ->  'id'
+      #/   '#'        ->  ''
+      #/   'path'     ->  ''
+      #/   '/'        ->  ''
+      #/   ''         ->  ''
+      #/
+      ########################################
+
+      parts = href.split('#')
+
+      if parts.length is 2
+         return parts[1]
+      else
+         return ''
+
+
+
+
+
+   _isCurrentPath: ( href ) =>
+
+      ########################################
+      #/
+      #/   @params {string} href
+      #/   @return {bool}
+      #/
+      #/   Assume current is at /path/subPath?id=abc
+      #/
+      #/   _isCurrentPath('')           ->  true
+      #/   _isCurrentPath('#')          ->  true
+      #/   _isCurrentPath('#abc')       ->  true
+      #/   _isCurrentPath('path')       ->  true
+      #/   _isCurrentPath('path#abc')   ->  true
+      #/   _isCurrentPath('path#abc2')  ->  true
+      #/   _isCurrentPath('/')          ->  false
+      #/   _isCurrentPath('path2#abc')  ->  false
+      #/
+      ########################################
+
+      path = @_resolvePath( href )
+
+      if path and path is @_getPath()
+         return true
+      else
+         return false
+
+
+
+
+
+   _isCurrentID: ( href ) =>
+
+      ########################################
+      #/
+      #/   @params {string} href
+      #/   @return {bool}
+      #/
+      #/   Assume current is at /path/subPath?id=abc
+      #/
+      #/   _isCurrentID('#abc')       ->  true
+      #/   _isCurrentID('path#abc')   ->  true
+      #/   _isCurrentID('')           ->  false
+      #/   _isCurrentID('#')          ->  false
+      #/   _isCurrentID('path')       ->  false
+      #/   _isCurrentID('path#abc2')  ->  false
+      #/   _isCurrentID('/')          ->  false
+      #/   _isCurrentID('path2#abc')  ->  false
+      #/
+      ########################################
+
+      id = @_resolveID( href )
+
+      if id is @_getQuery().id
+         return true
+      else
+         return false
+
+
+
+
+
+   _go: ( href = '' ) =>
+
+      ########################################
+      #/
+      #/   @params {string} href
+      #/
+      #/   when JIT,
+      #/      _go('/path/subPath#abc')  ->  /#/path/subPath?id=abc
+      #/
+      #/   when no-JIT,
+      #/      _go('/path/subPath#abc')  ->  /path/subPath?id=abc
+      #/
+      ########################################
+
+      if util.isUrl( href )
+            @_goUrl( href )
+      else
+         if href[0] is '#'
+            if !@_isCurrentID( href )   then @_goID( href )
+         else
+            if !@_isCurrentPath( href ) then @_goPath( href )
+
+
+
+
+
+   _goUrl: ( url ) =>
+
+      ########################################
+      #/
+      #/   @params {string} url
+      #/
+      #/   _goUrl('http://google.com')  ->  http://google.com ( open in new tab )
+      #/
+      ########################################
+
+      window.open( url, '_blank' )
+
+
+
+
+
+   _goPath: ( href ) =>
+
+      ########################################
+      #/
+      #/   @params {string} href
+      #/
+      #/   @events emit('reload') - only emit when JIT
+      #/
+      #/   Assume current is at '/path/subPath?id=abc&flag'
+      #/
+      #/      _goPath('subPath2')      ->  /path/subPath2?flag
+      #/      _goPath('subPath2#def')  ->  /path/subPath2?id=def&flag
+      #/      _goPath('/')             ->  /?flag
+      #/      _goPath('/#def')         ->  /?id=def&flag
+      #/
+      ########################################
+
+      path  = @_resolvePath( href )
+      id    = @_resolveID( href )
+      query = @_getQuery()
+
+      if id
+         query.id = id
+      else
+         delete query.id
+
+      fullPath = @_formatFullPath( path, query )
+
+      if @_isJIT
+         history.pushState( null, null, fullPath )
+         Breeze.emit('reload')
+
+      else
+         location.href = fullPath
+
+
+
+
+
+   _goID: ( href ) =>
+
+      ########################################
+      #/
+      #/   @params {string} href
+      #/
+      #/   Assume current is at '/path/subPath?id=abc&flag'
+      #/
+      #/      _goID('#')     ->  /?flag
+      #/      _goID('#def')  ->  /?id=def&flag
+      #/
+      ########################################
+
+      id    = @_resolveID( href )
+      path  = @_getPath()
+      query = @_getQuery()
+
+      if id
+         query.id = id
+      else
+         delete query.id
+
+      fullPath = @_formatFullPath( path, query )
+
+      history.replaceState( null, null, fullPath )

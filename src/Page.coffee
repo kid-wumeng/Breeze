@@ -11,13 +11,25 @@ util             = require('./util')
 
 module.exports = class Page extends ObservableObject
 
+   ########################################
+   #/
+   #/   new Page( text )
+   #/
+   #/   parse()    ->  { article, nav, cover, summary }
+   #/   compile()  ->  page ( html-string )
+   #/   render()   ->  page ( DOM )
+   #/
+   #/   Page.bindEvent( page )
+   #/
+   ########################################
 
 
-   constructor: ( text, common = '' ) ->
+
+   constructor: ( text ) ->
 
       super()
 
-      @text = text + common
+      @text = text
 
       # super()
       #
@@ -123,56 +135,70 @@ module.exports = class Page extends ObservableObject
       page.append(side)
       page.append(main)
 
-      @_bindEvent( bus, page )
-
       return page
 
 
 
 
 
-   _bindEvent: ( bus, page ) =>
+Page.bindEvent = ( page ) =>
 
-      ########################################
-      #/
-      #/   @params {Bus}    bus
-      #/   @params {DOM}    page
-      #/
-      ########################################
+   ########################################
+   #/
+   #/   @params {DOM} page
+   #/
+   ########################################
 
-      links = page.findAll('a')
+   links   = page.findAll('a')
 
-      for link in links
-          link.on('click', @_onClickLink)
+   for link in links
+       link.on('click', Page._event_linkClick)
 
-      bus.on('article.scroll', @_onArticleScroll)
+   bus = new Bus()
+   bus.on('article.scroll', Page._event_articleScroll)
 
+   article = page.find('#article')
+   Article.bindEvent( bus, article )
 
-
-
-
-   _onClickLink: ( link ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} link
-      #/   @params {MouseEvent} e
-      #/
-      ########################################
-
-      if href = link.attr('href')
-         router.go( href )
+   window.addEventListener('scroll', Page._onWindowScroll)
 
 
 
 
+Page._onWindowScroll = ( e ) =>
 
-   _onArticleScroll: ( href ) =>
+   ########################################
+   #/
+   #/   @params {Event} e
+   #/
+   ########################################
 
-      ########################################
-      #/
-      #/   @params {string} href
-      #/
-      ########################################
+   console.log e
 
-      router.go( href )
+
+
+
+Page._event_linkClick = ( link ) =>
+
+   ########################################
+   #/
+   #/   @params {DOM} link
+   #/
+   ########################################
+
+   href = link.attr('href')
+   Breeze.go( href )
+
+
+
+
+
+Page._event_articleScroll = ( href ) =>
+
+   ########################################
+   #/
+   #/   @params {string} href
+   #/
+   ########################################
+
+   Breeze.go( href )

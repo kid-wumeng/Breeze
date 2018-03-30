@@ -451,8 +451,6 @@ module.exports = class Article
 
       article = util.dom(@compile())
 
-      @_bindEvent( bus, article )
-
       return article
 
 
@@ -495,86 +493,6 @@ module.exports = class Article
 
 
 
-   _isVisible: ( article ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} article
-      #/   @return {boolean}
-      #/
-      ########################################
-
-      return article.width() > 0
-
-
-
-
-
-   _getSectionStats: ( article ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM}      article
-      #/   @return {object[]} stats - [{ id, top }]
-      #/
-      ########################################
-
-      stats = []
-
-      for section in article.findAll('.section')
-
-          stats.push({
-             id:  section.attr('id')
-             top: section.top()
-          })
-
-      return stats
-
-
-
-
-
-   _locateID: ( stats ) =>
-
-      ########################################
-      #/
-      #/   @params {object[]} stats - [{ id, top }]
-      #/   @return {string}   id
-      #/
-      ########################################
-
-      for stat, i in stats
-         if stat.top > 0
-            break
-
-      return stats[i-1].id ? ''
-
-
-
-
-
-   _isDifferentID: ( id ) =>
-
-      ########################################
-      #/
-      #/   @params {string} id
-      #/   @return {boolean}
-      #/
-      ########################################
-
-      if !id and !router.query.id
-         return false
-
-      else if id is router.query.id
-         return false
-
-      else
-         return true
-
-
-
-
-
    _onSummarySelect: ( article, href ) =>
 
       ########################################
@@ -591,3 +509,48 @@ module.exports = class Article
          window.scrollBy(0, top)
       else
          window.scrollTo(0, 0)
+
+
+
+
+
+Article.locateID = ( article ) =>
+
+   ########################################
+   #/
+   #/   @params {object[]} stats - [{ id, top }]
+   #/   @return {string}   id
+   #/
+   ########################################
+
+   stats = Article._getSectionStats( article )
+
+   for stat, i in stats
+      if stat.top > 0
+         break
+
+   return stats[i-1].id ? ''
+
+
+
+
+
+Article._getSectionStats = ( article ) =>
+
+   ########################################
+   #/
+   #/   @params {DOM}      article
+   #/   @return {object[]} stats - [{ id, top }]
+   #/
+   ########################################
+
+   stats = []
+
+   for section in article.findAll('.section')
+
+       stats.push({
+          id:  section.attr('id')
+          top: section.top()
+       })
+
+   return stats

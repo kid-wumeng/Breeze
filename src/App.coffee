@@ -1,6 +1,7 @@
-Bus  = require('./Bus')
-Page = require('./Page')
-util = require('./util')
+Bus          = require('./Bus')
+Page         = require('./Page')
+PageEventBus = require('./PageEventBus')
+util         = require('./util')
 
 
 
@@ -22,7 +23,7 @@ module.exports = class App
 
       ########################################
       #/
-      #/   @params {boolean} isJIT - is the Just In Time mode ?
+      #/   @params {boolean} isJIT - is the 'Just In Time' mode ?
       #/
       ########################################
 
@@ -42,7 +43,7 @@ module.exports = class App
 
          @_loadPage()
 
-         router.on('reload', @_loadPage)
+         Breeze.on('reload', @_loadPage)
 
       else
          util.dom(document.querySelector('#page'))
@@ -53,12 +54,12 @@ module.exports = class App
 
    _loadPage: =>
 
-      page = @_pageCache[router.path]
+      page = @_pageCache[ Breeze.getPath() ]
 
       if page
          @_mountPage( page )
       else
-         loader.load( router.path, @_renderPage, @_render404 )
+         loader.load( Breeze.getPath(), @_renderPage, @_render404 )
 
 
 
@@ -76,9 +77,7 @@ module.exports = class App
       page = new Page( text )
       page = page.render()
 
-      @_pageCache[router.path] = page
-
-      console.log 1111
+      @_pageCache[ Breeze.getPath() ] = page
 
       @_mountPage( page )
 
@@ -107,6 +106,8 @@ module.exports = class App
       #/   @params {DOM} page
       #/
       ########################################
+
+      new PageEventBus( page )
 
       old = document.querySelector('body > #page')
 

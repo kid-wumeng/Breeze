@@ -105,12 +105,12 @@ exports.dom = ( html ) =>
 
    if typeof( html ) is 'string'
       if html[0] is '<'
-         return new DOM( html )
+         return new Breeze.DOM( html )
       else
          return _domBySelector( selector = html )
 
    else
-      return new DOM( $el = html )
+      return new Breeze.DOM( $el = html )
 
 
 
@@ -120,7 +120,7 @@ _domBySelector = ( selector ) =>
 
    { tag, id, classname } = parseSelector( selector )
 
-   dom = new DOM('<'+tag+'>')
+   dom = new Breeze.DOM('<'+tag+'>')
 
    dom.attr('id', id)           if id
    dom.attr('class', classname) if classname

@@ -2,7 +2,7 @@ DOM    = require('./DOM.web')
 Loader = require('./Loader.web')
 Router = require('./Router')
 App    = require('./App')
-Main   = require('./Main')
+Breeze = require('./Breeze')
 
 
 
@@ -15,4 +15,4 @@ window.onload = =>
 
 
 
-module.exports = new Main
+module.exports = new Breeze

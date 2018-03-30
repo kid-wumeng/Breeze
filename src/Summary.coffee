@@ -284,7 +284,7 @@ Summary._filterSection = ( section ) =>
    ########################################
 
    if section.heading
-      if section.heading.lv <= Breeze.get('summary.showLevel')
+      if section.heading.lv <= Breeze.config('summary.showLevel')
          return true
 
    return false

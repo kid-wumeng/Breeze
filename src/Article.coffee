@@ -336,7 +336,7 @@ module.exports = class Article
 
       { lv, text, order } = heading
 
-      if lv <= Breeze.get('article.showOrderLevel')
+      if lv <= Breeze.config('article.showOrderLevel')
          text = "#{order} #{text}"
 
       return "<h#{lv}>#{text.trim()}</h#{lv}>"

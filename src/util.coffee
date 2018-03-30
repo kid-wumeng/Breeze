@@ -29,7 +29,7 @@ exports.filePath = ( href = '' ) =>
    else
       path = href
 
-   if basePath = Breeze.get('basePath')
+   if basePath = Breeze.config('basePath')
       path = basePath + '/' + path
 
    if path

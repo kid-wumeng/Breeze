@@ -1,7 +1,6 @@
 ObservableObject = require('./ObservableObject')
 Bus              = require('./Bus')
 Markdown         = require('./Markdown')
-Navigator        = require('./Navigator')
 Cover            = require('./Cover')
 Summary          = require('./Summary')
 Article          = require('./Article')

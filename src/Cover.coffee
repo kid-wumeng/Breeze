@@ -225,13 +225,13 @@ module.exports = class Cover
       buttons = cover.findAll('.buttons li')
 
       for button in buttons
-          button.on('click', @_hide.bind(@, cover))
+          button.on('click', @_onClickButton.bind(@, cover))
 
 
 
 
 
-   _hide: ( cover ) =>
+   _onClickButton: ( cover, button ) =>
 
       ########################################
       #/

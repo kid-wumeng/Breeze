@@ -724,7 +724,6 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     this._parseFullPath = this._parseFullPath.bind(this);
     this._parsePath = this._parsePath.bind(this);
     this._parseQuery = this._parseQuery.bind(this);
-    this._parseFilePath = this._parseFilePath.bind(this);
     this.go = this.go.bind(this);
     this._goUrl = this._goUrl.bind(this);
     this._goPath = this._goPath.bind(this);
@@ -738,7 +737,6 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     this.fullPath = '';
     this.path = '';
     this.query = '';
-    this.filePath = '';
     this._parse();
     window.addEventListener('popstate', () => {
       this._parse();
@@ -750,10 +748,7 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
     boundMethodCheck(this, Router);
     this.fullPath = this._parseFullPath();
     this.path = this._parsePath();
-    this.query = this._parseQuery();
-    if (this.isJIT) {
-      return this.filePath = this._parseFilePath();
-    }
+    return this.query = this._parseQuery();
   }
 
   _parseFullPath() {
@@ -839,32 +834,6 @@ var Router_1 = Router = class Router extends ObservableObject$1 {
       }
     }
     return query;
-  }
-
-  _parseFilePath() {
-    var path;
-    boundMethodCheck(this, Router);
-    //#######################################
-    ///
-    ///   @return {string} path
-    ///
-    ///
-    ///   when JIT (only),
-    ///      host:port/                 ->  basePath/README.md
-    ///      host:port/#/               ->  basePath/README.md
-    ///      host:port/#/path/subPath   ->  basePath/path/subPath.md
-    ///      host:port/#/path/subPath/  ->  basePath/path/subPath/README.md
-    ///
-    //#######################################
-    path = this._parsePath();
-    path = util$2.filePath(path);
-    if (path === '') {
-      path = 'README';
-    }
-    if (path[path.length - 1] === '/') {
-      path += 'README';
-    }
-    return path + '.md';
   }
 
   go(href = '') {
@@ -2832,7 +2801,7 @@ var Cover_1 = Cover = class Cover {
     this._compileButtons = this._compileButtons.bind(this);
     this.render = this.render.bind(this);
     this._bindEvent = this._bindEvent.bind(this);
-    this._hide = this._hide.bind(this);
+    this._onClickButton = this._onClickButton.bind(this);
     //#######################################
     ///
     ///   @params {string} html
@@ -2995,12 +2964,12 @@ var Cover_1 = Cover = class Cover {
     results = [];
     for (i = 0, len = buttons.length; i < len; i++) {
       button = buttons[i];
-      results.push(button.on('click', this._hide.bind(this, cover)));
+      results.push(button.on('click', this._onClickButton.bind(this, cover)));
     }
     return results;
   }
 
-  _hide(cover) {
+  _onClickButton(cover, button) {
     //#######################################
     ///
     ///   @params {DOM} cover
@@ -4845,7 +4814,7 @@ var App_1 = App = class App {
   //#######################################
   ///
   ///   Be responsible for
-  ///      loading pages and save them to cache,
+  ///      loading pages and save them to _pageCache,
   ///      swapping them when route is changed.
   ///
   //#######################################
@@ -4854,37 +4823,31 @@ var App_1 = App = class App {
     this._loadPage = this._loadPage.bind(this);
     this._renderPage = this._renderPage.bind(this);
     this._render404 = this._render404.bind(this);
-    this._mount = this._mount.bind(this);
+    this._mountPage = this._mountPage.bind(this);
     //#######################################
     ///
     ///   @params {boolean} isJIT - is the Just In Time mode ?
     ///
     //#######################################
     this.isJIT = isJIT;
-    this.cache = {};
-    router.on('reload', this._loadPage);
+    this._pageCache = {};
     this._run();
   }
 
   _run() {
     if (this.isJIT) {
-      return this._loadPage();
+      this._loadPage();
+      return router.on('reload', this._loadPage);
     } else {
       return util$10.dom(document.querySelector('#page'));
     }
   }
 
   _loadPage() {
-    var page, path;
-    //#######################################
-    ///
-    ///   Load current page.
-    ///
-    //#######################################
-    path = router.filePath;
-    page = this.cache[path];
+    var page;
+    page = this._pageCache[router.path];
     if (page) {
-      return this._mount(page);
+      return this._mountPage(page);
     } else {
       return loader.load(router.path, this._renderPage, this._render404);
     }
@@ -4899,8 +4862,9 @@ var App_1 = App = class App {
     //#######################################
     page = new Page$1(text);
     page = page.render();
-    this.cache[router.filePath] = page;
-    return this._mount(page);
+    this._pageCache[router.path] = page;
+    console.log(1111);
+    return this._mountPage(page);
   }
 
   _render404() {
@@ -4912,7 +4876,7 @@ var App_1 = App = class App {
     return console.log('render 404');
   }
 
-  _mount(page) {
+  _mountPage(page) {
     var old;
     //#######################################
     ///

@@ -31,7 +31,6 @@ module.exports = class Router extends ObservableObject
       @fullPath = ''
       @path     = ''
       @query    = ''
-      @filePath = ''
 
       @_parse()
 
@@ -48,7 +47,6 @@ module.exports = class Router extends ObservableObject
       @fullPath = @_parseFullPath()
       @path     = @_parsePath()
       @query    = @_parseQuery()
-      @filePath = @_parseFilePath() if @isJIT
 
 
 
@@ -148,36 +146,6 @@ module.exports = class Router extends ObservableObject
              query[name] = value
 
       return query
-
-
-
-
-
-   _parseFilePath: =>
-
-      ########################################
-      #/
-      #/   @return {string} path
-      #/
-      #/
-      #/   when JIT (only),
-      #/      host:port/                 ->  basePath/README.md
-      #/      host:port/#/               ->  basePath/README.md
-      #/      host:port/#/path/subPath   ->  basePath/path/subPath.md
-      #/      host:port/#/path/subPath/  ->  basePath/path/subPath/README.md
-      #/
-      ########################################
-
-      path = @_parsePath()
-      path = util.filePath( path )
-
-      if path is ''
-         path = 'README'
-
-      if path[path.length - 1] is '/'
-         path += 'README'
-
-      return path + '.md'
 
 
 

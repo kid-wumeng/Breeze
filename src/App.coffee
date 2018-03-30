@@ -9,7 +9,7 @@ module.exports = class App
    ########################################
    #/
    #/   Be responsible for
-   #/      loading pages and save them to cache,
+   #/      loading pages and save them to _pageCache,
    #/      swapping them when route is changed.
    #/
    ########################################
@@ -27,9 +27,8 @@ module.exports = class App
       ########################################
 
       @isJIT = isJIT
-      @cache = {}
 
-      router.on('reload', @_loadPage)
+      @_pageCache = {}
 
       @_run()
 
@@ -40,7 +39,11 @@ module.exports = class App
    _run: =>
 
       if @isJIT
+
          @_loadPage()
+
+         router.on('reload', @_loadPage)
+
       else
          util.dom(document.querySelector('#page'))
 
@@ -50,17 +53,10 @@ module.exports = class App
 
    _loadPage: =>
 
-      ########################################
-      #/
-      #/   Load current page.
-      #/
-      ########################################
-
-      path = router.filePath
-      page = @cache[path]
+      page = @_pageCache[router.path]
 
       if page
-         @_mount( page )
+         @_mountPage( page )
       else
          loader.load( router.path, @_renderPage, @_render404 )
 
@@ -80,10 +76,11 @@ module.exports = class App
       page = new Page( text )
       page = page.render()
 
-      @cache[router.filePath] = page
+      @_pageCache[router.path] = page
 
-      @_mount( page )
+      console.log 1111
 
+      @_mountPage( page )
 
 
 
@@ -103,7 +100,7 @@ module.exports = class App
 
 
 
-   _mount: ( page ) =>
+   _mountPage: ( page ) =>
 
       ########################################
       #/

@@ -39,6 +39,7 @@ module.exports = class Article
    #|   article.render()  -> dom
    #|
    #|   Article.locateID( dom ) -> id
+   #|   Article.scrollTo( dom, id )
    #|
    ########################################
 
@@ -68,7 +69,7 @@ module.exports = class Article
 
       ########################################
       #|
-      #|   @return {object[]} sections
+      #|   @return {object[]} sections - [{ heading, content, example }]
       #|
       ########################################
 
@@ -86,7 +87,7 @@ module.exports = class Article
       ########################################
       #|
       #|   @params {string}   markdown
-      #|   @return {object[]} section - [{ heading, content, example }]
+      #|   @return {object[]} sections - [{ heading, content, example }]
       #|
       ########################################
 
@@ -124,12 +125,12 @@ module.exports = class Article
    _parseSection: ( sectionLines ) =>
 
       ########################################
-      #/
-      #/   @params {string[]} sectionLines
-      #/   @return {object}   section - {string} heading
-      #/                                {string} content
-      #/                                {string} example
-      #/
+      #|
+      #|   @params {string[]} sectionLines
+      #|   @return {object}   section - {string} heading
+      #|                                {string} content
+      #|                                {string} example
+      #|
       ########################################
 
       heading = ''
@@ -172,13 +173,13 @@ module.exports = class Article
    _checkLine: ( line ) =>
 
       ########################################
-      #/
-      #/   @return {object} - {boolean} isExampleStart
-      #/                      {boolean} isExampleEnd
-      #/                      {boolean} isCode
-      #/                      {boolean} isHeading
-      #/                      {boolean} isEOF
-      #/
+      #|
+      #|   @return {object} - {boolean} isExampleStart
+      #|                      {boolean} isExampleEnd
+      #|                      {boolean} isCode
+      #|                      {boolean} isHeading
+      #|                      {boolean} isEOF
+      #|
       ########################################
 
       exampleStart = /^\s*<example>/
@@ -202,10 +203,10 @@ module.exports = class Article
    _parseHeadings: ( sections ) =>
 
       ########################################
-      #/
-      #/   @params {object[]} sections - [{ heading, content, example }]
-      #/   @return {object[]} sections - [{ heading, content, example }]
-      #/
+      #|
+      #|   @params {object[]} sections - [{ heading, content, example }]
+      #|   @return {object[]} sections - [{ heading, content, example }]
+      #|
       ########################################
 
       for section, i in sections
@@ -224,19 +225,20 @@ module.exports = class Article
    _parseHeading: ( heading, prev ) =>
 
       ########################################
-      #/
-      #/   @params {string} heading
-      #/   @params {object} prev - {number} lv
-      #/                           {string} text
-      #/                           {string} order
-      #/
-      #/   @return {object} heading - {number} lv
-      #/                              {string} text
-      #/                              {string} order
-      #/
-      #/   Assume the prev.order is '1.2',
-      #/      '#### Quick Start'  ->  { lv: 4, text: 'Quick Start', order: '1.2.0.1' }
-      #/
+      #|
+      #|   @params {string} heading
+      #|   @params {object} prev - {number} lv
+      #|                           {string} text
+      #|                           {string} order
+      #|
+      #|   @return {object} heading - {number} lv
+      #|                              {string} text
+      #|                              {string} order
+      #|
+      #|   Assume the prev.order is '1.2',
+      #|
+      #|      '#### Quick Start'  ->  { lv: 4, text: 'Quick Start', order: '1.2.0.1' }
+      #|
       ########################################
 
       if heading
@@ -261,11 +263,11 @@ module.exports = class Article
    _parseOrder: ( lv, prevOrder ) =>
 
       ########################################
-      #/
-      #/   @params {number} lv
-      #/   @params {string} prevOrder
-      #/   @return {string} order
-      #/
+      #|
+      #|   @params {number} lv
+      #|   @params {string} prevOrder
+      #|   @return {string} order
+      #|
       ########################################
 
       if prevOrder
@@ -296,11 +298,11 @@ module.exports = class Article
    _compile: =>
 
       ########################################
-      #/
-      #/   Compile article-markdown to html.
-      #/
-      #/   @return {string} html
-      #/
+      #|
+      #|   Compile article-markdown to html.
+      #|
+      #|   @return {string} html
+      #|
       ########################################
 
       sections = @_parse()
@@ -318,12 +320,12 @@ module.exports = class Article
    _compileSection: ( section ) =>
 
       ########################################
-      #/
-      #/   @params {object} section - {object} heading
-      #/                              {string} content
-      #/                              {string} example
-      #/   @return {string} section
-      #/
+      #|
+      #|   @params {object} section - {object} heading
+      #|                              {string} content
+      #|                              {string} example
+      #|   @return {string} section
+      #|
       ########################################
 
       { heading, content, example } = section
@@ -355,12 +357,12 @@ module.exports = class Article
    _compileHeading: ( heading ) =>
 
       ########################################
-      #/
-      #/   @params {object} heading - {number} lv
-      #/                              {string} text
-      #/                              {string} order
-      #/   @params {string} heading
-      #/
+      #|
+      #|   @params {object} heading - {number} lv
+      #|                              {string} text
+      #|                              {string} order
+      #|   @params {string} heading
+      #|
       ########################################
 
       { lv, text, order } = heading
@@ -377,10 +379,10 @@ module.exports = class Article
    _compileContent: ( content ) =>
 
       ########################################
-      #/
-      #/   @params {string} content ( markdown )
-      #/   @return {string} content ( html )
-      #/
+      #|
+      #|   @params {string} content ( markdown )
+      #|   @return {string} content ( html )
+      #|
       ########################################
 
       renderer = new marked.Renderer()
@@ -397,10 +399,10 @@ module.exports = class Article
    _compileExample: ( example ) =>
 
       ########################################
-      #/
-      #/   @params {string} example ( markdown )
-      #/   @return {string} example ( html )
-      #/
+      #|
+      #|   @params {string} example ( markdown )
+      #|   @return {string} example ( html )
+      #|
       ########################################
 
       renderer = new marked.Renderer()
@@ -416,6 +418,15 @@ module.exports = class Article
 
    _compileHTML: ( html ) =>
 
+      ########################################
+      #|
+      #|   @params {string} html
+      #|   @return {string} html
+      #|
+      #|   For renderer.html
+      #|
+      ########################################
+
       html = html.trim()
 
       switch
@@ -428,6 +439,13 @@ module.exports = class Article
 
 
    _compilePre: ( html ) =>
+
+      ########################################
+      #|
+      #|   @params {string} html
+      #|   @return {string} html
+      #|
+      ########################################
 
       pre = util.dom( html )
       pre.html(pre.html().trim())
@@ -443,6 +461,13 @@ module.exports = class Article
 
    _compileApi: ( html ) =>
 
+      ########################################
+      #|
+      #|   @params {string} html
+      #|   @return {string} html
+      #|
+      ########################################
+
       api = new Api( html )
       return api.compile()
 
@@ -453,12 +478,12 @@ module.exports = class Article
    _isTag: ( name, html ) =>
 
       ########################################
-      #/
-      #/   @params {string} name
-      #/   @params {string} html
-      #/
-      #/   @return {boolean}
-      #/
+      #|
+      #|   @params {string} name
+      #|   @params {string} html
+      #|
+      #|   @return {boolean}
+      #|
       ########################################
 
       reg = new RegExp("^<\\s*#{name}\\s*>(.|\n)*?<\\s*/\\s*#{name}\\s*>$")
@@ -472,10 +497,10 @@ module.exports = class Article
    _render: ( bus ) =>
 
       ########################################
-      #/
-      #/   @params {Bus} bus
-      #/   @return {DOM} article
-      #/
+      #|
+      #|   @params {Bus} bus
+      #|   @return {DOM} article
+      #|
       ########################################
 
       return util.dom(@_compile())
@@ -484,58 +509,22 @@ module.exports = class Article
 
 
 
-   _bindEvent: ( bus, article ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} article
-      #/
-      ########################################
-
-      window.addEventListener('scroll', @_onWindowScroll.bind( @, bus, article ))
-      bus.on('summary.select', @_onSummarySelect.bind( @, article ))
-
-
-
-
-
-   _onWindowScroll: ( bus, article ) =>
-
-      ########################################
-      #/
-      #/   @params {Bus} bus
-      #/   @params {DOM} article
-      #/
-      ########################################
-
-      if @_isVisible( article )
-
-         stats = @_getSectionStats( article )
-         id    = @_locateID( stats )
-
-         if @_isDifferentID( id )
-            bus.emit('article.scroll', '#' + id)
-
-
-
-
-
-   _onSummarySelect: ( article, href ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} article
-      #/   @params {string} href
-      #/
-      ########################################
-
-      section = article.find(".section[href=\"#{href}\"]")
-
-      if section
-         top = section.top()
-         window.scrollBy(0, top)
-      else
-         window.scrollTo(0, 0)
+   # _onSummarySelect: ( article, href ) =>
+   #
+   #    ########################################
+   #    #/
+   #    #/   @params {DOM} article
+   #    #/   @params {string} href
+   #    #/
+   #    ########################################
+   #
+   #    section = article.find(".section[href=\"#{href}\"]")
+   #
+   #    if section
+   #       top = section.top()
+   #       window.scrollBy(0, top)
+   #    else
+   #       window.scrollTo(0, 0)
 
 
 
@@ -544,40 +533,37 @@ module.exports = class Article
 Article.locateID = ( article ) =>
 
    ########################################
-   #/
-   #/   @params {object[]} stats - [{ id, top }]
-   #/   @return {string}   id
-   #/
+   #|
+   #|   @params {DOM} article
+   #|   @return {string} id
+   #|
    ########################################
 
-   stats = Article._getSectionStats( article )
+   sections = article.findAll('.section')
 
-   for stat, i in stats
-      if stat.top > 0
+   for section, i in sections
+      if section.top() > 0
          break
 
-   return stats[i-1].id ? ''
+   return sections[i-1].attr('id') ? ''
 
 
 
 
 
-Article._getSectionStats = ( article ) =>
+Article.scrollTo = ( article, id ) =>
 
    ########################################
-   #/
-   #/   @params {DOM}      article
-   #/   @return {object[]} stats - [{ id, top }]
-   #/
+   #|
+   #|   @params {DOM} article
+   #|   @params {string} id
+   #|
    ########################################
 
-   stats = []
+   section = article.find("[id=\"#{id}\"]")
 
-   for section in article.findAll('.section')
-
-       stats.push({
-          id:  section.attr('id')
-          top: section.top()
-       })
-
-   return stats
+   if section
+      top = section.top()
+      window.scrollBy(0, top)
+   else
+      window.scrollTo(0, 0)

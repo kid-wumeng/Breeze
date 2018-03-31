@@ -2,6 +2,8 @@ util = require('./util')
 
 
 
+
+
 module.exports = class Router
 
    ########################################
@@ -15,6 +17,8 @@ module.exports = class Router
    #|
    #|   router.getPath()             -> path
    #|   router.getQuery()            -> query
+   #|   router.resolvePath( href )   -> path
+   #|   router.resolveID( href )     -> id
    #|   router.isCurrentPath( href ) -> bool
    #|   router.isCurrentID( href )   -> bool
    #|   router.go( href )
@@ -39,6 +43,8 @@ module.exports = class Router
 
       @getPath       = @_getPath
       @getQuery      = @_getQuery
+      @resolvePath   = @_resolvePath
+      @resolveID     = @_resolveID
       @isCurrentPath = @_isCurrentPath
       @isCurrentID   = @_isCurrentID
       @go            = @_go
@@ -318,7 +324,7 @@ module.exports = class Router
 
       path = @_resolvePath( href )
 
-      if path and path is @_getPath()
+      if !path or path is @_getPath()
          return true
       else
          return false

@@ -693,6 +693,8 @@ var Router_1 = Router = class Router {
   //|
   //|   router.getPath()             -> path
   //|   router.getQuery()            -> query
+  //|   router.resolvePath( href )   -> path
+  //|   router.resolveID( href )     -> id
   //|   router.isCurrentPath( href ) -> bool
   //|   router.isCurrentID( href )   -> bool
   //|   router.go( href )
@@ -724,6 +726,8 @@ var Router_1 = Router = class Router {
     this._isJIT = isJIT;
     this.getPath = this._getPath;
     this.getQuery = this._getQuery;
+    this.resolvePath = this._resolvePath;
+    this.resolveID = this._resolveID;
     this.isCurrentPath = this._isCurrentPath;
     this.isCurrentID = this._isCurrentID;
     this.go = this._go;
@@ -962,7 +966,7 @@ var Router_1 = Router = class Router {
     //|
     //#######################################
     path = this._resolvePath(href);
-    if (path && path === this._getPath()) {
+    if (!path || path === this._getPath()) {
       return true;
     } else {
       return false;
@@ -4311,20 +4315,19 @@ marked$3.setOptions({
 var Article_1 = Article = class Article {
   //#######################################
   //|
-  //|   < Article >
+  //|   new Article( markdown )
   //|
   //|   -----------------------------------
   //|    Be responsible for
   //|       handling the <div id="article">
   //|   -----------------------------------
   //|
-  //|   new Article( markdown )
-  //|
   //|   article.parse()   -> sections
   //|   article.compile() -> html
   //|   article.render()  -> dom
   //|
   //|   Article.locateID( dom ) -> id
+  //|   Article.scrollTo( dom, id )
   //|
   //#######################################
   constructor(markdown) {
@@ -4345,9 +4348,6 @@ var Article_1 = Article = class Article {
     this._compileApi = this._compileApi.bind(this);
     this._isTag = this._isTag.bind(this);
     this._render = this._render.bind(this);
-    this._bindEvent = this._bindEvent.bind(this);
-    this._onWindowScroll = this._onWindowScroll.bind(this);
-    this._onSummarySelect = this._onSummarySelect.bind(this);
     //#######################################
     //|
     //|   @params {string} markdown
@@ -4363,7 +4363,7 @@ var Article_1 = Article = class Article {
     var sections;
     //#######################################
     //|
-    //|   @return {object} - {object[]} sections
+    //|   @return {object[]} sections - [{ heading, content, example }]
     //|
     //#######################################
     sections = this._parseSections(this.markdown);
@@ -4374,10 +4374,10 @@ var Article_1 = Article = class Article {
   _parseSections(markdown) {
     var i, inCode, inExample, isCode, isExampleEnd, isExampleStart, j, len, line, lines, next, section, sectionLines, sections;
     //#######################################
-    ///
-    ///   @params {string}   markdown
-    ///   @return {object[]} section - [{ heading, content, example }]
-    ///
+    //|
+    //|   @params {string}   markdown
+    //|   @return {object[]} sections - [{ heading, content, example }]
+    //|
     //#######################################
     lines = markdown.split('\n');
     sections = [];
@@ -4412,12 +4412,12 @@ var Article_1 = Article = class Article {
   _parseSection(sectionLines) {
     var content, example, heading, i, inExample, isExampleEnd, isExampleStart, isHeading, j, len, line;
     //#######################################
-    ///
-    ///   @params {string[]} sectionLines
-    ///   @return {object}   section - {string} heading
-    ///                                {string} content
-    ///                                {string} example
-    ///
+    //|
+    //|   @params {string[]} sectionLines
+    //|   @return {object}   section - {string} heading
+    //|                                {string} content
+    //|                                {string} example
+    //|
     //#######################################
     heading = '';
     content = '';
@@ -4453,13 +4453,13 @@ var Article_1 = Article = class Article {
   _checkLine(line) {
     var code, exampleEnd, exampleStart, heading, isCode, isEOF, isExampleEnd, isExampleStart, isHeading;
     //#######################################
-    ///
-    ///   @return {object} - {boolean} isExampleStart
-    ///                      {boolean} isExampleEnd
-    ///                      {boolean} isCode
-    ///                      {boolean} isHeading
-    ///                      {boolean} isEOF
-    ///
+    //|
+    //|   @return {object} - {boolean} isExampleStart
+    //|                      {boolean} isExampleEnd
+    //|                      {boolean} isCode
+    //|                      {boolean} isHeading
+    //|                      {boolean} isEOF
+    //|
     //#######################################
     exampleStart = /^\s*<example>/;
     exampleEnd = /^\s*<\/example>/;
@@ -4476,10 +4476,10 @@ var Article_1 = Article = class Article {
   _parseHeadings(sections) {
     var heading, i, j, len, prev, ref, ref1, section;
 //#######################################
-///
-///   @params {object[]} sections - [{ heading, content, example }]
-///   @return {object[]} sections - [{ heading, content, example }]
-///
+//|
+//|   @params {object[]} sections - [{ heading, content, example }]
+//|   @return {object[]} sections - [{ heading, content, example }]
+//|
 //#######################################
     for (i = j = 0, len = sections.length; j < len; i = ++j) {
       section = sections[i];
@@ -4493,19 +4493,20 @@ var Article_1 = Article = class Article {
   _parseHeading(heading, prev) {
     var lv, order, results, text;
     //#######################################
-    ///
-    ///   @params {string} heading
-    ///   @params {object} prev - {number} lv
-    ///                           {string} text
-    ///                           {string} order
-    ///
-    ///   @return {object} heading - {number} lv
-    ///                              {string} text
-    ///                              {string} order
-    ///
-    ///   Assume the prev.order is '1.2',
-    ///      '#### Quick Start'  ->  { lv: 4, text: 'Quick Start', order: '1.2.0.1' }
-    ///
+    //|
+    //|   @params {string} heading
+    //|   @params {object} prev - {number} lv
+    //|                           {string} text
+    //|                           {string} order
+    //|
+    //|   @return {object} heading - {number} lv
+    //|                              {string} text
+    //|                              {string} order
+    //|
+    //|   Assume the prev.order is '1.2',
+    //|
+    //|      '#### Quick Start'  ->  { lv: 4, text: 'Quick Start', order: '1.2.0.1' }
+    //|
     //#######################################
     if (heading) {
       heading = heading.trim();
@@ -4522,11 +4523,11 @@ var Article_1 = Article = class Article {
   _parseOrder(lv, prevOrder) {
     var order;
     //#######################################
-    ///
-    ///   @params {number} lv
-    ///   @params {string} prevOrder
-    ///   @return {string} order
-    ///
+    //|
+    //|   @params {number} lv
+    //|   @params {string} prevOrder
+    //|   @return {string} order
+    //|
     //#######################################
     if (prevOrder) {
       // Assume lv = 3, prevOrder = '1.2.3.4'
@@ -4549,11 +4550,11 @@ var Article_1 = Article = class Article {
   _compile() {
     var article, sections;
     //#######################################
-    ///
-    ///   Compile article-markdown to html.
-    ///
-    ///   @return {string} html
-    ///
+    //|
+    //|   Compile article-markdown to html.
+    //|
+    //|   @return {string} html
+    //|
     //#######################################
     sections = this._parse();
     sections = sections.map(this._compileSection).join('');
@@ -4565,12 +4566,12 @@ var Article_1 = Article = class Article {
   _compileSection(section) {
     var content, example, heading, id, lv, order, text;
     //#######################################
-    ///
-    ///   @params {object} section - {object} heading
-    ///                              {string} content
-    ///                              {string} example
-    ///   @return {string} section
-    ///
+    //|
+    //|   @params {object} section - {object} heading
+    //|                              {string} content
+    //|                              {string} example
+    //|   @return {string} section
+    //|
     //#######################################
     ({heading, content, example} = section);
     lv = heading != null ? heading.lv : void 0;
@@ -4600,12 +4601,12 @@ var Article_1 = Article = class Article {
   _compileHeading(heading) {
     var lv, order, text;
     //#######################################
-    ///
-    ///   @params {object} heading - {number} lv
-    ///                              {string} text
-    ///                              {string} order
-    ///   @params {string} heading
-    ///
+    //|
+    //|   @params {object} heading - {number} lv
+    //|                              {string} text
+    //|                              {string} order
+    //|   @params {string} heading
+    //|
     //#######################################
     ({lv, text, order} = heading);
     if (lv <= Breeze.config('article.showOrderLevel')) {
@@ -4617,10 +4618,10 @@ var Article_1 = Article = class Article {
   _compileContent(content) {
     var renderer;
     //#######################################
-    ///
-    ///   @params {string} content ( markdown )
-    ///   @return {string} content ( html )
-    ///
+    //|
+    //|   @params {string} content ( markdown )
+    //|   @return {string} content ( html )
+    //|
     //#######################################
     renderer = new marked$3.Renderer();
     renderer.html = this._compileHTML;
@@ -4631,10 +4632,10 @@ var Article_1 = Article = class Article {
   _compileExample(example) {
     var renderer;
     //#######################################
-    ///
-    ///   @params {string} example ( markdown )
-    ///   @return {string} example ( html )
-    ///
+    //|
+    //|   @params {string} example ( markdown )
+    //|   @return {string} example ( html )
+    //|
     //#######################################
     renderer = new marked$3.Renderer();
     renderer.html = this._compileHTML;
@@ -4643,6 +4644,14 @@ var Article_1 = Article = class Article {
   }
 
   _compileHTML(html) {
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|   @return {string} html
+    //|
+    //|   For renderer.html
+    //|
+    //#######################################
     html = html.trim();
     switch (false) {
       case !this._isTag('pre', html):
@@ -4656,6 +4665,12 @@ var Article_1 = Article = class Article {
 
   _compilePre(html) {
     var code, pre;
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|   @return {string} html
+    //|
+    //#######################################
     pre = util$6.dom(html);
     pre.html(pre.html().trim());
     if (code = pre.find('code')) {
@@ -4666,6 +4681,12 @@ var Article_1 = Article = class Article {
 
   _compileApi(html) {
     var api;
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|   @return {string} html
+    //|
+    //#######################################
     api = new Api$1(html);
     return api.compile();
   }
@@ -4673,12 +4694,12 @@ var Article_1 = Article = class Article {
   _isTag(name, html) {
     var reg;
     //#######################################
-    ///
-    ///   @params {string} name
-    ///   @params {string} html
-    ///
-    ///   @return {boolean}
-    ///
+    //|
+    //|   @params {string} name
+    //|   @params {string} html
+    //|
+    //|   @return {boolean}
+    //|
     //#######################################
     reg = new RegExp(`^<\\s*${name}\\s*>(.|\n)*?<\\s*/\\s*${name}\\s*>$`);
     return reg.test(html);
@@ -4686,96 +4707,65 @@ var Article_1 = Article = class Article {
 
   _render(bus) {
     //#######################################
-    ///
-    ///   @params {Bus} bus
-    ///   @return {DOM} article
-    ///
+    //|
+    //|   @params {Bus} bus
+    //|   @return {DOM} article
+    //|
     //#######################################
     return util$6.dom(this._compile());
   }
 
-  _bindEvent(bus, article) {
-    //#######################################
-    ///
-    ///   @params {DOM} article
-    ///
-    //#######################################
-    window.addEventListener('scroll', this._onWindowScroll.bind(this, bus, article));
-    return bus.on('summary.select', this._onSummarySelect.bind(this, article));
-  }
-
-  _onWindowScroll(bus, article) {
-    var id, stats;
-    //#######################################
-    ///
-    ///   @params {Bus} bus
-    ///   @params {DOM} article
-    ///
-    //#######################################
-    if (this._isVisible(article)) {
-      stats = this._getSectionStats(article);
-      id = this._locateID(stats);
-      if (this._isDifferentID(id)) {
-        return bus.emit('article.scroll', '#' + id);
-      }
-    }
-  }
-
-  _onSummarySelect(article, href) {
-    var section, top;
-    //#######################################
-    ///
-    ///   @params {DOM} article
-    ///   @params {string} href
-    ///
-    //#######################################
-    section = article.find(`.section[href="${href}"]`);
-    if (section) {
-      top = section.top();
-      return window.scrollBy(0, top);
-    } else {
-      return window.scrollTo(0, 0);
-    }
-  }
-
 };
 
+// _onSummarySelect: ( article, href ) =>
+
+//    ########################################
+//    #/
+//    #/   @params {DOM} article
+//    #/   @params {string} href
+//    #/
+//    ########################################
+
+//    section = article.find(".section[href=\"#{href}\"]")
+
+//    if section
+//       top = section.top()
+//       window.scrollBy(0, top)
+//    else
+//       window.scrollTo(0, 0)
 Article.locateID = (article) => {
-  var i, j, len, ref, stat, stats;
+  var i, j, len, ref, section, sections;
   //#######################################
-  ///
-  ///   @params {object[]} stats - [{ id, top }]
-  ///   @return {string}   id
-  ///
+  //|
+  //|   @params {DOM} article
+  //|   @return {string} id
+  //|
   //#######################################
-  stats = Article._getSectionStats(article);
-  for (i = j = 0, len = stats.length; j < len; i = ++j) {
-    stat = stats[i];
-    if (stat.top > 0) {
+  sections = article.findAll('.section');
+  for (i = j = 0, len = sections.length; j < len; i = ++j) {
+    section = sections[i];
+    if (section.top() > 0) {
       break;
     }
   }
-  return (ref = stats[i - 1].id) != null ? ref : '';
+  return (ref = sections[i - 1].attr('id')) != null ? ref : '';
 };
 
-Article._getSectionStats = (article) => {
-  var j, len, ref, section, stats;
+Article.scrollTo = (article, id) => {
+  var section, top;
   //#######################################
-  ///
-  ///   @params {DOM}      article
-  ///   @return {object[]} stats - [{ id, top }]
-  ///
+  //|
+  //|   @params {DOM} article
+  //|   @params {string} id
+  //|
   //#######################################
-  stats = [];
-  ref = article.findAll('.section');
-  for (j = 0, len = ref.length; j < len; j++) {
-    section = ref[j];
-    stats.push({
-      id: section.attr('id'),
-      top: section.top()
-    });
+  section = article.find(`[id="${id}"]`);
+  if (section) {
+    top = section.top();
+    return window.scrollBy(0, top);
+  } else {
+    return window.scrollTo(0, 0);
   }
-  return stats;
 };
 
 var Article$1, Bus$1, Cover$1, Markdown$1, ObservableObject$3, Page, Summary$1, util$8,
@@ -4959,13 +4949,22 @@ ObservableObject$4 = ObservableObject_1;
 Article$2 = Article_1;
 
 var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$4 {
+  //#######################################
+  //|
+  //|   new PageEventBus( page-dom )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       binding and handling all events in this page.
+  //|   -----------------------------------
+  //|
+  //#######################################
   constructor(page) {
     super();
-    this._bindWindowEvent = this._bindWindowEvent.bind(this);
-    this._bindSideEvent = this._bindSideEvent.bind(this);
-    this._bindMainEvent = this._bindMainEvent.bind(this);
-    this._bindArticleEvent = this._bindArticleEvent.bind(this);
-    this._bindLinkEvent = this._bindLinkEvent.bind(this);
+    this._bindEvents = this._bindEvents.bind(this);
+    this._onScrollArticle = this._onScrollArticle.bind(this);
+    this._onClickLink = this._onClickLink.bind(this);
+    this._onClickSummaryLink = this._onClickSummaryLink.bind(this);
     this._page = page;
     this._main = page.find('#main');
     this._side = page.find('#side');
@@ -4974,68 +4973,91 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     this._summary = page.find('#summary');
     this._article = page.find('#article');
     this._links = page.findAll('a');
+    this._summaryLinks = this._summary.findAll('a');
     this._overSide = false;
     this._overMain = false;
-    this._bindWindowEvent();
-    this._bindSideEvent();
-    this._bindMainEvent();
-    this._bindArticleEvent();
-    this._bindLinkEvent();
+    this._bindEvents();
   }
 
-  _bindWindowEvent() {
+  _bindEvents() {
+    var i, j, len, len1, link, ref, ref1, results;
     boundMethodCheck$2(this, PageEventBus);
-    console.log(Breeze.getQuery().id);
-    return window.addEventListener('scroll', () => {
-      if (this._page.isVisible()) {
-        return this.emit('window.scroll');
-      }
-    });
-  }
-
-  _bindSideEvent() {
-    boundMethodCheck$2(this, PageEventBus);
+    //#######################################
+    //|
+    //|   To bind all events of dom-tree.
+    //|
+    //#######################################
+    window.addEventListener('scroll', this._onScrollArticle);
     this._side.on('mouseenter', () => {
       return this._overSide = true;
     });
-    return this._side.on('mouseleave', () => {
-      return this._overSide = false;
-    });
-  }
-
-  _bindMainEvent() {
-    boundMethodCheck$2(this, PageEventBus);
     this._main.on('mouseenter', () => {
       return this._overMain = true;
     });
-    return this._main.on('mouseleave', () => {
+    this._side.on('mouseleave', () => {
+      return this._overSide = false;
+    });
+    this._main.on('mouseleave', () => {
       return this._overMain = false;
     });
-  }
-
-  _bindArticleEvent() {
-    boundMethodCheck$2(this, PageEventBus);
-    return this.on('window.scroll', () => {
-      var id;
-      id = Article$2.locateID(this._article);
-      return Breeze.go(`#${id}`);
-    });
-  }
-
-  _bindLinkEvent() {
-    var i, len, link, ref, results;
-    boundMethodCheck$2(this, PageEventBus);
     ref = this._links;
-    results = [];
     for (i = 0, len = ref.length; i < len; i++) {
       link = ref[i];
-      results.push(link.on('click', (link) => {
-        var href;
-        href = link.attr('href');
-        return Breeze.go(href);
-      }));
+      link.on('click', this._onClickLink);
+    }
+    ref1 = this._summaryLinks;
+    results = [];
+    for (j = 0, len1 = ref1.length; j < len1; j++) {
+      link = ref1[j];
+      results.push(link.on('click', this._onClickSummaryLink));
     }
     return results;
+  }
+
+  _onScrollArticle() {
+    var href, id;
+    boundMethodCheck$2(this, PageEventBus);
+    //#######################################
+    //|
+    //|   When scroll the article,
+    //|      1. redirect #id
+    //|
+    //#######################################
+    if (this._article.isVisible()) {
+      id = Article$2.locateID(this._article);
+      href = '#' + id;
+      return Breeze.go(href);
+    }
+  }
+
+  _onClickLink(link) {
+    var href;
+    boundMethodCheck$2(this, PageEventBus);
+    //#######################################
+    //|
+    //|   When click any link,
+    //|      1. redirect path#id | open url
+    //|
+    //#######################################
+    if (href = link.attr('href')) {
+      return Breeze.go(href);
+    }
+  }
+
+  _onClickSummaryLink(link) {
+    var href, id;
+    boundMethodCheck$2(this, PageEventBus);
+    //#######################################
+    //|
+    //|   When click the summary's link,
+    //|      1. scroll the article
+    //|
+    //#######################################
+    href = link.attr('href');
+    if (href && Breeze.isCurrentPath(href)) {
+      id = Breeze.resolveID(href);
+      return Article$2.scrollTo(this._article, id);
+    }
   }
 
 };
@@ -5206,6 +5228,10 @@ Breeze$2.on = Breeze$2.on;
 Breeze$2.getPath = router.getPath;
 
 Breeze$2.getQuery = router.getQuery;
+
+Breeze$2.resolvePath = router.resolvePath;
+
+Breeze$2.resolveID = router.resolveID;
 
 Breeze$2.isCurrentPath = router.isCurrentPath;
 

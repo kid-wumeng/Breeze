@@ -13,10 +13,10 @@ module.exports = class Router
    #|       managing the singleton router.
    #|   -----------------------------------
    #|
-   #|   router.getPath()              ->  path
-   #|   router.getQuery()             ->  query
-   #|   router.isCurrentPath( href )  ->  bool
-   #|   router.isCurrentID( href )    ->  bool
+   #|   router.getPath()             -> path
+   #|   router.getQuery()            -> query
+   #|   router.isCurrentPath( href ) -> bool
+   #|   router.isCurrentID( href )   -> bool
    #|   router.go( href )
    #|
    #|   @events('reload')

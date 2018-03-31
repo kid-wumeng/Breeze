@@ -27,14 +27,12 @@ module.exports = class Article
 
    ########################################
    #|
-   #|   < Article >
+   #|   new Article( markdown )
    #|
    #|   -----------------------------------
    #|    Be responsible for
    #|       handling the <div id="article">
    #|   -----------------------------------
-   #|
-   #|   new Article( markdown )
    #|
    #|   article.parse()   -> sections
    #|   article.compile() -> html

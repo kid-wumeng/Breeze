@@ -26,18 +26,22 @@ marked.setOptions({
 module.exports = class Article
 
    ########################################
-   #/
-   #/   < Article >
-   #/
-   #/   Be responsible for
-   #/      handling the <div id="article">
-   #/
-   #/      article.parse()    ->  sections
-   #/      article.compile()  ->  html
-   #/      article.render()   ->  dom
-   #/
-   #/      Article.locateID( dom )  ->  id
-   #/
+   #|
+   #|   < Article >
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       handling the <div id="article">
+   #|   -----------------------------------
+   #|
+   #|   new Article( markdown )
+   #|
+   #|   article.parse()   -> sections
+   #|   article.compile() -> html
+   #|   article.render()  -> dom
+   #|
+   #|   Article.locateID( dom ) -> id
+   #|
    ########################################
 
 
@@ -45,6 +49,12 @@ module.exports = class Article
 
 
    constructor: ( markdown ) ->
+
+      ########################################
+      #|
+      #|   @params {string} markdown
+      #|
+      ########################################
 
       @markdown  = markdown
 
@@ -59,9 +69,9 @@ module.exports = class Article
    _parse: =>
 
       ########################################
-      #/
-      #/   @return {object} - {object[]} sections
-      #/
+      #|
+      #|   @return {object} - {object[]} sections
+      #|
       ########################################
 
       sections = @_parseSections( @markdown )

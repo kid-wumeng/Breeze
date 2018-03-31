@@ -686,16 +686,20 @@ var Router_1 = Router = class Router {
   //|
   //|   < Router >
   //|
-  //|   Be responsible for
-  //|      managing the singleton router.
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       managing the singleton router.
+  //|   -----------------------------------
   //|
-  //|      @events emit('reload')
+  //|   new Router( isJIT )
   //|
-  //|      router.getPath()              ->  path
-  //|      router.getQuery()             ->  query
-  //|      router.isCurrentPath( href )  ->  bool
-  //|      router.isCurrentID( href )    ->  bool
-  //|      router.go( href )
+  //|   router.getPath()             -> path
+  //|   router.getQuery()            -> query
+  //|   router.isCurrentPath( href ) -> bool
+  //|   router.isCurrentID( href )   -> bool
+  //|   router.go( href )
+  //|
+  //|   @events('reload')
   //|
   //#######################################
   constructor(isJIT = false) {
@@ -716,7 +720,7 @@ var Router_1 = Router = class Router {
     this._goID = this._goID.bind(this);
     //#######################################
     //|
-    //|   @params {bool} isJIT
+    //|   @params {boolean} isJIT
     //|
     //#######################################
     this._isJIT = isJIT;
@@ -737,15 +741,15 @@ var Router_1 = Router = class Router {
     //|   @return {string} fullPath
     //|
     //|   when JIT,
-    //|      host:port                        ->  '/'
-    //|      host:port/#/                     ->  '/'
-    //|      host:port/#/?id=abc              ->  '/?id=abc'
-    //|      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
+    //|      host:port                       ->  '/'
+    //|      host:port/#/                    ->  '/'
+    //|      host:port/#/?id=abc             ->  '/?id=abc'
+    //|      host:port/#/path/subPath?id=abc ->  '/path/subPath?id=abc'
     //|
     //|   when no-JIT,
-    //|      host:port                        ->  '/'
-    //|      host:port?id=abc                 ->  '/?id=abc'
-    //|      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
+    //|      host:port                       ->  '/'
+    //|      host:port?id=abc                ->  '/?id=abc'
+    //|      host:port/path/subPath?id=abc   ->  '/path/subPath?id=abc'
     //|
     //#######################################
     if (this._isJIT) {
@@ -794,7 +798,7 @@ var Router_1 = Router = class Router {
     var field, fields, i, len, name, parts, query, queryString, ref, value;
     //#######################################
     //|
-    //|   @return {object} query
+    //|   @return {object} query ?= {}
     //|
     //|   /path/subPath?id=abc       ->  { id: 'abc' }
     //|   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
@@ -822,6 +826,7 @@ var Router_1 = Router = class Router {
     //|
     //|   @params {string} path
     //|   @params {object} query
+    //|
     //|   @return {string} fullPath
     //|
     //|   when JIT,
@@ -939,12 +944,12 @@ var Router_1 = Router = class Router {
     }
   }
 
-  _isCurrentPath(href) {
+  _isCurrentPath(href = '') {
     var path;
     //#######################################
     //|
     //|   @params {string} href
-    //|   @return {bool}
+    //|   @return {boolean}
     //|
     //|   Assume current is at /path/subPath?id=abc
     //|
@@ -966,12 +971,12 @@ var Router_1 = Router = class Router {
     }
   }
 
-  _isCurrentID(href) {
+  _isCurrentID(href = '') {
     var currentID, id;
     //#######################################
     //|
     //|   @params {string} href
-    //|   @return {bool}
+    //|   @return {boolean}
     //|
     //|   Assume current is at /path/subPath?id=abc
     //|
@@ -1040,7 +1045,7 @@ var Router_1 = Router = class Router {
     //|
     //|   @params {string} href
     //|
-    //|   @events emit('reload') - only emit when JIT
+    //|   @events('reload') - only emit when JIT
     //|
     //|   Assume current is at '/path/subPath?id=abc&flag'
     //|
@@ -4307,18 +4312,22 @@ marked$3.setOptions({
 
 var Article_1 = Article = class Article {
   //#######################################
-  ///
-  ///   < Article >
-  ///
-  ///   Be responsible for
-  ///      handling the <div id="article">
-  ///
-  ///      article.parse()    ->  sections
-  ///      article.compile()  ->  html
-  ///      article.render()   ->  dom
-  ///
-  ///      Article.locateID( dom )  ->  id
-  ///
+  //|
+  //|   < Article >
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="article">
+  //|   -----------------------------------
+  //|
+  //|   new Article( markdown )
+  //|
+  //|   article.parse()   -> sections
+  //|   article.compile() -> html
+  //|   article.render()  -> dom
+  //|
+  //|   Article.locateID( dom ) -> id
+  //|
   //#######################################
   constructor(markdown) {
     this._parse = this._parse.bind(this);
@@ -4341,6 +4350,11 @@ var Article_1 = Article = class Article {
     this._bindEvent = this._bindEvent.bind(this);
     this._onWindowScroll = this._onWindowScroll.bind(this);
     this._onSummarySelect = this._onSummarySelect.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} markdown
+    //|
+    //#######################################
     this.markdown = markdown;
     this.parse = this._parse;
     this.compile = this._compile;
@@ -4350,9 +4364,9 @@ var Article_1 = Article = class Article {
   _parse() {
     var sections;
     //#######################################
-    ///
-    ///   @return {object} - {object[]} sections
-    ///
+    //|
+    //|   @return {object} - {object[]} sections
+    //|
     //#######################################
     sections = this._parseSections(this.markdown);
     sections = this._parseHeadings(sections);

@@ -8,16 +8,20 @@ module.exports = class Router
    #|
    #|   < Router >
    #|
-   #|   Be responsible for
-   #|      managing the singleton router.
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       managing the singleton router.
+   #|   -----------------------------------
    #|
-   #|      @events emit('reload')
+   #|   new Router( isJIT )
    #|
-   #|      router.getPath()              ->  path
-   #|      router.getQuery()             ->  query
-   #|      router.isCurrentPath( href )  ->  bool
-   #|      router.isCurrentID( href )    ->  bool
-   #|      router.go( href )
+   #|   router.getPath()             -> path
+   #|   router.getQuery()            -> query
+   #|   router.isCurrentPath( href ) -> bool
+   #|   router.isCurrentID( href )   -> bool
+   #|   router.go( href )
+   #|
+   #|   @events('reload')
    #|
    ########################################
 
@@ -29,7 +33,7 @@ module.exports = class Router
 
       ########################################
       #|
-      #|   @params {bool} isJIT
+      #|   @params {boolean} isJIT
       #|
       ########################################
 
@@ -54,15 +58,15 @@ module.exports = class Router
       #|   @return {string} fullPath
       #|
       #|   when JIT,
-      #|      host:port                        ->  '/'
-      #|      host:port/#/                     ->  '/'
-      #|      host:port/#/?id=abc              ->  '/?id=abc'
-      #|      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
+      #|      host:port                       ->  '/'
+      #|      host:port/#/                    ->  '/'
+      #|      host:port/#/?id=abc             ->  '/?id=abc'
+      #|      host:port/#/path/subPath?id=abc ->  '/path/subPath?id=abc'
       #|
       #|   when no-JIT,
-      #|      host:port                        ->  '/'
-      #|      host:port?id=abc                 ->  '/?id=abc'
-      #|      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
+      #|      host:port                       ->  '/'
+      #|      host:port?id=abc                ->  '/?id=abc'
+      #|      host:port/path/subPath?id=abc   ->  '/path/subPath?id=abc'
       #|
       ########################################
 
@@ -124,7 +128,7 @@ module.exports = class Router
 
       ########################################
       #|
-      #|   @return {object} query
+      #|   @return {object} query ?= {}
       #|
       #|   /path/subPath?id=abc       ->  { id: 'abc' }
       #|   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
@@ -157,6 +161,7 @@ module.exports = class Router
       #|
       #|   @params {string} path
       #|   @params {object} query
+      #|
       #|   @return {string} fullPath
       #|
       #|   when JIT,
@@ -293,12 +298,12 @@ module.exports = class Router
 
 
 
-   _isCurrentPath: ( href ) =>
+   _isCurrentPath: ( href = '' ) =>
 
       ########################################
       #|
       #|   @params {string} href
-      #|   @return {bool}
+      #|   @return {boolean}
       #|
       #|   Assume current is at /path/subPath?id=abc
       #|
@@ -324,12 +329,12 @@ module.exports = class Router
 
 
 
-   _isCurrentID: ( href ) =>
+   _isCurrentID: ( href = '' ) =>
 
       ########################################
       #|
       #|   @params {string} href
-      #|   @return {bool}
+      #|   @return {boolean}
       #|
       #|   Assume current is at /path/subPath?id=abc
       #|
@@ -406,7 +411,7 @@ module.exports = class Router
       #|
       #|   @params {string} href
       #|
-      #|   @events emit('reload') - only emit when JIT
+      #|   @events('reload') - only emit when JIT
       #|
       #|   Assume current is at '/path/subPath?id=abc&flag'
       #|

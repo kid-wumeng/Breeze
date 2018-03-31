@@ -6,14 +6,12 @@ module.exports = class Router
 
    ########################################
    #|
-   #|   < Router >
+   #|   new Router( isJIT )
    #|
    #|   -----------------------------------
    #|    Be responsible for
    #|       managing the singleton router.
    #|   -----------------------------------
-   #|
-   #|   new Router( isJIT )
    #|
    #|   router.getPath()             -> path
    #|   router.getQuery()            -> query

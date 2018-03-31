@@ -5,18 +5,26 @@ App    = require('./App')
 Breeze = require('./Breeze')
 
 
+
+
+
 Breeze = new Breeze
 router = new Router( isJIT = true )
 
 
+
+
+
 window.onload = =>
 
-   window.loader = new Loader()
    window.app    = new App( isJIT = true )
 
 
 
+
+
 Breeze.DOM           = DOM
+Breeze.Loader        = Loader
 Breeze.config        = Breeze.config
 Breeze.on            = Breeze.on
 Breeze.getPath       = router.getPath
@@ -26,6 +34,8 @@ Breeze.resolveID     = router.resolveID
 Breeze.isCurrentPath = router.isCurrentPath
 Breeze.isCurrentID   = router.isCurrentID
 Breeze.go            = router.go
+
+
 
 
 

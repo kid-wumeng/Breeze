@@ -2,30 +2,49 @@ util = require('./util')
 
 
 
+
+
 module.exports = class API
+
+   ########################################
+   #|
+   #|   new Api()
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       handling the <div class="api">
+   #|   -----------------------------------
+   #|
+   #|   api.compile() -> html
+   #|
+   ########################################
+
+
 
 
 
    constructor: ( html ) ->
 
       ########################################
-      #/
-      #/   @params {string} html
-      #/
+      #|
+      #|   @params {string} html
+      #|
       ########################################
 
       @html = html
 
+      @compile = @_compile
 
 
 
-   compile: =>
+
+   _compile: =>
 
       ########################################
-      #/
-      #/   @params {string} html
-      #/   @return {string} html
-      #/
+      #|
+      #|   @params {string} html
+      #|   @return {string} html
+      #|
       ########################################
 
       dom = util.dom(@html)
@@ -45,10 +64,10 @@ module.exports = class API
    _compileItem: ( item ) =>
 
       ########################################
-      #/
-      #/   @params {DOM} item
-      #/   @return {DOM} item
-      #/
+      #|
+      #|   @params {DOM} item
+      #|   @return {DOM} item
+      #|
       ########################################
 
       name = item.find('name')

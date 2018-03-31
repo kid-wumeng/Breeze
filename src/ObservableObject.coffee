@@ -1,30 +1,51 @@
 module.exports = class ObservableObject
 
+   ########################################
+   #|
+   #|   new ObservableObject()
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       binding and emitting events,
+   #|       generally be extended by other classes.
+   #|   -----------------------------------
+   #|
+   #|   observableObject.on( name, callback )
+   #|   observableObject.emit( name, params... )
+   #|
+   ########################################
+
+
+
 
 
    constructor: ->
-      @events = {}
+
+      @_events = {}
+
+      @on   = @_on
+      @emit = @_emit
 
 
 
 
 
-   on: ( name, callback ) =>
+   _on: ( name, callback ) =>
 
       ########################################
       #|
-      #|  Add an event listener.
+      #|   Add an event listener.
       #|
-      #|  @params {string}   event's name
-      #|  @params {function} callback( params... )
+      #|   @params {string}   event's name
+      #|   @params {function} callback( params... )
       #|
-      #|  @return {ObservableObject} this
+      #|   @return {ObservableObject} this
       #|
       ########################################
 
-      if !@events[name]
-        @events[name] = []
-      @events[name].push(callback)
+      if !@_events[name]
+        @_events[name] = []
+      @_events[name].push(callback)
 
       return this
 
@@ -32,20 +53,20 @@ module.exports = class ObservableObject
 
 
 
-   emit: ( name, params... ) =>
+   _emit: ( name, params... ) =>
 
       ########################################
       #|
-      #|  Trigger an event.
+      #|   Trigger an event.
       #|
-      #|  @params {string} event's name
-      #|  @params {*...}   params...
+      #|   @params {string} event's name
+      #|   @params {*...}   params...
       #|
-      #|  @return {ObservableObject} this
+      #|   @return {ObservableObject} this
       #|
       ########################################
 
-      callbacks = @events[name] ? []
+      callbacks = @_events[name] ? []
 
       for callback in callbacks
          callback( params... )

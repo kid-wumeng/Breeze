@@ -5,9 +5,9 @@ ObservableObject = require('./ObservableObject')
 module.exports = class Breeze extends ObservableObject
 
    ########################################
-   #/
-   #/   window.Breeze = new Breeze()
-   #/
+   #|
+   #|   window.Breeze = new Breeze()
+   #|
    ########################################
 
 

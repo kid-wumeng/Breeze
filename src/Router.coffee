@@ -35,7 +35,7 @@ module.exports = class Router
 
       ########################################
       #|
-      #|   @params {boolean} isJIT
+      #|   @params {boolean} isJIT - is the 'Just In Time' mode ?
       #|
       ########################################
 

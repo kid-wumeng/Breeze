@@ -1,25 +1,29 @@
-Bus          = require('./Bus')
 Page         = require('./Page')
 PageEventBus = require('./PageEventBus')
 util         = require('./util')
 
 
 
+
+
 module.exports = class App
 
    ########################################
-   #/
-   #/   Be responsible for
-   #/      loading pages and save them to _pageCache,
-   #/      swapping them when route is changed.
-   #/
+   #|
+   #|   new App( isJIT )
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       managing pages and swapping them when necessary.
+   #|   -----------------------------------
+   #|
    ########################################
 
 
 
 
 
-   constructor: ( isJIT ) ->
+   constructor: ( isJIT = false ) ->
 
       ########################################
       #/
@@ -27,9 +31,9 @@ module.exports = class App
       #/
       ########################################
 
-      @isJIT = isJIT
-
-      @_pageCache = {}
+      @_isJIT  = isJIT
+      @_cache  = {}
+      @_loader = new Breeze.Loader()
 
       @_run()
 
@@ -39,9 +43,19 @@ module.exports = class App
 
    _run: =>
 
-      if @isJIT
+      ########################################
+      #|
+      #|   when JIT,
+      #|      load -> render -> mount -> bindEvents
+      #|
+      #|   when no-JIT,
+      #|      bindEvents
+      #|
+      ########################################
 
+      if @_isJIT
          @_loadPage()
+
 
          Breeze.on('reload', @_loadPage)
 
@@ -54,14 +68,20 @@ module.exports = class App
 
    _loadPage: =>
 
-      page = @_pageCache[ Breeze.getPath() ]
+      ########################################
+      #|
+      #|   @params {function} done( page-dom )
+      #|   @params {function} fail()
+      #|
+      ########################################
+
+      path = Breeze.getPath()
+      page = @_cache[ path ]
 
       if page
          @_mountPage( page )
       else
-         loader.load( Breeze.getPath(), @_renderPage, @_render404 )
-
-
+         @_loader.load( path, @_renderPage, @_render404 )
 
 
 
@@ -77,8 +97,9 @@ module.exports = class App
       page = new Page( text )
       page = page.render()
 
-      @_pageCache[ Breeze.getPath() ] = page
+      new PageEventBus( page )
 
+      @_cache[ Breeze.getPath() ] = page
       @_mountPage( page )
 
 
@@ -93,7 +114,7 @@ module.exports = class App
       #/
       ########################################
 
-      console.log 'render 404'
+      console.log 'TODO: render 404'
 
 
 
@@ -106,8 +127,6 @@ module.exports = class App
       #/   @params {DOM} page
       #/
       ########################################
-
-      new PageEventBus( page )
 
       old = document.querySelector('body > #page')
 

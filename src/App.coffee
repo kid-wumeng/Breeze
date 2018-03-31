@@ -26,41 +26,54 @@ module.exports = class App
    constructor: ( isJIT = false ) ->
 
       ########################################
-      #/
-      #/   @params {boolean} isJIT - is the 'Just In Time' mode ?
-      #/
+      #|
+      #|   @params {boolean} isJIT - is the 'Just In Time' mode ?
+      #|
       ########################################
 
       @_isJIT  = isJIT
       @_cache  = {}
       @_loader = new Breeze.Loader()
 
-      @_run()
+      if @_isJIT
+         @_runJIT()
+      else
+         @_runStatic()
 
 
 
 
 
-   _run: =>
+   _runStatic: =>
 
       ########################################
-      #|
-      #|   when JIT,
-      #|      load -> render -> mount -> bindEvents
       #|
       #|   when no-JIT,
       #|      bindEvents
       #|
       ########################################
 
-      if @_isJIT
-         @_loadPage()
+      page = document.querySelector('#page')
+      page = util.dom( page )
+
+      new PageEventBus( page )
 
 
-         Breeze.on('reload', @_loadPage)
 
-      else
-         util.dom(document.querySelector('#page'))
+
+
+   _runJIT: =>
+
+      ########################################
+      #|
+      #|   when JIT,
+      #|      loadPage -> renderPage -> mountPage -> bindEvents
+      #|
+      ########################################
+
+      @_loadPage()
+
+      Breeze.on('reload', @_loadPage)
 
 
 
@@ -70,8 +83,7 @@ module.exports = class App
 
       ########################################
       #|
-      #|   @params {function} done( page-dom )
-      #|   @params {function} fail()
+      #|   Load page from cache or local.
       #|
       ########################################
 
@@ -86,12 +98,18 @@ module.exports = class App
 
 
 
+
    _renderPage: ( text ) =>
 
       ########################################
-      #/
-      #/   @params {string} text
-      #/
+      #|
+      #|   @params {string} text
+      #|
+      #|   1. create
+      #|   2. bind events
+      #|   3. save to cache
+      #|   4. mount
+      #|
       ########################################
 
       page = new Page( text )
@@ -100,7 +118,6 @@ module.exports = class App
       new PageEventBus( page )
 
       @_cache[ Breeze.getPath() ] = page
-
       @_mountPage( page )
 
 
@@ -108,12 +125,6 @@ module.exports = class App
 
 
    _render404: =>
-
-      ########################################
-      #/
-      #/   @params {string} text
-      #/
-      ########################################
 
       console.log 'TODO: render 404'
 
@@ -124,14 +135,14 @@ module.exports = class App
    _mountPage: ( page ) =>
 
       ########################################
-      #/
-      #/   @params {DOM} page
-      #/
+      #|
+      #|   @params {DOM} page
+      #|
       ########################################
 
-      old = document.querySelector('body > #page')
+      currentPage = document.querySelector('body > #page')
 
-      if old
-         document.body.replaceChild( page.$el, old )
+      if currentPage
+         document.body.replaceChild( page.root, currentPage )
       else
-         document.body.appendChild( page.$el )
+         document.body.appendChild( page.root )

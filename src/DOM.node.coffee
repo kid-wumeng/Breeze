@@ -17,26 +17,26 @@ module.exports = class DOM
    #|    Adapted to the node environment ( build or SSR )
    #|   -----------------------------------
    #|
-   #|   dom.find( sel )    -> dom
-   #|   dom.findAll( sel ) -> dom[]
+   #|   dom.find(sel)         -> dom
+   #|   dom.findAll(sel)      -> dom[]
    #|
-   #|   dom.htmlSelf( html )    -> dom
-   #|   dom.htmlSelf()          -> html
+   #|   dom.htmlSelf(html)    -> dom
+   #|   dom.htmlSelf()        -> html
    #|
-   #|   dom.html( html )        -> this
-   #|   dom.html()              -> html
+   #|   dom.html(html)        -> this
+   #|   dom.html()            -> html
    #|
-   #|   dom.attr( name, value ) -> this
-   #|   dom.attr( name )        -> value
+   #|   dom.attr(name, value) -> this
+   #|   dom.attr(name)        -> value
    #|
-   #|   dom.text( text )        -> this
-   #|   dom.text()              -> text
+   #|   dom.text(text)        -> this
+   #|   dom.text()            -> text
    #|
-   #|   dom.hasClass( name )      -> bool
-   #|   dom.addClass( name )      -> this
-   #|   dom.removeClass( name )   -> this
+   #|   dom.hasClass(name)    -> bool
+   #|   dom.addClass(name)    -> this
+   #|   dom.removeClass(name) -> this
    #|
-   #|   dom.append( child )       -> this
+   #|   dom.append(child)     -> this
    #|
    ########################################
 

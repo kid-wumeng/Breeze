@@ -5,22 +5,22 @@ util = require('./util')
 module.exports = class Router
 
    ########################################
-   #|
-   #|   new Router( isJIT )
-   #|
-   #|   -----------------------------------
-   #|    Be responsible for
-   #|       managing the singleton router.
-   #|   -----------------------------------
-   #|
-   #|   router.getPath()             -> path
-   #|   router.getQuery()            -> query
-   #|   router.isCurrentPath( href ) -> bool
-   #|   router.isCurrentID( href )   -> bool
-   #|   router.go( href )
-   #|
-   #|   @events('reload')
-   #|
+   #/
+   #/   new Router( isJIT )
+   #/
+   #/   -----------------------------------
+   #/    Be responsible for
+   #/       managing the singleton router.
+   #/   -----------------------------------
+   #/
+   #/   router.getPath()             -> path
+   #/   router.getQuery()            -> query
+   #/   router.isCurrentPath( href ) -> bool
+   #/   router.isCurrentID( href )   -> bool
+   #/   router.go( href )
+   #/
+   #/   @events('reload')
+   #/
    ########################################
 
 

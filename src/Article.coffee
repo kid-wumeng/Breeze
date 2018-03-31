@@ -68,7 +68,7 @@ module.exports = class Article
 
       ########################################
       #|
-      #|   @return {object} - {object[]} sections
+      #|   @return {object[]} sections
       #|
       ########################################
 
@@ -84,10 +84,10 @@ module.exports = class Article
    _parseSections: ( markdown ) =>
 
       ########################################
-      #/
-      #/   @params {string}   markdown
-      #/   @return {object[]} section - [{ heading, content, example }]
-      #/
+      #|
+      #|   @params {string}   markdown
+      #|   @return {object[]} section - [{ heading, content, example }]
+      #|
       ########################################
 
       lines        = markdown.split('\n')

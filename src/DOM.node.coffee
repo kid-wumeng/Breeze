@@ -2,13 +2,42 @@ cheerio = require('cheerio')
 
 
 
+
+
 module.exports = class DOM
 
    ########################################
-   #/
-   #/   Be responsible for querying and operating dom ( html-string ).
-   #/   Adapted to the node environment ( build or SSR ).
-   #/
+   #|
+   #|   new DOM( html )
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       querying and operating dom ( html-string )
+   #|
+   #|    Adapted to the node environment ( build or SSR )
+   #|   -----------------------------------
+   #|
+   #|   dom.find( sel )    -> dom
+   #|   dom.findAll( sel ) -> dom[]
+   #|
+   #|   dom.htmlSelf( html )    -> dom
+   #|   dom.htmlSelf()          -> html
+   #|
+   #|   dom.html( html )        -> this
+   #|   dom.html()              -> html
+   #|
+   #|   dom.attr( name, value ) -> this
+   #|   dom.attr( name )        -> value
+   #|
+   #|   dom.text( text )        -> this
+   #|   dom.text()              -> text
+   #|
+   #|   dom.hasClass( name )      -> bool
+   #|   dom.addClass( name )      -> this
+   #|   dom.removeClass( name )   -> this
+   #|
+   #|   dom.append( child )       -> this
+   #|
    ########################################
 
 
@@ -18,9 +47,9 @@ module.exports = class DOM
    constructor: ( html ) ->
 
       ########################################
-      #/
-      #/   @params {string} html
-      #/
+      #|
+      #|   @params {string} html
+      #|
       ########################################
 
       @root = cheerio.load( html )('body > *')
@@ -32,10 +61,10 @@ module.exports = class DOM
    find: ( sel ) =>
 
       ########################################
-      #/
-      #/   @params {string} sel
-      #/   @return {DOM}    dom - return null when not found.
-      #/
+      #|
+      #|   @params {string} sel
+      #|   @return {DOM}    dom - return null when not found.
+      #|
       ########################################
 
       el = @root.find(sel)[0]
@@ -54,10 +83,10 @@ module.exports = class DOM
    findAll: ( sel ) =>
 
       ########################################
-      #/
-      #/   @params {string} sel
-      #/   @return {DOM[]}  doms - return [] when not found.
-      #/
+      #|
+      #|   @params {string} sel
+      #|   @return {DOM[]}  doms - return [] when not found.
+      #|
       ########################################
 
       doms = []
@@ -77,12 +106,12 @@ module.exports = class DOM
    htmlSelf: ( html ) =>
 
       ########################################
-      #/
-      #/   SET   @params {string} html
-      #/         @return {DOM}    this
-      #/
-      #/   GET   @return {string} html ( outer's )
-      #/
+      #|
+      #|   SET   @params {string} html
+      #|         @return {DOM}    this
+      #|
+      #|   GET   @return {string} html ( outer's )
+      #|
       ########################################
 
       if html?
@@ -98,12 +127,12 @@ module.exports = class DOM
    html: ( html ) =>
 
       ########################################
-      #/
-      #/   SET   @params {string} html
-      #/         @return {DOM}    this
-      #/
-      #/   GET   @return {string} html ( inner's )
-      #/
+      #|
+      #|   SET   @params {string} html
+      #|         @return {DOM}    this
+      #|
+      #|   GET   @return {string} html ( inner's )
+      #|
       ########################################
 
       if html?
@@ -120,14 +149,14 @@ module.exports = class DOM
    attr: ( name, value ) =>
 
       ########################################
-      #/
-      #/   SET   @params {string} name
-      #/         @params {string} value
-      #/         @return {DOM}    this
-      #/
-      #/   GET   @params {string} name
-      #/         @return {string} value
-      #/
+      #|
+      #|   SET   @params {string} name
+      #|         @params {string} value
+      #|         @return {DOM}    this
+      #|
+      #|   GET   @params {string} name
+      #|         @return {string} value
+      #|
       ########################################
 
       if value?
@@ -144,12 +173,12 @@ module.exports = class DOM
    text: ( text ) =>
 
       ########################################
-      #/
-      #/   SET   @params {string} text
-      #/         @return {DOM}    this
-      #/
-      #/   GET   @return {string} text
-      #/
+      #|
+      #|   SET   @params {string} text
+      #|         @return {DOM}    this
+      #|
+      #|   GET   @return {string} text
+      #|
       ########################################
 
       if text?
@@ -163,13 +192,28 @@ module.exports = class DOM
 
 
 
+   hasClass: ( name ) =>
+
+      ########################################
+      #|
+      #|   @params {string} name
+      #|   @return {boolean}
+      #|
+      ########################################
+
+      return @root.hasClass( name )
+
+
+
+
+
    addClass: ( name ) =>
 
       ########################################
-      #/
-      #/   @params {string} name
-      #/   @return {DOM}    this
-      #/
+      #|
+      #|   @params {string} name
+      #|   @return {DOM}    this
+      #|
       ########################################
 
       @root.addClass( name )
@@ -179,28 +223,14 @@ module.exports = class DOM
 
 
 
-   hasClass: ( name ) =>
-
-      ########################################
-      #/
-      #/   @params {string} name
-      #/   @return {boolean}
-      #/
-      ########################################
-
-      return @root.hasClass( name )
-
-
-
-
 
    removeClass: ( name ) =>
 
       ########################################
-      #/
-      #/   @params {string} name
-      #/   @return {DOM}    this
-      #/
+      #|
+      #|   @params {string} name
+      #|   @return {DOM}    this
+      #|
       ########################################
 
       @root.removeClass( name )
@@ -213,10 +243,10 @@ module.exports = class DOM
    append: ( child ) =>
 
       ########################################
-      #/
-      #/   @params {DOM|string} child|html|selector
-      #/   @return {DOM} this
-      #/
+      #|
+      #|   @params {DOM|string} child|html|sel
+      #|   @return {DOM} this
+      #|
       ########################################
 
       if child

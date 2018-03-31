@@ -720,7 +720,7 @@ var Router_1 = Router = class Router {
     this._goID = this._goID.bind(this);
     //#######################################
     //|
-    //|   @params {boolean} isJIT
+    //|   @params {boolean} isJIT - is the 'Just In Time' mode ?
     //|
     //#######################################
     this._isJIT = isJIT;
@@ -1103,33 +1103,49 @@ var Router_1 = Router = class Router {
 var ObservableObject;
 
 var ObservableObject_1 = ObservableObject = class ObservableObject {
+  //#######################################
+  //|
+  //|   new ObservableObject()
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       binding and emitting events,
+  //|       generally be extended by other classes.
+  //|   -----------------------------------
+  //|
+  //|   observableObject.on( name, callback )
+  //|   observableObject.emit( name, params... )
+  //|
+  //#######################################
   constructor() {
-    this.on = this.on.bind(this);
-    this.emit = this.emit.bind(this);
-    this.events = {};
+    this._on = this._on.bind(this);
+    this._emit = this._emit.bind(this);
+    this._events = {};
+    this.on = this._on;
+    this.emit = this._emit;
   }
 
-  on(name, callback) {
-    if (!this.events[name]) {
-      this.events[name] = [];
+  _on(name, callback) {
+    if (!this._events[name]) {
+      this._events[name] = [];
     }
-    this.events[name].push(callback);
+    this._events[name].push(callback);
     return this;
   }
 
-  emit(name, ...params) {
+  _emit(name, ...params) {
     var callback, callbacks, i, len, ref;
     //#######################################
     //|
-    //|  Trigger an event.
+    //|   Trigger an event.
     //|
-    //|  @params {string} event's name
-    //|  @params {*...}   params...
+    //|   @params {string} event's name
+    //|   @params {*...}   params...
     //|
-    //|  @return {ObservableObject} this
+    //|   @return {ObservableObject} this
     //|
     //#######################################
-    callbacks = (ref = this.events[name]) != null ? ref : [];
+    callbacks = (ref = this._events[name]) != null ? ref : [];
     for (i = 0, len = callbacks.length; i < len; i++) {
       callback = callbacks[i];
       callback(...params);
@@ -4230,24 +4246,37 @@ var API, util$5;
 util$5 = util;
 
 var Api = API = class API {
+  //#######################################
+  //|
+  //|   new Api()
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div class="api">
+  //|   -----------------------------------
+  //|
+  //|   api.compile() -> html
+  //|
+  //#######################################
   constructor(html) {
-    this.compile = this.compile.bind(this);
+    this._compile = this._compile.bind(this);
     this._compileItem = this._compileItem.bind(this);
     //#######################################
-    ///
-    ///   @params {string} html
-    ///
+    //|
+    //|   @params {string} html
+    //|
     //#######################################
     this.html = html;
+    this.compile = this._compile;
   }
 
-  compile() {
+  _compile() {
     var api, dom, i, item, items, len;
     //#######################################
-    ///
-    ///   @params {string} html
-    ///   @return {string} html
-    ///
+    //|
+    //|   @params {string} html
+    //|   @return {string} html
+    //|
     //#######################################
     dom = util$5.dom(this.html);
     api = util$5.dom('.api');
@@ -4262,10 +4291,10 @@ var Api = API = class API {
   _compileItem(item) {
     var desc, left, name, right, type;
     //#######################################
-    ///
-    ///   @params {DOM} item
-    ///   @return {DOM} item
-    ///
+    //|
+    //|   @params {DOM} item
+    //|   @return {DOM} item
+    //|
     //#######################################
     name = item.find('name');
     type = item.find('type');
@@ -5072,82 +5101,112 @@ util$9 = util;
 
 var App_1 = App = class App {
   //#######################################
-  ///
-  ///   Be responsible for
-  ///      loading pages and save them to _pageCache,
-  ///      swapping them when route is changed.
-  ///
+  //|
+  //|   new App( isJIT )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       managing pages and swapping them when necessary.
+  //|   -----------------------------------
+  //|
   //#######################################
-  constructor(isJIT) {
-    this._run = this._run.bind(this);
+  constructor(isJIT = false) {
+    this._runStatic = this._runStatic.bind(this);
+    this._runJIT = this._runJIT.bind(this);
     this._loadPage = this._loadPage.bind(this);
     this._renderPage = this._renderPage.bind(this);
     this._render404 = this._render404.bind(this);
     this._mountPage = this._mountPage.bind(this);
     //#######################################
-    ///
-    ///   @params {boolean} isJIT - is the 'Just In Time' mode ?
-    ///
+    //|
+    //|   @params {boolean} isJIT - is the 'Just In Time' mode ?
+    //|
     //#######################################
-    this.isJIT = isJIT;
-    this._pageCache = {};
-    this._run();
-  }
-
-  _run() {
-    if (this.isJIT) {
-      this._loadPage();
-      return Breeze.on('reload', this._loadPage);
+    this._isJIT = isJIT;
+    this._cache = {};
+    this._loader = new Breeze.Loader();
+    if (this._isJIT) {
+      this._runJIT();
     } else {
-      return util$9.dom(document.querySelector('#page'));
+      this._runStatic();
     }
   }
 
-  _loadPage() {
+  _runStatic() {
     var page;
-    page = this._pageCache[Breeze.getPath()];
+    //#######################################
+    //|
+    //|   when no-JIT,
+    //|      bindEvents
+    //|
+    //#######################################
+    page = document.querySelector('#page');
+    page = util$9.dom(page);
+    return new PageEventBus$1(page);
+  }
+
+  _runJIT() {
+    //#######################################
+    //|
+    //|   when JIT,
+    //|      loadPage -> renderPage -> mountPage -> bindEvents
+    //|
+    //#######################################
+    this._loadPage();
+    return Breeze.on('reload', this._loadPage);
+  }
+
+  _loadPage() {
+    var page, path;
+    //#######################################
+    //|
+    //|   Load page from cache or local.
+    //|
+    //#######################################
+    path = Breeze.getPath();
+    page = this._cache[path];
     if (page) {
       return this._mountPage(page);
     } else {
-      return loader.load(Breeze.getPath(), this._renderPage, this._render404);
+      return this._loader.load(path, this._renderPage, this._render404);
     }
   }
 
   _renderPage(text) {
     var page;
     //#######################################
-    ///
-    ///   @params {string} text
-    ///
+    //|
+    //|   @params {string} text
+    //|
+    //|   1. create
+    //|   2. bind events
+    //|   3. save to cache
+    //|   4. mount
+    //|
     //#######################################
     page = new Page$1(text);
     page = page.render();
-    this._pageCache[Breeze.getPath()] = page;
+    new PageEventBus$1(page);
+    this._cache[Breeze.getPath()] = page;
     return this._mountPage(page);
   }
 
   _render404() {
-    //#######################################
-    ///
-    ///   @params {string} text
-    ///
-    //#######################################
-    return console.log('render 404');
+    return console.log('TODO: render 404');
   }
 
   _mountPage(page) {
-    var old;
+    var currentPage;
     //#######################################
-    ///
-    ///   @params {DOM} page
-    ///
+    //|
+    //|   @params {DOM} page
+    //|
     //#######################################
-    new PageEventBus$1(page);
-    old = document.querySelector('body > #page');
-    if (old) {
-      return document.body.replaceChild(page.$el, old);
+    currentPage = document.querySelector('body > #page');
+    if (currentPage) {
+      return document.body.replaceChild(page.root, currentPage);
     } else {
-      return document.body.appendChild(page.$el);
+      return document.body.appendChild(page.root);
     }
   }
 
@@ -5160,9 +5219,19 @@ ObservableObject$5 = ObservableObject_1;
 
 var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$5 {
   //#######################################
-  ///
-  ///   window.Breeze = new Breeze()
-  ///
+  //|
+  //|   window.Breeze = new Breeze()
+  //|
+  //|   -----------------------------------
+  //|    The main module be exported,
+  //|        will bind some methods in index.coffee,
+  //|
+  //|    Set the default options in here.
+  //|   -----------------------------------
+  //|
+  //|   Breeze.config( name, value ) -> this
+  //|   Breeze.config( name )        -> value
+  //|
   //#######################################
   constructor() {
     super();
@@ -5179,14 +5248,14 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$5 {
   config(name, value) {
     boundMethodCheck$3(this, Breeze);
     //#######################################
-    ///
-    ///   SET   @params {string} name
-    ///         @params {*}      value
-    ///         @return {Breeze} this
-    ///
-    ///   GET   @params {string} name
-    ///         @return {*}      value
-    ///
+    //|
+    //|   SET   @params {string} name
+    //|         @params {*}      value
+    //|         @return {Breeze} this
+    //|
+    //|   GET   @params {string} name
+    //|         @return {*}      value
+    //|
     //#######################################
     if (value) {
       this._options[name] = value;
@@ -5215,11 +5284,12 @@ Breeze$2 = new Breeze$2;
 router = new Router$1(isJIT = true);
 
 window.onload = () => {
-  window.loader = new Loader$1();
   return window.app = new App$1(isJIT = true);
 };
 
 Breeze$2.DOM = DOM$1;
+
+Breeze$2.Loader = Loader$1;
 
 Breeze$2.config = Breeze$2.config;
 

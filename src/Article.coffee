@@ -13,6 +13,7 @@ marked.setOptions({
    tables: true
 
    highlight: ( code, lang ) =>
+
       if lang = Prism.languages[lang]
          return Prism.highlight(code, lang)
       else

@@ -2,11 +2,23 @@ ObservableObject = require('./ObservableObject')
 
 
 
+
+
 module.exports = class Breeze extends ObservableObject
 
    ########################################
    #|
    #|   window.Breeze = new Breeze()
+   #|
+   #|   -----------------------------------
+   #|    The main module be exported,
+   #|        will bind some methods in index.coffee,
+   #|
+   #|    Set the default options in here.
+   #|   -----------------------------------
+   #|
+   #|   Breeze.config( name, value ) -> this
+   #|   Breeze.config( name )        -> value
    #|
    ########################################
 
@@ -34,14 +46,14 @@ module.exports = class Breeze extends ObservableObject
    config: ( name, value ) =>
 
       ########################################
-      #/
-      #/   SET   @params {string} name
-      #/         @params {*}      value
-      #/         @return {Breeze} this
-      #/
-      #/   GET   @params {string} name
-      #/         @return {*}      value
-      #/
+      #|
+      #|   SET   @params {string} name
+      #|         @params {*}      value
+      #|         @return {Breeze} this
+      #|
+      #|   GET   @params {string} name
+      #|         @return {*}      value
+      #|
       ########################################
 
       if value

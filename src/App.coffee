@@ -100,6 +100,7 @@ module.exports = class App
       new PageEventBus( page )
 
       @_cache[ Breeze.getPath() ] = page
+
       @_mountPage( page )
 
 

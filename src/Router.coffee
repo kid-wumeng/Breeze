@@ -31,7 +31,7 @@ module.exports = class Router
 
       ########################################
       #|
-      #|   @params {boolean} isJIT
+      #|   @params {bool} isJIT
       #|
       ########################################
 
@@ -301,7 +301,7 @@ module.exports = class Router
       ########################################
       #|
       #|   @params {string} href
-      #|   @return {boolean}
+      #|   @return {bool}
       #|
       #|   Assume current is at /path/subPath?id=abc
       #|
@@ -332,7 +332,7 @@ module.exports = class Router
       ########################################
       #|
       #|   @params {string} href
-      #|   @return {boolean}
+      #|   @return {bool}
       #|
       #|   Assume current is at /path/subPath?id=abc
       #|

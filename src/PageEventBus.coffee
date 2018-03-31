@@ -36,17 +36,19 @@ module.exports = class PageEventBus extends ObservableObject
       @_overSide = false
       @_overMain = false
 
-      @_bindWindowEvents()
-      @_bindSideEvents()
-      @_bindMainEvents()
-      @_bindArticleEvents()
-      @_bindLinkEvents()
+      @_bindWindowEvent()
+      @_bindSideEvent()
+      @_bindMainEvent()
+      @_bindArticleEvent()
+      @_bindLinkEvent()
 
 
 
 
 
-   _bindWindowEvents: =>
+   _bindWindowEvent: =>
+
+      console.log Breeze.getQuery().id
 
       window.addEventListener 'scroll', =>
          @emit('window.scroll') if @_page.isVisible()
@@ -55,7 +57,7 @@ module.exports = class PageEventBus extends ObservableObject
 
 
 
-   _bindSideEvents: =>
+   _bindSideEvent: =>
 
       @_side.on('mouseenter', => @_overSide = true)
       @_side.on('mouseleave', => @_overSide = false)
@@ -64,7 +66,7 @@ module.exports = class PageEventBus extends ObservableObject
 
 
 
-   _bindMainEvents: =>
+   _bindMainEvent: =>
 
       @_main.on('mouseenter', => @_overMain = true)
       @_main.on('mouseleave', => @_overMain = false)
@@ -73,17 +75,17 @@ module.exports = class PageEventBus extends ObservableObject
 
 
 
-   _bindArticleEvents: =>
+   _bindArticleEvent: =>
 
       @on 'window.scroll', =>
-
          id = Article.locateID( @_article )
+         Breeze.go("##{id}")
 
 
 
 
 
-   _bindLinkEvents: =>
+   _bindLinkEvent: =>
 
       for link in @_links
           link.on 'click', ( link ) =>

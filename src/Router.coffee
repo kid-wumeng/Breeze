@@ -5,10 +5,20 @@ util = require('./util')
 module.exports = class Router
 
    ########################################
-   #/
-   #/   Be responsible for
-   #/      managing the singleton router.
-   #/
+   #|
+   #|   < Router >
+   #|
+   #|   Be responsible for
+   #|      managing the singleton router.
+   #|
+   #|      @events emit('reload')
+   #|
+   #|      router.getPath()              ->  path
+   #|      router.getQuery()             ->  query
+   #|      router.isCurrentPath( href )  ->  bool
+   #|      router.isCurrentID( href )    ->  bool
+   #|      router.go( href )
+   #|
    ########################################
 
 
@@ -18,18 +28,9 @@ module.exports = class Router
    constructor: ( isJIT = false ) ->
 
       ########################################
-      #/
-      #/   < Router >
-      #/
-      #/      @params {bool} isJIT
-      #/      @events emit('reload')
-      #/
-      #/      router.getPath()              ->  path
-      #/      router.getQuery()             ->  query
-      #/      router.isCurrentPath( href )  ->  bool
-      #/      router.isCurrentID( href )    ->  bool
-      #/      router.go( href )
-      #/
+      #|
+      #|   @params {bool} isJIT
+      #|
       ########################################
 
       @_isJIT = isJIT
@@ -49,20 +50,20 @@ module.exports = class Router
    _getFullPath: =>
 
       ########################################
-      #/
-      #/   @return {string} fullPath
-      #/
-      #/   when JIT,
-      #/      host:port                        ->  '/'
-      #/      host:port/#/                     ->  '/'
-      #/      host:port/#/?id=abc              ->  '/?id=abc'
-      #/      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
-      #/
-      #/   when no-JIT,
-      #/      host:port                        ->  '/'
-      #/      host:port?id=abc                 ->  '/?id=abc'
-      #/      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
-      #/
+      #|
+      #|   @return {string} fullPath
+      #|
+      #|   when JIT,
+      #|      host:port                        ->  '/'
+      #|      host:port/#/                     ->  '/'
+      #|      host:port/#/?id=abc              ->  '/?id=abc'
+      #|      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
+      #|
+      #|   when no-JIT,
+      #|      host:port                        ->  '/'
+      #|      host:port?id=abc                 ->  '/?id=abc'
+      #|      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
+      #|
       ########################################
 
       if @_isJIT
@@ -82,11 +83,11 @@ module.exports = class Router
    _getPath: =>
 
       ########################################
-      #/
-      #/   @return {string} path
-      #/
-      #/   /path/subPath?id=abc  ->  '/path/subPath'
-      #/
+      #|
+      #|   @return {string} path
+      #|
+      #|   /path/subPath?id=abc  ->  '/path/subPath'
+      #|
       ########################################
 
       path = @_getFullPath()
@@ -101,11 +102,11 @@ module.exports = class Router
    _getQueryString: =>
 
       ########################################
-      #/
-      #/   @return {string} queryString
-      #/
-      #/   /path/subPath?id=abc  ->  'id=abc'
-      #/
+      #|
+      #|   @return {string} queryString
+      #|
+      #|   /path/subPath?id=abc  ->  'id=abc'
+      #|
       ########################################
 
       path = @_getFullPath()
@@ -122,12 +123,12 @@ module.exports = class Router
    _getQuery: =>
 
       ########################################
-      #/
-      #/   @return {object} query
-      #/
-      #/   /path/subPath?id=abc       ->  { id: 'abc' }
-      #/   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
-      #/
+      #|
+      #|   @return {object} query
+      #|
+      #|   /path/subPath?id=abc       ->  { id: 'abc' }
+      #|   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
+      #|
       ########################################
 
       queryString = @_getQueryString()
@@ -153,19 +154,19 @@ module.exports = class Router
    _formatFullPath: ( path = '', query = {} ) =>
 
       ########################################
-      #/
-      #/   @params {string} path
-      #/   @params {object} query
-      #/   @return {string} fullPath
-      #/
-      #/   when JIT,
-      #/      ''   ->  /#/...
-      #/      '/'  ->  /...
-      #/
-      #/   when no-JIT,
-      #/      ''   ->  /...
-      #/      '/'  ->  /...
-      #/
+      #|
+      #|   @params {string} path
+      #|   @params {object} query
+      #|   @return {string} fullPath
+      #|
+      #|   when JIT,
+      #|      ''   ->  /#/...
+      #|      '/'  ->  /...
+      #|
+      #|   when no-JIT,
+      #|      ''   ->  /...
+      #|      '/'  ->  /...
+      #|
       ########################################
 
       path        = @_formatPath( path )
@@ -183,18 +184,18 @@ module.exports = class Router
    _formatPath: ( path = '' ) =>
 
       ########################################
-      #/
-      #/   @params {string} path
-      #/   @return {string} path
-      #/
-      #/   Assume current is at /path/subPath
-      #/
-      #/   ''        ->  '/path/subPath'
-      #/   '/'       ->  '/'
-      #/   'path'    ->  '/path'
-      #/   '/path'   ->  '/path'
-      #/   '/path/'  ->  '/path/'
-      #/
+      #|
+      #|   @params {string} path
+      #|   @return {string} path
+      #|
+      #|   Assume current is at /path/subPath
+      #|
+      #|   ''        ->  '/path/subPath'
+      #|   '/'       ->  '/'
+      #|   'path'    ->  '/path'
+      #|   '/path'   ->  '/path'
+      #|   '/path/'  ->  '/path/'
+      #|
       ########################################
 
       if path
@@ -212,13 +213,13 @@ module.exports = class Router
    _formatQueryString: ( query = {} ) =>
 
       ########################################
-      #/
-      #/   @params {object} qyery
-      #/   @return {string} queryString
-      #/
-      #/   {}                         ->  ''
-      #/   { id: 'abc', flag: true }  ->  '?id=abc&flag'
-      #/
+      #|
+      #|   @params {object} qyery
+      #|   @return {string} queryString
+      #|
+      #|   {}                         ->  ''
+      #|   { id: 'abc', flag: true }  ->  '?id=abc&flag'
+      #|
       ########################################
 
       fields = []
@@ -241,17 +242,17 @@ module.exports = class Router
    _resolvePath: ( href = '' ) =>
 
       ########################################
-      #/
-      #/   @params {string} href
-      #/   @return {string} path
-      #/
-      #/   'path/subPath#id'  ->  '/path/subPath'
-      #/   'path#id'          ->  '/path'
-      #/   'path'             ->  '/path'
-      #/   '#id'              ->  ''
-      #/   '/'                ->  '/'
-      #/   ''                 ->  ''
-      #/
+      #|
+      #|   @params {string} href
+      #|   @return {string} path
+      #|
+      #|   'path/subPath#id'  ->  '/path/subPath'
+      #|   'path#id'          ->  '/path'
+      #|   'path'             ->  '/path'
+      #|   '#id'              ->  ''
+      #|   '/'                ->  '/'
+      #|   ''                 ->  ''
+      #|
       ########################################
 
       path = href.split('#')[0]
@@ -268,17 +269,17 @@ module.exports = class Router
    _resolveID: ( href = '' ) =>
 
       ########################################
-      #/
-      #/   @params {string} href
-      #/   @return {string} id
-      #/
-      #/   'path#id'  ->  'id'
-      #/   '#id'      ->  'id'
-      #/   '#'        ->  ''
-      #/   'path'     ->  ''
-      #/   '/'        ->  ''
-      #/   ''         ->  ''
-      #/
+      #|
+      #|   @params {string} href
+      #|   @return {string} id
+      #|
+      #|   'path#id'  ->  'id'
+      #|   '#id'      ->  'id'
+      #|   '#'        ->  ''
+      #|   'path'     ->  ''
+      #|   '/'        ->  ''
+      #|   ''         ->  ''
+      #|
       ########################################
 
       parts = href.split('#')
@@ -295,21 +296,21 @@ module.exports = class Router
    _isCurrentPath: ( href ) =>
 
       ########################################
-      #/
-      #/   @params {string} href
-      #/   @return {bool}
-      #/
-      #/   Assume current is at /path/subPath?id=abc
-      #/
-      #/   _isCurrentPath('')           ->  true
-      #/   _isCurrentPath('#')          ->  true
-      #/   _isCurrentPath('#abc')       ->  true
-      #/   _isCurrentPath('path')       ->  true
-      #/   _isCurrentPath('path#abc')   ->  true
-      #/   _isCurrentPath('path#abc2')  ->  true
-      #/   _isCurrentPath('/')          ->  false
-      #/   _isCurrentPath('path2#abc')  ->  false
-      #/
+      #|
+      #|   @params {string} href
+      #|   @return {bool}
+      #|
+      #|   Assume current is at /path/subPath?id=abc
+      #|
+      #|   _isCurrentPath('')           ->  true
+      #|   _isCurrentPath('#')          ->  true
+      #|   _isCurrentPath('#abc')       ->  true
+      #|   _isCurrentPath('path')       ->  true
+      #|   _isCurrentPath('path#abc')   ->  true
+      #|   _isCurrentPath('path#abc2')  ->  true
+      #|   _isCurrentPath('/')          ->  false
+      #|   _isCurrentPath('path2#abc')  ->  false
+      #|
       ########################################
 
       path = @_resolvePath( href )
@@ -326,26 +327,29 @@ module.exports = class Router
    _isCurrentID: ( href ) =>
 
       ########################################
-      #/
-      #/   @params {string} href
-      #/   @return {bool}
-      #/
-      #/   Assume current is at /path/subPath?id=abc
-      #/
-      #/   _isCurrentID('#abc')       ->  true
-      #/   _isCurrentID('path#abc')   ->  true
-      #/   _isCurrentID('')           ->  false
-      #/   _isCurrentID('#')          ->  false
-      #/   _isCurrentID('path')       ->  false
-      #/   _isCurrentID('path#abc2')  ->  false
-      #/   _isCurrentID('/')          ->  false
-      #/   _isCurrentID('path2#abc')  ->  false
-      #/
+      #|
+      #|   @params {string} href
+      #|   @return {bool}
+      #|
+      #|   Assume current is at /path/subPath?id=abc
+      #|
+      #|   _isCurrentID('#abc')       ->  true
+      #|   _isCurrentID('path#abc')   ->  true
+      #|   _isCurrentID('')           ->  false
+      #|   _isCurrentID('#')          ->  false
+      #|   _isCurrentID('path')       ->  false
+      #|   _isCurrentID('path#abc2')  ->  false
+      #|   _isCurrentID('/')          ->  false
+      #|   _isCurrentID('path2#abc')  ->  false
+      #|
       ########################################
 
-      id = @_resolveID( href )
+      id        = @_resolveID( href )
+      currentID = @_getQuery().id
 
-      if id is @_getQuery().id
+      if !id and !currentID
+         return true
+      else if id is currentID
          return true
       else
          return false
@@ -357,15 +361,15 @@ module.exports = class Router
    _go: ( href = '' ) =>
 
       ########################################
-      #/
-      #/   @params {string} href
-      #/
-      #/   when JIT,
-      #/      _go('/path/subPath#abc')  ->  /#/path/subPath?id=abc
-      #/
-      #/   when no-JIT,
-      #/      _go('/path/subPath#abc')  ->  /path/subPath?id=abc
-      #/
+      #|
+      #|   @params {string} href
+      #|
+      #|   when JIT,
+      #|      _go('/path/subPath#abc')  ->  /#/path/subPath?id=abc
+      #|
+      #|   when no-JIT,
+      #|      _go('/path/subPath#abc')  ->  /path/subPath?id=abc
+      #|
       ########################################
 
       if util.isUrl( href )
@@ -383,11 +387,11 @@ module.exports = class Router
    _goUrl: ( url ) =>
 
       ########################################
-      #/
-      #/   @params {string} url
-      #/
-      #/   _goUrl('http://google.com')  ->  http://google.com ( open in new tab )
-      #/
+      #|
+      #|   @params {string} url
+      #|
+      #|   _goUrl('http://google.com')  ->  http://google.com ( open in new tab )
+      #|
       ########################################
 
       window.open( url, '_blank' )
@@ -399,18 +403,18 @@ module.exports = class Router
    _goPath: ( href ) =>
 
       ########################################
-      #/
-      #/   @params {string} href
-      #/
-      #/   @events emit('reload') - only emit when JIT
-      #/
-      #/   Assume current is at '/path/subPath?id=abc&flag'
-      #/
-      #/      _goPath('subPath2')      ->  /path/subPath2?flag
-      #/      _goPath('subPath2#def')  ->  /path/subPath2?id=def&flag
-      #/      _goPath('/')             ->  /?flag
-      #/      _goPath('/#def')         ->  /?id=def&flag
-      #/
+      #|
+      #|   @params {string} href
+      #|
+      #|   @events emit('reload') - only emit when JIT
+      #|
+      #|   Assume current is at '/path/subPath?id=abc&flag'
+      #|
+      #|      _goPath('subPath2')      ->  /path/subPath2?flag
+      #|      _goPath('subPath2#def')  ->  /path/subPath2?id=def&flag
+      #|      _goPath('/')             ->  /?flag
+      #|      _goPath('/#def')         ->  /?id=def&flag
+      #|
       ########################################
 
       path  = @_resolvePath( href )
@@ -425,6 +429,7 @@ module.exports = class Router
       fullPath = @_formatFullPath( path, query )
 
       if @_isJIT
+
          history.pushState( null, null, fullPath )
          Breeze.emit('reload')
 
@@ -438,14 +443,14 @@ module.exports = class Router
    _goID: ( href ) =>
 
       ########################################
-      #/
-      #/   @params {string} href
-      #/
-      #/   Assume current is at '/path/subPath?id=abc&flag'
-      #/
-      #/      _goID('#')     ->  /?flag
-      #/      _goID('#def')  ->  /?id=def&flag
-      #/
+      #|
+      #|   @params {string} href
+      #|
+      #|   Assume current is at '/path/subPath?id=abc&flag'
+      #|
+      #|      _goID('#')     ->  /?flag
+      #|      _goID('#def')  ->  /?id=def&flag
+      #|
       ########################################
 
       id    = @_resolveID( href )

@@ -683,10 +683,20 @@ util$2 = util;
 
 var Router_1 = Router = class Router {
   //#######################################
-  ///
-  ///   Be responsible for
-  ///      managing the singleton router.
-  ///
+  //|
+  //|   < Router >
+  //|
+  //|   Be responsible for
+  //|      managing the singleton router.
+  //|
+  //|      @events emit('reload')
+  //|
+  //|      router.getPath()              ->  path
+  //|      router.getQuery()             ->  query
+  //|      router.isCurrentPath( href )  ->  bool
+  //|      router.isCurrentID( href )    ->  bool
+  //|      router.go( href )
+  //|
   //#######################################
   constructor(isJIT = false) {
     this._getFullPath = this._getFullPath.bind(this);
@@ -705,18 +715,9 @@ var Router_1 = Router = class Router {
     this._goPath = this._goPath.bind(this);
     this._goID = this._goID.bind(this);
     //#######################################
-    ///
-    ///   < Router >
-    ///
-    ///      @params {bool} isJIT
-    ///      @events emit('reload')
-    ///
-    ///      router.getPath()              ->  path
-    ///      router.getQuery()             ->  query
-    ///      router.isCurrentPath( href )  ->  bool
-    ///      router.isCurrentID( href )    ->  bool
-    ///      router.go( href )
-    ///
+    //|
+    //|   @params {bool} isJIT
+    //|
     //#######################################
     this._isJIT = isJIT;
     this.getPath = this._getPath;
@@ -732,20 +733,20 @@ var Router_1 = Router = class Router {
   _getFullPath() {
     var path;
     //#######################################
-    ///
-    ///   @return {string} fullPath
-    ///
-    ///   when JIT,
-    ///      host:port                        ->  '/'
-    ///      host:port/#/                     ->  '/'
-    ///      host:port/#/?id=abc              ->  '/?id=abc'
-    ///      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
-    ///
-    ///   when no-JIT,
-    ///      host:port                        ->  '/'
-    ///      host:port?id=abc                 ->  '/?id=abc'
-    ///      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
-    ///
+    //|
+    //|   @return {string} fullPath
+    //|
+    //|   when JIT,
+    //|      host:port                        ->  '/'
+    //|      host:port/#/                     ->  '/'
+    //|      host:port/#/?id=abc              ->  '/?id=abc'
+    //|      host:port/#/path/subPath?id=abc  ->  '/path/subPath?id=abc'
+    //|
+    //|   when no-JIT,
+    //|      host:port                        ->  '/'
+    //|      host:port?id=abc                 ->  '/?id=abc'
+    //|      host:port/path/subPath?id=abc    ->  '/path/subPath?id=abc'
+    //|
     //#######################################
     if (this._isJIT) {
       path = location.hash.slice(1);
@@ -761,11 +762,11 @@ var Router_1 = Router = class Router {
   _getPath() {
     var path;
     //#######################################
-    ///
-    ///   @return {string} path
-    ///
-    ///   /path/subPath?id=abc  ->  '/path/subPath'
-    ///
+    //|
+    //|   @return {string} path
+    //|
+    //|   /path/subPath?id=abc  ->  '/path/subPath'
+    //|
     //#######################################
     path = this._getFullPath();
     path = path.replace(/\?.*$/, '');
@@ -775,11 +776,11 @@ var Router_1 = Router = class Router {
   _getQueryString() {
     var match, path;
     //#######################################
-    ///
-    ///   @return {string} queryString
-    ///
-    ///   /path/subPath?id=abc  ->  'id=abc'
-    ///
+    //|
+    //|   @return {string} queryString
+    //|
+    //|   /path/subPath?id=abc  ->  'id=abc'
+    //|
     //#######################################
     path = this._getFullPath();
     if (match = path.match(/\?.+$/)) {
@@ -792,12 +793,12 @@ var Router_1 = Router = class Router {
   _getQuery() {
     var field, fields, i, len, name, parts, query, queryString, ref, value;
     //#######################################
-    ///
-    ///   @return {object} query
-    ///
-    ///   /path/subPath?id=abc       ->  { id: 'abc' }
-    ///   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
-    ///
+    //|
+    //|   @return {object} query
+    //|
+    //|   /path/subPath?id=abc       ->  { id: 'abc' }
+    //|   /path/subPath?id=abc&flag  ->  { id: 'abc', flag: true }
+    //|
     //#######################################
     queryString = this._getQueryString();
     query = {};
@@ -818,19 +819,19 @@ var Router_1 = Router = class Router {
   _formatFullPath(path = '', query = {}) {
     var queryString;
     //#######################################
-    ///
-    ///   @params {string} path
-    ///   @params {object} query
-    ///   @return {string} fullPath
-    ///
-    ///   when JIT,
-    ///      ''   ->  /#/...
-    ///      '/'  ->  /...
-    ///
-    ///   when no-JIT,
-    ///      ''   ->  /...
-    ///      '/'  ->  /...
-    ///
+    //|
+    //|   @params {string} path
+    //|   @params {object} query
+    //|   @return {string} fullPath
+    //|
+    //|   when JIT,
+    //|      ''   ->  /#/...
+    //|      '/'  ->  /...
+    //|
+    //|   when no-JIT,
+    //|      ''   ->  /...
+    //|      '/'  ->  /...
+    //|
     //#######################################
     path = this._formatPath(path);
     queryString = this._formatQueryString(query);
@@ -843,18 +844,18 @@ var Router_1 = Router = class Router {
 
   _formatPath(path = '') {
     //#######################################
-    ///
-    ///   @params {string} path
-    ///   @return {string} path
-    ///
-    ///   Assume current is at /path/subPath
-    ///
-    ///   ''        ->  '/path/subPath'
-    ///   '/'       ->  '/'
-    ///   'path'    ->  '/path'
-    ///   '/path'   ->  '/path'
-    ///   '/path/'  ->  '/path/'
-    ///
+    //|
+    //|   @params {string} path
+    //|   @return {string} path
+    //|
+    //|   Assume current is at /path/subPath
+    //|
+    //|   ''        ->  '/path/subPath'
+    //|   '/'       ->  '/'
+    //|   'path'    ->  '/path'
+    //|   '/path'   ->  '/path'
+    //|   '/path/'  ->  '/path/'
+    //|
     //#######################################
     if (path) {
       if (path[0] !== '/') {
@@ -869,13 +870,13 @@ var Router_1 = Router = class Router {
   _formatQueryString(query = {}) {
     var fields, name, value;
     //#######################################
-    ///
-    ///   @params {object} qyery
-    ///   @return {string} queryString
-    ///
-    ///   {}                         ->  ''
-    ///   { id: 'abc', flag: true }  ->  '?id=abc&flag'
-    ///
+    //|
+    //|   @params {object} qyery
+    //|   @return {string} queryString
+    //|
+    //|   {}                         ->  ''
+    //|   { id: 'abc', flag: true }  ->  '?id=abc&flag'
+    //|
     //#######################################
     fields = [];
     for (name in query) {
@@ -896,17 +897,17 @@ var Router_1 = Router = class Router {
   _resolvePath(href = '') {
     var path;
     //#######################################
-    ///
-    ///   @params {string} href
-    ///   @return {string} path
-    ///
-    ///   'path/subPath#id'  ->  '/path/subPath'
-    ///   'path#id'          ->  '/path'
-    ///   'path'             ->  '/path'
-    ///   '#id'              ->  ''
-    ///   '/'                ->  '/'
-    ///   ''                 ->  ''
-    ///
+    //|
+    //|   @params {string} href
+    //|   @return {string} path
+    //|
+    //|   'path/subPath#id'  ->  '/path/subPath'
+    //|   'path#id'          ->  '/path'
+    //|   'path'             ->  '/path'
+    //|   '#id'              ->  ''
+    //|   '/'                ->  '/'
+    //|   ''                 ->  ''
+    //|
     //#######################################
     path = href.split('#')[0];
     if (path && path[0] !== '/') {
@@ -918,17 +919,17 @@ var Router_1 = Router = class Router {
   _resolveID(href = '') {
     var parts;
     //#######################################
-    ///
-    ///   @params {string} href
-    ///   @return {string} id
-    ///
-    ///   'path#id'  ->  'id'
-    ///   '#id'      ->  'id'
-    ///   '#'        ->  ''
-    ///   'path'     ->  ''
-    ///   '/'        ->  ''
-    ///   ''         ->  ''
-    ///
+    //|
+    //|   @params {string} href
+    //|   @return {string} id
+    //|
+    //|   'path#id'  ->  'id'
+    //|   '#id'      ->  'id'
+    //|   '#'        ->  ''
+    //|   'path'     ->  ''
+    //|   '/'        ->  ''
+    //|   ''         ->  ''
+    //|
     //#######################################
     parts = href.split('#');
     if (parts.length === 2) {
@@ -941,21 +942,21 @@ var Router_1 = Router = class Router {
   _isCurrentPath(href) {
     var path;
     //#######################################
-    ///
-    ///   @params {string} href
-    ///   @return {bool}
-    ///
-    ///   Assume current is at /path/subPath?id=abc
-    ///
-    ///   _isCurrentPath('')           ->  true
-    ///   _isCurrentPath('#')          ->  true
-    ///   _isCurrentPath('#abc')       ->  true
-    ///   _isCurrentPath('path')       ->  true
-    ///   _isCurrentPath('path#abc')   ->  true
-    ///   _isCurrentPath('path#abc2')  ->  true
-    ///   _isCurrentPath('/')          ->  false
-    ///   _isCurrentPath('path2#abc')  ->  false
-    ///
+    //|
+    //|   @params {string} href
+    //|   @return {bool}
+    //|
+    //|   Assume current is at /path/subPath?id=abc
+    //|
+    //|   _isCurrentPath('')           ->  true
+    //|   _isCurrentPath('#')          ->  true
+    //|   _isCurrentPath('#abc')       ->  true
+    //|   _isCurrentPath('path')       ->  true
+    //|   _isCurrentPath('path#abc')   ->  true
+    //|   _isCurrentPath('path#abc2')  ->  true
+    //|   _isCurrentPath('/')          ->  false
+    //|   _isCurrentPath('path2#abc')  ->  false
+    //|
     //#######################################
     path = this._resolvePath(href);
     if (path && path === this._getPath()) {
@@ -966,26 +967,29 @@ var Router_1 = Router = class Router {
   }
 
   _isCurrentID(href) {
-    var id;
+    var currentID, id;
     //#######################################
-    ///
-    ///   @params {string} href
-    ///   @return {bool}
-    ///
-    ///   Assume current is at /path/subPath?id=abc
-    ///
-    ///   _isCurrentID('#abc')       ->  true
-    ///   _isCurrentID('path#abc')   ->  true
-    ///   _isCurrentID('')           ->  false
-    ///   _isCurrentID('#')          ->  false
-    ///   _isCurrentID('path')       ->  false
-    ///   _isCurrentID('path#abc2')  ->  false
-    ///   _isCurrentID('/')          ->  false
-    ///   _isCurrentID('path2#abc')  ->  false
-    ///
+    //|
+    //|   @params {string} href
+    //|   @return {bool}
+    //|
+    //|   Assume current is at /path/subPath?id=abc
+    //|
+    //|   _isCurrentID('#abc')       ->  true
+    //|   _isCurrentID('path#abc')   ->  true
+    //|   _isCurrentID('')           ->  false
+    //|   _isCurrentID('#')          ->  false
+    //|   _isCurrentID('path')       ->  false
+    //|   _isCurrentID('path#abc2')  ->  false
+    //|   _isCurrentID('/')          ->  false
+    //|   _isCurrentID('path2#abc')  ->  false
+    //|
     //#######################################
     id = this._resolveID(href);
-    if (id === this._getQuery().id) {
+    currentID = this._getQuery().id;
+    if (!id && !currentID) {
+      return true;
+    } else if (id === currentID) {
       return true;
     } else {
       return false;
@@ -994,15 +998,15 @@ var Router_1 = Router = class Router {
 
   _go(href = '') {
     //#######################################
-    ///
-    ///   @params {string} href
-    ///
-    ///   when JIT,
-    ///      _go('/path/subPath#abc')  ->  /#/path/subPath?id=abc
-    ///
-    ///   when no-JIT,
-    ///      _go('/path/subPath#abc')  ->  /path/subPath?id=abc
-    ///
+    //|
+    //|   @params {string} href
+    //|
+    //|   when JIT,
+    //|      _go('/path/subPath#abc')  ->  /#/path/subPath?id=abc
+    //|
+    //|   when no-JIT,
+    //|      _go('/path/subPath#abc')  ->  /path/subPath?id=abc
+    //|
     //#######################################
     if (util$2.isUrl(href)) {
       return this._goUrl(href);
@@ -1021,11 +1025,11 @@ var Router_1 = Router = class Router {
 
   _goUrl(url) {
     //#######################################
-    ///
-    ///   @params {string} url
-    ///
-    ///   _goUrl('http://google.com')  ->  http://google.com ( open in new tab )
-    ///
+    //|
+    //|   @params {string} url
+    //|
+    //|   _goUrl('http://google.com')  ->  http://google.com ( open in new tab )
+    //|
     //#######################################
     return window.open(url, '_blank');
   }
@@ -1033,18 +1037,18 @@ var Router_1 = Router = class Router {
   _goPath(href) {
     var fullPath, id, path, query;
     //#######################################
-    ///
-    ///   @params {string} href
-    ///
-    ///   @events emit('reload') - only emit when JIT
-    ///
-    ///   Assume current is at '/path/subPath?id=abc&flag'
-    ///
-    ///      _goPath('subPath2')      ->  /path/subPath2?flag
-    ///      _goPath('subPath2#def')  ->  /path/subPath2?id=def&flag
-    ///      _goPath('/')             ->  /?flag
-    ///      _goPath('/#def')         ->  /?id=def&flag
-    ///
+    //|
+    //|   @params {string} href
+    //|
+    //|   @events emit('reload') - only emit when JIT
+    //|
+    //|   Assume current is at '/path/subPath?id=abc&flag'
+    //|
+    //|      _goPath('subPath2')      ->  /path/subPath2?flag
+    //|      _goPath('subPath2#def')  ->  /path/subPath2?id=def&flag
+    //|      _goPath('/')             ->  /?flag
+    //|      _goPath('/#def')         ->  /?id=def&flag
+    //|
     //#######################################
     path = this._resolvePath(href);
     id = this._resolveID(href);
@@ -1066,14 +1070,14 @@ var Router_1 = Router = class Router {
   _goID(href) {
     var fullPath, id, path, query;
     //#######################################
-    ///
-    ///   @params {string} href
-    ///
-    ///   Assume current is at '/path/subPath?id=abc&flag'
-    ///
-    ///      _goID('#')     ->  /?flag
-    ///      _goID('#def')  ->  /?id=def&flag
-    ///
+    //|
+    //|   @params {string} href
+    //|
+    //|   Assume current is at '/path/subPath?id=abc&flag'
+    //|
+    //|      _goID('#')     ->  /?flag
+    //|      _goID('#def')  ->  /?id=def&flag
+    //|
     //#######################################
     id = this._resolveID(href);
     path = this._getPath();
@@ -4302,15 +4306,29 @@ marked$3.setOptions({
 });
 
 var Article_1 = Article = class Article {
+  //#######################################
+  ///
+  ///   < Article >
+  ///
+  ///   Be responsible for
+  ///      handling the <div id="article">
+  ///
+  ///      article.parse()    ->  sections
+  ///      article.compile()  ->  html
+  ///      article.render()   ->  dom
+  ///
+  ///      Article.locateID( dom )  ->  id
+  ///
+  //#######################################
   constructor(markdown) {
-    this.parse = this.parse.bind(this);
+    this._parse = this._parse.bind(this);
     this._parseSections = this._parseSections.bind(this);
     this._parseSection = this._parseSection.bind(this);
     this._checkLine = this._checkLine.bind(this);
     this._parseHeadings = this._parseHeadings.bind(this);
     this._parseHeading = this._parseHeading.bind(this);
     this._parseOrder = this._parseOrder.bind(this);
-    this.compile = this.compile.bind(this);
+    this._compile = this._compile.bind(this);
     this._compileSection = this._compileSection.bind(this);
     this._compileHeading = this._compileHeading.bind(this);
     this._compileContent = this._compileContent.bind(this);
@@ -4319,14 +4337,17 @@ var Article_1 = Article = class Article {
     this._compilePre = this._compilePre.bind(this);
     this._compileApi = this._compileApi.bind(this);
     this._isTag = this._isTag.bind(this);
-    this.render = this.render.bind(this);
+    this._render = this._render.bind(this);
     this._bindEvent = this._bindEvent.bind(this);
     this._onWindowScroll = this._onWindowScroll.bind(this);
     this._onSummarySelect = this._onSummarySelect.bind(this);
     this.markdown = markdown;
+    this.parse = this._parse;
+    this.compile = this._compile;
+    this.render = this._render;
   }
 
-  parse() {
+  _parse() {
     var sections;
     //#######################################
     ///
@@ -4513,7 +4534,7 @@ var Article_1 = Article = class Article {
     }
   }
 
-  compile() {
+  _compile() {
     var article, sections;
     //#######################################
     ///
@@ -4522,7 +4543,7 @@ var Article_1 = Article = class Article {
     ///   @return {string} html
     ///
     //#######################################
-    sections = this.parse();
+    sections = this._parse();
     sections = sections.map(this._compileSection).join('');
     article = util$6.dom('#article');
     article.html(sections);
@@ -4651,16 +4672,14 @@ var Article_1 = Article = class Article {
     return reg.test(html);
   }
 
-  render(bus) {
-    var article;
+  _render(bus) {
     //#######################################
     ///
     ///   @params {Bus} bus
     ///   @return {DOM} article
     ///
     //#######################################
-    article = util$6.dom(this.compile());
-    return article;
+    return util$6.dom(this._compile());
   }
 
   _bindEvent(bus, article) {
@@ -4930,11 +4949,11 @@ Article$2 = Article_1;
 var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$4 {
   constructor(page) {
     super();
-    this._bindWindowEvents = this._bindWindowEvents.bind(this);
-    this._bindSideEvents = this._bindSideEvents.bind(this);
-    this._bindMainEvents = this._bindMainEvents.bind(this);
-    this._bindArticleEvents = this._bindArticleEvents.bind(this);
-    this._bindLinkEvents = this._bindLinkEvents.bind(this);
+    this._bindWindowEvent = this._bindWindowEvent.bind(this);
+    this._bindSideEvent = this._bindSideEvent.bind(this);
+    this._bindMainEvent = this._bindMainEvent.bind(this);
+    this._bindArticleEvent = this._bindArticleEvent.bind(this);
+    this._bindLinkEvent = this._bindLinkEvent.bind(this);
     this._page = page;
     this._main = page.find('#main');
     this._side = page.find('#side');
@@ -4945,15 +4964,16 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     this._links = page.findAll('a');
     this._overSide = false;
     this._overMain = false;
-    this._bindWindowEvents();
-    this._bindSideEvents();
-    this._bindMainEvents();
-    this._bindArticleEvents();
-    this._bindLinkEvents();
+    this._bindWindowEvent();
+    this._bindSideEvent();
+    this._bindMainEvent();
+    this._bindArticleEvent();
+    this._bindLinkEvent();
   }
 
-  _bindWindowEvents() {
+  _bindWindowEvent() {
     boundMethodCheck$2(this, PageEventBus);
+    console.log(Breeze.getQuery().id);
     return window.addEventListener('scroll', () => {
       if (this._page.isVisible()) {
         return this.emit('window.scroll');
@@ -4961,7 +4981,7 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     });
   }
 
-  _bindSideEvents() {
+  _bindSideEvent() {
     boundMethodCheck$2(this, PageEventBus);
     this._side.on('mouseenter', () => {
       return this._overSide = true;
@@ -4971,7 +4991,7 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     });
   }
 
-  _bindMainEvents() {
+  _bindMainEvent() {
     boundMethodCheck$2(this, PageEventBus);
     this._main.on('mouseenter', () => {
       return this._overMain = true;
@@ -4981,15 +5001,16 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     });
   }
 
-  _bindArticleEvents() {
+  _bindArticleEvent() {
     boundMethodCheck$2(this, PageEventBus);
     return this.on('window.scroll', () => {
       var id;
-      return id = Article$2.locateID(this._article);
+      id = Article$2.locateID(this._article);
+      return Breeze.go(`#${id}`);
     });
   }
 
-  _bindLinkEvents() {
+  _bindLinkEvent() {
     var i, len, link, ref, results;
     boundMethodCheck$2(this, PageEventBus);
     ref = this._links;
@@ -5114,7 +5135,10 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$5 {
     this.config = this.config.bind(this);
     this._options = {};
     this.config('basePath', '');
+    this.config('common.use', false);
+    this.config('common.map', {});
     this.config('summary.showLevel', 3);
+    this.config('summary.showOrderLevel', 0);
     this.config('article.showOrderLevel', 0);
   }
 

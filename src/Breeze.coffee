@@ -21,7 +21,10 @@ module.exports = class Breeze extends ObservableObject
       @_options = {}
 
       @config('basePath', '')
+      @config('common.use', false)
+      @config('common.map', {})
       @config('summary.showLevel', 3)
+      @config('summary.showOrderLevel', 0)
       @config('article.showOrderLevel', 0)
 
 

@@ -1,6 +1,7 @@
 ObservableObject = require('./ObservableObject')
 Article          = require('./Article')
 Cover            = require('./Cover')
+Search           = require('./Search')
 Summary          = require('./Summary')
 
 
@@ -34,20 +35,31 @@ module.exports = class PageEventBus extends ObservableObject
 
       super()
 
-      @_page    = page
-      @_main    = page.find('#main')
-      @_side    = page.find('#side')
-      @_nav     = page.find('#nav')
-      @_cover   = page.find('#cover')
-      @_summary = page.find('#summary')
-      @_article = page.find('#article')
+      @_page = page
 
+      @_main = @_page.find('#main')
+      @_side = @_page.find('#side')
+      @_nav  = @_page.find('#nav')
+
+      @_cover        = @_page.find('#cover')
       @_coverButtons = @_cover.findAll('.buttons a')
-      @_summaryLinks = @_summary.findAll('a')
-      @_links        = @_page.findAll('a')
 
-      @_overSide = false
-      @_overMain = false
+      @_search      = @_page.find('#search')
+      @_searchInput = @_search.find('input')
+      @_searchClear = @_search.find('.clear')
+      @_searchItems = @_search.find('.items')
+
+      @_summary      = @_page.find('#summary')
+      @_summaryLinks = @_summary.findAll('a')
+
+      @_article = @_page.find('#article')
+
+      @_links = @_page.findAll('a')
+
+      @_isOverSide = false
+      @_isOverMain = false
+
+      @_sectionDatas = Article.getSectionDatas( @_article )
 
       @_bindEvents()
 
@@ -65,10 +77,10 @@ module.exports = class PageEventBus extends ObservableObject
 
       window.addEventListener('scroll', @_onScrollArticle)
 
-      @_side.on('mouseenter', => @_overSide = true)
-      @_main.on('mouseenter', => @_overMain = true)
-      @_side.on('mouseleave', => @_overSide = false)
-      @_main.on('mouseleave', => @_overMain = false)
+      @_side.on('mouseenter', => @_isOverSide = true)
+      @_main.on('mouseenter', => @_isOverMain = true)
+      @_side.on('mouseleave', => @_isOverSide = false)
+      @_main.on('mouseleave', => @_isOverMain = false)
 
       for button in @_coverButtons
           button.on('click', @_onClickCoverButton)
@@ -79,6 +91,9 @@ module.exports = class PageEventBus extends ObservableObject
       for link in @_links
           link.on('click', @_onClickLink)
 
+      @_searchInput.on('input', @_onInputSearchInput)
+      @_searchClear.on('click', @_onClickSearchClear)
+
 
 
 
@@ -88,18 +103,20 @@ module.exports = class PageEventBus extends ObservableObject
       ########################################
       #|
       #|   When scroll the article,
+      #|
       #|      1. redirect #id
       #|      2. active the summary
       #|      3. scroll the summary
       #|
       ########################################
 
-      if @_article.isVisible()
+      if @_article.isVisible() and @_isOverMain
 
-         id = Article.locateID( @_article )
+         id   = Article.locateID( @_article )
          href = '#' + id
 
          Breeze.go( href )
+
          Summary.activeTo( @_summary, id )
          Summary.scrollTo( @_summary, id )
 
@@ -110,6 +127,8 @@ module.exports = class PageEventBus extends ObservableObject
    _onClickCoverButton: ( button ) =>
 
       ########################################
+      #|
+      #|   @params {DOM} button
       #|
       #|   When click the cover's button,
       #|      1. if href is current page, hide the cover
@@ -129,6 +148,8 @@ module.exports = class PageEventBus extends ObservableObject
    _onClickSummaryLink: ( link ) =>
 
       ########################################
+      #|
+      #|   @params {DOM} link
       #|
       #|   When click the summary's link,
       #|      1. active the summary
@@ -153,6 +174,8 @@ module.exports = class PageEventBus extends ObservableObject
 
       ########################################
       #|
+      #|   @params {DOM} link
+      #|
       #|   When click any link,
       #|      1. redirect path#id | open url
       #|
@@ -160,3 +183,82 @@ module.exports = class PageEventBus extends ObservableObject
 
       if href = link.attr('href')
          Breeze.go( href )
+
+
+
+
+
+   _onInputSearchInput: ( input ) =>
+
+      ########################################
+      #|
+      #|   @params {DOM} input
+      #|
+      #|   When input search-key,
+      #|
+      #|      1. find items from section-datas
+      #|      2. show or hide clear
+      #|      3. show or hide items
+      #|      4. bind click-event of items
+      #|
+      ########################################
+
+      if key = input.val().trim()
+
+         items = Search.find( key, @_sectionDatas )
+         items = Search.showItems( @_searchItems, items )
+
+         for item in items
+             item.on('click', @_onClickSearchItem.bind( @, item ))
+
+         Search.showClear( @_searchClear )
+
+      else
+         Search.hideClear( @_searchClear )
+         Search.hideItems( @_searchItems )
+
+
+
+
+
+   _onClickSearchClear: ( clear ) =>
+
+      ########################################
+      #|
+      #|   @params {DOM} clear
+      #|
+      #|   When click search clear-button,
+      #|
+      #|      1. clear input's key
+      #|      2. hide items
+      #|      3. hide clear
+      #|
+      ########################################
+
+      Search.clear( @_searchInput )
+      Search.focus( @_searchInput )
+      Search.hideClear( @_searchClear )
+      Search.hideItems( @_searchItems )
+
+
+
+
+
+   _onClickSearchItem: ( item ) =>
+
+      ########################################
+      #|
+      #|   @params {DOM} item
+      #|
+      #|   When click search item,
+      #|      1. scroll the article
+      #|
+      ########################################
+
+      id   = item.attr('data-id')
+      href = '#' + id
+
+      Breeze.go( href )
+
+      Search.focus( @_searchInput )
+      Article.scrollTo( @_article, id )

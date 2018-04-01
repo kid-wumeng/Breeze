@@ -1,366 +1,428 @@
-ObservableObject = require('./ObservableObject')
-util             = require('./util')
+module.exports = class Search
 
-
-
-module.exports = class Search extends ObservableObject
-
-
-
-   constructor: ( $sections ) ->
-
-      super()
-
-      @sections = @parseSections( $sections )
-      @$dom     = @render()
-
-      @$search = @$dom
-      @$input  = @$search.querySelector('input')
-      @$clear  = @$search.querySelector('.clear')
-      @$ul     = @$search.querySelector('ul')
-
-
-
-
-
-   parseSections: ( $sections ) =>
-
-      ########################################
-      #|
-      #|  @params {NodeList} $sections
-      #|
-      ########################################
-
-      sections = []
-
-      for $section in $sections
-          section = @parseSection($section)
-          sections.push(section)
-
-      return sections
+   ########################################
+   #|
+   #|   new Search( html )
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       handling the <div id="search">
+   #|   -----------------------------------
+   #|
+   #|   search.compile() -> html
+   #|
+   #|   Search.find( key, datas )     -> items
+   #|   Search.showItems( ul, items ) -> item-doms
+   #|   Search.hideItems( ul )
+   #|   Search.focus( input )
+   #|   Search.clear( input )
+   #|   Search.showClear( clear )
+   #|   Search.hideClear( clear )
+   #|
+   ########################################
 
 
 
 
 
-   parseSection: ( $section ) =>
+   constructor: ->
+
+      @compile = @_compile
+
+
+
+
+
+   _compile: =>
 
       ########################################
       #|
-      #|  @params {HTTPElement} $section
+      #|   @return {string} html
       #|
       ########################################
 
-      id = $section.id
-
-      heading = @parseHeading( $section )
-      content = @parseContent( $section )
-
-      return { id, heading, content }
-
-
-
-
-
-   parseHeading: ( $section ) =>
-
-      ########################################
-      #|
-      #|  @params {HTTPElement} $section
-      #|  @params {string}      heading
-      #|
-      ########################################
-
-      $heading = $section.querySelector('h1, h2, h3, h4, h5, h6')
-
-      if $heading
-         return $heading.innerText.trim()
-      else
-         return ''
-
-
-
-
-
-   parseContent: ( $section ) =>
-
-      ########################################
-      #|
-      #|  @params {HTTPElement} $section
-      #|  @params {string}      content
-      #|
-      ########################################
-
-      content = $section.querySelector('.content').innerText.trim()
-
-      if from = content.indexOf('\n') + 1
-         content = content.slice(from)
-      else
-         content = ''
-
-      return content.replace(/(?:\n+)|(?:\s+)/g, ' ')
-
-
-
-
-
-   render: =>
-
-      ########################################
-      #|
-      #|  @params {HTTPElement} $dom
-      #|
-      ########################################
-
-      $dom = util.element('#search')
-
-      $dom.innerHTML = """
-         <div class=\"input-box\">
-            <input autofocus spellcheck="false"/>
-            <div class=\"clear\"></div>
+      return """
+         <div id="search">
+            <div class="input-box">
+               <input autofocus spellcheck="false"/>
+               <div class="clear"></div>
+            </div>
+            <ul class="items"></ul>
          </div>
-         <ul></ul>
       """
 
-      @bindEvent( $dom )
 
-      return $dom
 
 
 
+Search.find = ( key, datas ) =>
 
+   ########################################
+   #|
+   #|   @params {string}   key
+   #|   @params {object[]} datas - [{ id, heading, content, example }]
+   #|
+   #|   @return {object[]} items - [{ id, heading, content, example }]
+   #|
+   ########################################
 
-   bindEvent: ( $dom ) =>
+   key = key.replace('\\', '\\\\')
+   key = key.replace(/(?:\s|\n)+/g, '')
 
-      ########################################
-      #|
-      #|  @params {HTMLElement} $search
-      #|
-      ########################################
+   items = Search._match( key, datas )
+   items = Search._sortItems( items )
 
-      $input = $dom.querySelector('input')
-      $clear = $dom.querySelector('.clear')
+   return items
 
-      $input.addEventListener('input', @input)
-      $clear.addEventListener('click', @clear)
 
 
 
 
+Search._match = ( key, datas ) =>
 
-   input: ( e ) =>
+   ########################################
+   #|
+   #|   @params {string}   key
+   #|   @params {object[]} datas - [{ id, heading, content, example }]
+   #|
+   #|   @return {object[]} items - [{ id, heading, content, example }]
+   #|
+   ########################################
 
-      ########################################
-      #|
-      #|  @params {Event} e
-      #|
-      ########################################
+   items = []
 
-      key     = e.target.value.trim().replace('\\', '\\\\')
-      results = []
+   for data in datas
 
-      if key
-         for section in @sections
-            if result = @match(section, key)
-               result.id = section.id
-               results.push(result)
+       item = Search._matchSection( key, data )
 
-         @sortResults(results)
-         @showResults(results)
-         @showClear(results)
+       if item
+          items.push( item )
 
-      else
-         @hideResults()
-         @hideClear()
+   return items
 
 
 
 
 
-   clear: ( e ) =>
+Search._matchSection = ( key, data ) =>
 
-      ########################################
-      #|
-      #|  @params {Event} e
-      #|
-      ########################################
+   ########################################
+   #|
+   #|   @params {string} key
+   #|   @params {object} data - {string} id
+   #|                           {string} heading
+   #|                           {string} content
+   #|                           {string} example
+   #|
+   #|   @return {object} item - {string} id
+   #|                           {string} heading
+   #|                           {string} content - is undefined if needless
+   #|                           {string} example - is undefined if needless
+   #|
+   ########################################
 
-      @$dom.querySelector('input').value = ''
+   { id, heading, content, example } = data
 
-      @hideResults()
-      @hideClear()
+   if heading
+      if result = Search._matchHeading( key, heading )
+         return { id, heading: result }
 
+   if content
+      if result = Search._matchContent( key, content )
+         return { id, heading, content: result }
 
+   if example
+      if result = Search._matchExample( key, example )
+         return { id, heading, example: result }
 
+   return null
 
 
-   match: ( section, key ) =>
 
-      ########################################
-      #|
-      #|  @params {object} section - { heading, content }
-      #|  @params {string} key
-      #|  @return {boolean}
-      #|
-      ########################################
 
-      { heading, content } = section
 
-      if text = @matchHeading( heading, key )
-         return { heading: text }
+Search._matchHeading = ( key, heading ) =>
 
-      if text = @matchContent( content, key )
-         return { heading, content: text }
+   ########################################
+   #|
+   #|   @params {string} key
+   #|   @params {string} heading
+   #|
+   #|   @return {string} heading - return '' when not matched
+   #|
+   ########################################
 
+   reg = new RegExp( key, 'i' )
 
+   if reg.test( heading )
 
+      heading = heading.replace /</g, '&lt;'
+      heading = heading.replace />/g, '&gt;'
 
+      return heading
 
-   matchHeading: ( heading, key ) =>
+   else
+      return ''
 
-      reg = new RegExp( key, 'i' )
 
-      if reg.test( heading )
 
-         heading = heading.replace /</g, '&lt;'
-         heading = heading.replace />/g, '&gt;'
 
-         return heading
 
+Search._matchContent = ( key, content ) =>
 
+   ########################################
+   #|
+   #|   @params {string} key
+   #|   @params {string} content
+   #|
+   #|   @return {string} content - return '' when not matched
+   #|
+   ########################################
 
+   reg = new RegExp( key, 'i' )
 
+   if result = content.match( reg )
 
-   matchContent: ( content, key ) =>
+      index  = result.index
+      start  = index - 20
+      end    = index + key.length + 20
 
-      reg = new RegExp( key, 'i' )
+      if start < 0
+         start = 0
 
-      if result = content.match( reg )
+      if end > content.length
+         end = content.length
 
-         index = result.index
-         start = index - 20
-         end   = index + key.length + 20
+      content = content.slice( start, end )
 
-         if start < 0
-            start = 0
+      reg = new RegExp( key, 'ig' )
 
-         if end > content.length
-            end = content.length
+      content = content.replace /</g, '&lt;'
+      content = content.replace />/g, '&gt;'
+      content = content.replace reg, ( key ) => "<em>#{ key }</em>"
 
-         content = content.slice( start, end )
+      return content
 
-         reg = new RegExp( key, 'ig' )
+   else
+      return ''
 
-         content = content.replace /</g, '&lt;'
-         content = content.replace />/g, '&gt;'
-         content = content.replace reg, ( key ) => "<em>#{ key }</em>"
 
-         return content
 
 
 
+Search._matchExample = ( key, example ) =>
 
+   ########################################
+   #|
+   #|   @params {string} key
+   #|   @params {string} example
+   #|
+   #|   @return {string} example - return '' when not matched
+   #|
+   ########################################
 
-   sortResults: ( results ) =>
+   reg = new RegExp( key, 'i' )
 
-      ########################################
-      #|
-      #|  @params {object[]} results - { id, heading, content }
-      #|
-      ########################################
+   if result = example.match( reg )
 
-      results.sort ( r1, r2 ) =>
+      index  = result.index
+      start  = index - 20
+      end    = index + key.length + 20
 
-         if !r1.content and r2.content
-            return -1
+      if start < 0
+         start = 0
 
-         if !r2.content and r1.content
-            return 1
+      if end > example.length
+         end = example.length
 
-         return 0
+      example = example.slice( start, end )
 
+      reg = new RegExp( key, 'ig' )
 
+      example = example.replace /</g, '&lt;'
+      example = example.replace />/g, '&gt;'
+      example = example.replace reg, ( key ) => "<em>#{ key }</em>"
 
+      return example
 
+   else
+      return ''
 
-   showResults: ( results ) =>
 
-      html = ''
 
-      for result in results
-          html += @createResult( result )
 
-      $ul = @$dom.querySelector('ul')
-      $ul.innerHTML = html
 
-      @bindResultEvent( $ul )
+Search._sortItems = ( items ) =>
 
-      $ul.style.display = 'block'
+   ########################################
+   #|
+   #|   @params {object[]} items - [{ id, heading, content, example }]
+   #|   @return {object[]} items - [{ id, heading, content, example }]
+   #|
+   ########################################
 
+   headingItems = []
+   contentItems = []
+   exampleItems = []
 
+   for item in items
+       switch
+          when item.content then contentItems.push( item )
+          when item.example then exampleItems.push( item )
+          else                   headingItems.push( item )
 
+   return headingItems.concat( contentItems ).concat( exampleItems )
 
 
-   createResult: ( result ) =>
 
-      { id, heading, content } = result
 
-      if content
-         return """
-            <li id=\"#{id}\">
-               <div class=\"heading\">#{heading}</div>
-               <div class=\"content\">#{content}</div>
-            </li>
-         """
-      else
-         return """
-            <li id=\"#{id}\">
-               <div class=\"heading\">#{heading}</div>
-            </li>
-         """
 
+Search.showItems = ( ul, items ) =>
 
+   ########################################
+   #|
+   #|   @params {DOM}      ul
+   #|   @params {object[]} items - [{ id, heading, content, example }]
+   #|   @return {DOM[]}    items
+   #|
+   ########################################
 
+   items = Search._compileItems( items )
 
+   ul.html( items )
+   ul.css('display', 'block')
 
-   hideResults: =>
+   return ul.findAll('li')
 
-      $ul               = @$dom.querySelector('ul')
-      $ul.innerHTML     = ''
-      $ul.style.display = 'none'
 
 
 
 
+Search.hideItems = ( ul ) =>
 
-   bindResultEvent: ( $ul ) =>
+   ########################################
+   #|
+   #|   @params {DOM} ul-dom
+   #|
+   ########################################
 
-      $items = $ul.querySelectorAll('ul > li')
+   ul.html('')
+   ul.css('display', 'none')
 
-      for $item in $items
-          $item.addEventListener('click', @select.bind(@, $item))
 
 
 
 
+Search._compileItems = ( items ) =>
 
-   select: ( $item ) =>
+   ########################################
+   #|
+   #|   @params {object[]} items - [{ id, heading, content, example }]
+   #|   @return {string}   html
+   #|
+   ########################################
 
-      id = $item.getAttribute('id')
-      @emit('select', id)
+   html = ''
 
+   for item in items
+       html += Search._compileItem( item )
 
+   return html
 
 
 
-   showClear: =>
 
-      @$clear.style.display = 'block'
 
+Search._compileItem = ( item ) =>
 
+   ########################################
+   #|
+   #|   @params {object} item - {string} id
+   #|                           {string} heading
+   #|                           {string} content
+   #|                           {string} example
+   #|   @return {string} html
+   #|
+   ########################################
 
+   { id, heading, content, example } = item
 
+   if heading
+      heading = "<div class=\"heading\">#{ heading }</div>"
 
-   hideClear: =>
+   if content
+      content = "<div class=\"content\">#{ content }</div>"
 
-      @$clear.style.display = 'none'
+   if example
+      example = "<div class=\"example\">#{ example }</div>"
+
+   id      ?= ''
+   heading ?= ''
+   content ?= ''
+   example ?= ''
+
+   html = """
+      <li data-id="#{ id }">
+         #{ heading }
+         #{ content }
+         #{ example }
+      </li>
+   """
+
+   return html
+
+
+
+
+
+Search.focus = ( input ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} input
+   #|
+   ########################################
+
+   input.element().focus()
+
+
+
+
+
+Search.clear = ( input ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} input
+   #|
+   ########################################
+
+   input.val('')
+
+
+
+
+
+Search.showClear = ( clear ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} clear
+   #|
+   ########################################
+
+   clear.css('display', 'block')
+
+
+
+
+
+Search.hideClear = ( clear ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} clear
+   #|
+   ########################################
+
+   clear.css('display', 'none')

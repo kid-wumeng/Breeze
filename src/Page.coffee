@@ -44,10 +44,11 @@ module.exports = class Page
 
       ########################################
       #|
-      #|   @return {object} - {Nav}     nav
+      #|   @return {object} - {Article} article
+      #|                      {Nav}     nav
       #|                      {Cover}   cover
+      #|                      {Search}  search
       #|                      {Summary} summary
-      #|                      {Article} article
       #|
       ########################################
 
@@ -57,12 +58,13 @@ module.exports = class Page
 
       article = new Article(article)
       cover   = new Cover(cover)
+      search  = new Search()
 
       if !summary
         summary = Summary.parse(sections = article.parse())
       summary = new Summary(summary)
 
-      return { article, nav, cover, summary }
+      return { article, nav, cover, search, summary }
 
 
 
@@ -76,13 +78,14 @@ module.exports = class Page
       #|
       ########################################
 
-      { article, nav, cover, summary } = @_parse()
+      { article, nav, cover, search, summary } = @_parse()
 
       page = util.dom('#page')
       side = util.dom('#side')
       main = util.dom('#main')
 
-      page.append(cover.compile()) if cover.exist()
+      page.append(cover.compile())
+      side.append(search.compile())
       side.append(summary.compile())
       main.append(article.compile())
 

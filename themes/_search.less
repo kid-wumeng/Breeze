@@ -64,21 +64,21 @@
       cursor: pointer;
 
       .heading {
-        font-family: "Futura", "Ubuntu", @default-font-family;
-        font-weight: 600;
+        font-weight: 500;
         font-size: 14px;
       }
 
-      .content {
-        font-family: "Futura", "Ubuntu", @default-font-family;
+      .content,
+      .example {
         font-size: 13px;
         em {
-          font-weight: 600;
+          font-weight: 500;
           font-style: normal;
         }
       }
 
-      .heading:not(:empty) + .content {
+      .heading:not(:empty) + .content,
+      .heading:not(:empty) + .example {
         margin-top: 6px;
       }
     }

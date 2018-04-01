@@ -15,7 +15,6 @@ module.exports = class Cover
    #|       handling the <div id="cover">
    #|   -----------------------------------
    #|
-   #|   cover.exist()   -> bool
    #|   cover.compile() -> html
    #|   cover.render()  -> dom
    #|
@@ -37,23 +36,8 @@ module.exports = class Cover
 
       @html = html
 
-      @exist   = @_exist
       @compile = @_compile
       @render  = @_render
-
-
-
-
-
-   _exist: =>
-
-      ########################################
-      #|
-      #|   @return {boolean}
-      #|
-      ########################################
-
-      return !!@html
 
 
 
@@ -66,6 +50,9 @@ module.exports = class Cover
       #|   @return {string} html
       #|
       ########################################
+
+      if !@html
+         return "<div id=\"cover\" style=\"display: none\"/>"
 
       dom   = util.dom(@html)
       cover = util.dom('#cover')

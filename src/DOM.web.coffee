@@ -36,6 +36,8 @@ module.exports = class DOM
    #|   << The following methods exist only in web environment >>
    #|
    #|   dom.element()            -> root's $el
+   #|   dom.val( value )         -> this
+   #|   dom.val()                -> value
    #|   dom.parent()             -> dom
    #|   dom.css( name, value )   -> this
    #|   dom.width()              -> width
@@ -74,6 +76,7 @@ module.exports = class DOM
       @append      = @_append
 
       @element     = @_element
+      @val         = @_val
       @parent      = @_parent
       @css         = @_css
       @width       = @_width
@@ -321,6 +324,30 @@ module.exports = class DOM
       ########################################
 
       return @_root
+
+
+
+
+
+   _val: ( value ) =>
+
+      ########################################
+      #|
+      #|   SET   @params {string} value
+      #|         @return {DOM}    this
+      #|
+      #|   GET   @return {string} value
+      #|
+      #|   This method only exists in DOM.web
+      #|
+      ########################################
+
+      if value?
+         @_root.value = value
+         return @
+
+      else
+         return @_root.value
 
 
 

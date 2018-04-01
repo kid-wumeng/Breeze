@@ -17,7 +17,6 @@ var DOM_web = DOM = class DOM {
   //|
   //|   dom.find( sel )          -> dom
   //|   dom.findAll( sel )       -> dom[]
-  //|   dom.parent()             -> dom
   //|
   //|   dom.htmlSelf( html )     -> dom
   //|   dom.htmlSelf()           -> html
@@ -37,26 +36,27 @@ var DOM_web = DOM = class DOM {
   //|
   //|   dom.append( child )      -> this
   //|
-  //|   dom.css( name, value )   -> this
   //|
+  //|   << The following methods exist only in web environment >>
+  //|
+  //|   dom.element()            -> root's $el
+  //|   dom.val( value )         -> this
+  //|   dom.val()                -> value
+  //|   dom.parent()             -> dom
+  //|   dom.css( name, value )   -> this
   //|   dom.width()              -> width
   //|   dom.height()             -> height
   //|   dom.top()                -> top
   //|   dom.bottom()             -> bottom
   //|   dom.isVisible()          -> bool
-  //|
   //|   dom.scroll( deltaY )     -> this
-  //|
   //|   dom.on( name, callback ) -> this
-  //|
-  //|   dom.element()            -> root's $el
   //|
   //#######################################
   constructor(arg) {
     this._resolveRoot = this._resolveRoot.bind(this);
     this._find = this._find.bind(this);
     this._findAll = this._findAll.bind(this);
-    this._parent = this._parent.bind(this);
     this._htmlSelf = this._htmlSelf.bind(this);
     this._html = this._html.bind(this);
     this._attr = this._attr.bind(this);
@@ -65,6 +65,9 @@ var DOM_web = DOM = class DOM {
     this._hasClass = this._hasClass.bind(this);
     this._removeClass = this._removeClass.bind(this);
     this._append = this._append.bind(this);
+    this._element = this._element.bind(this);
+    this._val = this._val.bind(this);
+    this._parent = this._parent.bind(this);
     this._css = this._css.bind(this);
     this._width = this._width.bind(this);
     this._height = this._height.bind(this);
@@ -73,7 +76,6 @@ var DOM_web = DOM = class DOM {
     this._isVisible = this._isVisible.bind(this);
     this._scroll = this._scroll.bind(this);
     this._on = this._on.bind(this);
-    this._element = this._element.bind(this);
     //#######################################
     //|
     //|   @params {string|HTMLElement} html|$el
@@ -82,7 +84,6 @@ var DOM_web = DOM = class DOM {
     this._root = this._resolveRoot(arg);
     this.find = this._find;
     this.findAll = this._findAll;
-    this.parent = this._parent;
     this.htmlSelf = this._htmlSelf;
     this.html = this._html;
     this.attr = this._attr;
@@ -91,6 +92,9 @@ var DOM_web = DOM = class DOM {
     this.addClass = this._addClass;
     this.removeClass = this._removeClass;
     this.append = this._append;
+    this.element = this._element;
+    this.val = this._val;
+    this.parent = this._parent;
     this.css = this._css;
     this.width = this._width;
     this.height = this._height;
@@ -99,7 +103,6 @@ var DOM_web = DOM = class DOM {
     this.isVisible = this._isVisible;
     this.scroll = this._scroll;
     this.on = this._on;
-    this.element = this._element;
   }
 
   _resolveRoot(arg) {
@@ -151,15 +154,6 @@ var DOM_web = DOM = class DOM {
       doms.push(dom);
     }
     return doms;
-  }
-
-  _parent() {
-    //#######################################
-    //|
-    //|   @return {DOM} parent
-    //|
-    //#######################################
-    return new DOM(this._root.parentNode);
   }
 
   _htmlSelf(html) {
@@ -279,6 +273,53 @@ var DOM_web = DOM = class DOM {
     return this;
   }
 
+  _element() {
+    //#######################################
+    //|
+    //|   @return {HTMLElement} root's $el
+    //|
+    //|   This method only exists in DOM.web
+    //|
+    //#######################################
+    return this._root;
+  }
+
+  _val(value) {
+    //#######################################
+    //|
+    //|   SET   @params {string} value
+    //|         @return {DOM}    this
+    //|
+    //|   GET   @return {string} value
+    //|
+    //|   This method only exists in DOM.web
+    //|
+    //#######################################
+    if (value != null) {
+      this._root.value = value;
+      return this;
+    } else {
+      return this._root.value;
+    }
+  }
+
+  _parent() {
+    var $el;
+    //#######################################
+    //|
+    //|   @return {DOM} parent - return null when not found.
+    //|
+    //|   This method only exists in DOM.web
+    //|
+    //#######################################
+    $el = this._root.parentNode;
+    if ($el) {
+      return new DOM($el);
+    } else {
+      return null;
+    }
+  }
+
   _css(name, value) {
     //#######################################
     //|
@@ -379,17 +420,6 @@ var DOM_web = DOM = class DOM {
       return e.preventDefault();
     });
     return this;
-  }
-
-  _element() {
-    //#######################################
-    //|
-    //|   @return {HTMLElement} root's $el
-    //|
-    //|   This method only exists in DOM.web
-    //|
-    //#######################################
-    return this._root;
   }
 
 };
@@ -1566,7 +1596,6 @@ var Cover_1 = Cover = class Cover {
   //|       handling the <div id="cover">
   //|   -----------------------------------
   //|
-  //|   cover.exist()   -> bool
   //|   cover.compile() -> html
   //|   cover.render()  -> dom
   //|
@@ -1574,7 +1603,6 @@ var Cover_1 = Cover = class Cover {
   //|
   //#######################################
   constructor(html) {
-    this._exist = this._exist.bind(this);
     this._compile = this._compile.bind(this);
     this._compileLogo = this._compileLogo.bind(this);
     this._compileName = this._compileName.bind(this);
@@ -1588,22 +1616,15 @@ var Cover_1 = Cover = class Cover {
     //|
     //#######################################
     this.html = html;
-    this.exist = this._exist;
     this.compile = this._compile;
     this.render = this._render;
   }
 
-  _exist() {
-    return !!this.html;
-  }
-
   _compile() {
     var buttons, cover, descs, dom, items, logo, name, wrap;
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
+    if (!this.html) {
+      return "<div id=\"cover\" style=\"display: none\"/>";
+    }
     dom = util$3.dom(this.html);
     cover = util$3.dom('#cover');
     wrap = util$3.dom('.wrap');
@@ -4309,8 +4330,9 @@ var Article_1 = Article = class Article {
   //|   article.compile() -> html
   //|   article.render()  -> dom
   //|
-  //|   Article.locateID( dom ) -> id
   //|   Article.scrollTo( dom, id )
+  //|   Article.locateID( dom )        -> id
+  //|   Article.getSectionDatas( dom ) -> datas
   //|
   //#######################################
   constructor(markdown) {
@@ -4699,11 +4721,28 @@ var Article_1 = Article = class Article {
 
 };
 
+Article.scrollTo = (article, id) => {
+  var section, top;
+  //#######################################
+  //|
+  //|   @params {DOM}    article
+  //|   @params {string} id
+  //|
+  //#######################################
+  section = article.find(`[id="${id}"]`);
+  if (section) {
+    top = section.top();
+    return window.scrollBy(0, top);
+  } else {
+    return window.scrollTo(0, 0);
+  }
+};
+
 Article.locateID = (article) => {
   var i, j, len, ref, section, sections;
   //#######################################
   //|
-  //|   @params {DOM} article
+  //|   @params {DOM}    article
   //|   @return {string} id
   //|
   //#######################################
@@ -4717,21 +4756,531 @@ Article.locateID = (article) => {
   return (ref = sections[i - 1].attr('id')) != null ? ref : '';
 };
 
-Article.scrollTo = (article, id) => {
-  var section, top;
+Article.getSectionDatas = (article) => {
+  var j, len, section, sectionData, sectionDatas, sections;
   //#######################################
   //|
-  //|   @params {DOM} article
-  //|   @params {string} id
+  //|   @params {DOM}      article
+  //|   @return {object[]} sectionDatas - [{ id, heading, content, example }]
   //|
   //#######################################
-  section = article.find(`[id="${id}"]`);
-  if (section) {
-    top = section.top();
-    return window.scrollBy(0, top);
-  } else {
-    return window.scrollTo(0, 0);
+  sections = article.findAll('.section');
+  sectionDatas = [];
+  for (j = 0, len = sections.length; j < len; j++) {
+    section = sections[j];
+    sectionData = Article._getSectionData(section);
+    sectionDatas.push(sectionData);
   }
+  return sectionDatas;
+};
+
+Article._getSectionData = (section) => {
+  var content, example, heading, id, ref;
+  //#######################################
+  //|
+  //|   @params {DOM}    section
+  //|   @return {object} sectionData - {string} id
+  //|                                  {string} heading
+  //|                                  {string} content
+  //|                                  {string} example
+  //|
+  //#######################################
+  id = (ref = section.attr('id')) != null ? ref : '';
+  heading = Article._getHeadingData(section);
+  content = Article._getContentData(section);
+  example = Article._getExampleData(section);
+  return {id, heading, content, example};
+};
+
+Article._getHeadingData = (section) => {
+  var heading, sels;
+  //#######################################
+  //|
+  //|   @params {DOM}    section
+  //|   @return {string} heading
+  //|
+  //#######################################
+  sels = ['.section > h1', '.section > h2', '.section > h3', '.section > h4', '.section > h5', '.section > h6'];
+  heading = section.find(sels.join(','));
+  if (heading) {
+    return heading.text();
+  } else {
+    return '';
+  }
+};
+
+Article._getContentData = (section) => {
+  var content;
+  //#######################################
+  //|
+  //|   @params {DOM}    section
+  //|   @return {string} content
+  //|
+  //#######################################
+  content = section.find('.content');
+  if (content) {
+    return content.text().replace(/(?:\s|\n)+/g, '');
+  } else {
+    return '';
+  }
+};
+
+Article._getExampleData = (section) => {
+  var example;
+  //#######################################
+  //|
+  //|   @params {DOM}    section
+  //|   @return {string} example
+  //|
+  //#######################################
+  example = section.find('.example');
+  if (example) {
+    return example.text().replace(/(?:\s|\n)+/g, '');
+  } else {
+    return '';
+  }
+};
+
+var Search;
+
+var Search_1 = Search = class Search {
+  //#######################################
+  //|
+  //|   new Search( html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="search">
+  //|   -----------------------------------
+  //|
+  //|   search.compile() -> html
+  //|
+  //|   Search.find( key, datas )     -> items
+  //|   Search.showItems( ul, items ) -> item-doms
+  //|   Search.hideItems( ul )
+  //|   Search.focus( input )
+  //|   Search.clear( input )
+  //|   Search.showClear( clear )
+  //|   Search.hideClear( clear )
+  //|
+  //#######################################
+  constructor() {
+    this._compile = this._compile.bind(this);
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    return "<div id=\"search\">\n   <div class=\"input-box\">\n      <input autofocus spellcheck=\"false\"/>\n      <div class=\"clear\"></div>\n   </div>\n   <ul class=\"items\"></ul>\n</div>";
+  }
+
+};
+
+Search.find = (key, datas) => {
+  var items;
+  //#######################################
+  //|
+  //|   @params {string}   key
+  //|   @params {object[]} datas - [{ id, heading, content, example }]
+  //|
+  //|   @return {object[]} items - [{ id, heading, content, example }]
+  //|
+  //#######################################
+  key = key.replace('\\', '\\\\');
+  key = key.replace(/(?:\s|\n)+/g, '');
+  items = Search._match(key, datas);
+  items = Search._sortItems(items);
+  return items;
+};
+
+Search._match = (key, datas) => {
+  var data, i, item, items, len;
+  //#######################################
+  //|
+  //|   @params {string}   key
+  //|   @params {object[]} datas - [{ id, heading, content, example }]
+  //|
+  //|   @return {object[]} items - [{ id, heading, content, example }]
+  //|
+  //#######################################
+  items = [];
+  for (i = 0, len = datas.length; i < len; i++) {
+    data = datas[i];
+    item = Search._matchSection(key, data);
+    if (item) {
+      items.push(item);
+    }
+  }
+  return items;
+};
+
+Search._matchSection = (key, data) => {
+  var content, example, heading, id, result;
+  //#######################################
+  //|
+  //|   @params {string} key
+  //|   @params {object} data - {string} id
+  //|                           {string} heading
+  //|                           {string} content
+  //|                           {string} example
+  //|
+  //|   @return {object} item - {string} id
+  //|                           {string} heading
+  //|                           {string} content - is undefined if needless
+  //|                           {string} example - is undefined if needless
+  //|
+  //#######################################
+  ({id, heading, content, example} = data);
+  if (heading) {
+    if (result = Search._matchHeading(key, heading)) {
+      return {
+        id,
+        heading: result
+      };
+    }
+  }
+  if (content) {
+    if (result = Search._matchContent(key, content)) {
+      return {
+        id,
+        heading,
+        content: result
+      };
+    }
+  }
+  if (example) {
+    if (result = Search._matchExample(key, example)) {
+      return {
+        id,
+        heading,
+        example: result
+      };
+    }
+  }
+  return null;
+};
+
+Search._matchHeading = (key, heading) => {
+  var reg;
+  //#######################################
+  //|
+  //|   @params {string} key
+  //|   @params {string} heading
+  //|
+  //|   @return {string} heading - return '' when not matched
+  //|
+  //#######################################
+  reg = new RegExp(key, 'i');
+  if (reg.test(heading)) {
+    heading = heading.replace(/</g, '&lt;');
+    heading = heading.replace(/>/g, '&gt;');
+    return heading;
+  } else {
+    return '';
+  }
+};
+
+Search._matchContent = (key, content) => {
+  var end, index, reg, result, start;
+  //#######################################
+  //|
+  //|   @params {string} key
+  //|   @params {string} content
+  //|
+  //|   @return {string} content - return '' when not matched
+  //|
+  //#######################################
+  reg = new RegExp(key, 'i');
+  if (result = content.match(reg)) {
+    index = result.index;
+    start = index - 20;
+    end = index + key.length + 20;
+    if (start < 0) {
+      start = 0;
+    }
+    if (end > content.length) {
+      end = content.length;
+    }
+    content = content.slice(start, end);
+    reg = new RegExp(key, 'ig');
+    content = content.replace(/</g, '&lt;');
+    content = content.replace(/>/g, '&gt;');
+    content = content.replace(reg, (key) => {
+      return `<em>${key}</em>`;
+    });
+    return content;
+  } else {
+    return '';
+  }
+};
+
+Search._matchExample = (key, example) => {
+  var end, index, reg, result, start;
+  //#######################################
+  //|
+  //|   @params {string} key
+  //|   @params {string} example
+  //|
+  //|   @return {string} example - return '' when not matched
+  //|
+  //#######################################
+  reg = new RegExp(key, 'i');
+  if (result = example.match(reg)) {
+    index = result.index;
+    start = index - 20;
+    end = index + key.length + 20;
+    if (start < 0) {
+      start = 0;
+    }
+    if (end > example.length) {
+      end = example.length;
+    }
+    example = example.slice(start, end);
+    reg = new RegExp(key, 'ig');
+    example = example.replace(/</g, '&lt;');
+    example = example.replace(/>/g, '&gt;');
+    example = example.replace(reg, (key) => {
+      return `<em>${key}</em>`;
+    });
+    return example;
+  } else {
+    return '';
+  }
+};
+
+Search._sortItems = (items) => {
+  var contentItems, exampleItems, headingItems, i, item, len;
+  //#######################################
+  //|
+  //|   @params {object[]} items - [{ id, heading, content, example }]
+  //|   @return {object[]} items - [{ id, heading, content, example }]
+  //|
+  //#######################################
+  headingItems = [];
+  contentItems = [];
+  exampleItems = [];
+  for (i = 0, len = items.length; i < len; i++) {
+    item = items[i];
+    switch (false) {
+      case !item.content:
+        contentItems.push(item);
+        break;
+      case !item.example:
+        exampleItems.push(item);
+        break;
+      default:
+        headingItems.push(item);
+    }
+  }
+  return headingItems.concat(contentItems).concat(exampleItems);
+};
+
+Search.showItems = (ul, items) => {
+  //#######################################
+  //|
+  //|   @params {DOM}      ul
+  //|   @params {object[]} items - [{ id, heading, content, example }]
+  //|   @return {DOM[]}    items
+  //|
+  //#######################################
+  items = Search._compileItems(items);
+  ul.html(items);
+  ul.css('display', 'block');
+  return ul.findAll('li');
+};
+
+Search.hideItems = (ul) => {
+  //#######################################
+  //|
+  //|   @params {DOM} ul-dom
+  //|
+  //#######################################
+  ul.html('');
+  return ul.css('display', 'none');
+};
+
+Search._compileItems = (items) => {
+  var html, i, item, len;
+  //#######################################
+  //|
+  //|   @params {object[]} items - [{ id, heading, content, example }]
+  //|   @return {string}   html
+  //|
+  //#######################################
+  html = '';
+  for (i = 0, len = items.length; i < len; i++) {
+    item = items[i];
+    html += Search._compileItem(item);
+  }
+  return html;
+};
+
+Search._compileItem = (item) => {
+  var content, example, heading, html, id;
+  //#######################################
+  //|
+  //|   @params {object} item - {string} id
+  //|                           {string} heading
+  //|                           {string} content
+  //|                           {string} example
+  //|   @return {string} html
+  //|
+  //#######################################
+  ({id, heading, content, example} = item);
+  if (heading) {
+    heading = `<div class="heading">${heading}</div>`;
+  }
+  if (content) {
+    content = `<div class="content">${content}</div>`;
+  }
+  if (example) {
+    example = `<div class="example">${example}</div>`;
+  }
+  if (id == null) {
+    id = '';
+  }
+  if (heading == null) {
+    heading = '';
+  }
+  if (content == null) {
+    content = '';
+  }
+  if (example == null) {
+    example = '';
+  }
+  html = `<li data-id="${id}">\n   ${heading}\n   ${content}\n   ${example}\n</li>`;
+  return html;
+};
+
+Search.focus = (input) => {
+  //#######################################
+  //|
+  //|   @params {DOM} input
+  //|
+  //#######################################
+  return input.element().focus();
+};
+
+Search.clear = (input) => {
+  //#######################################
+  //|
+  //|   @params {DOM} input
+  //|
+  //#######################################
+  return input.val('');
+};
+
+Search.showClear = (clear) => {
+  //#######################################
+  //|
+  //|   @params {DOM} clear
+  //|
+  //#######################################
+  return clear.css('display', 'block');
+};
+
+Search.hideClear = (clear) => {
+  //#######################################
+  //|
+  //|   @params {DOM} clear
+  //|
+  //#######################################
+  return clear.css('display', 'none');
+};
+
+var Article$1, Cover$1, Markdown$1, Page, Search$1, Summary$1, util$7;
+
+Markdown$1 = Markdown_1;
+
+Cover$1 = Cover_1;
+
+Summary$1 = Summary_1;
+
+Article$1 = Article_1;
+
+Search$1 = Search_1;
+
+util$7 = util;
+
+var Page_1 = Page = class Page {
+  //#######################################
+  //|
+  //|   new Page( text )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="page">
+  //|   -----------------------------------
+  //|
+  //|   page.compile() -> html
+  //|   page.render()  -> dom
+  //|
+  //#######################################
+  constructor(text) {
+    this._parse = this._parse.bind(this);
+    this._compile = this._compile.bind(this);
+    this._render = this._render.bind(this);
+    this.text = text;
+    this.compile = this._compile;
+    this.render = this._render;
+  }
+
+  _parse() {
+    var article, cover, markdown, nav, search, sections, summary;
+    //#######################################
+    //|
+    //|   @return {object} - {Article} article
+    //|                      {Nav}     nav
+    //|                      {Cover}   cover
+    //|                      {Search}  search
+    //|                      {Summary} summary
+    //|
+    //#######################################
+    markdown = new Markdown$1(this.text);
+    ({article, nav, cover, summary} = markdown.parse());
+    article = new Article$1(article);
+    cover = new Cover$1(cover);
+    search = new Search$1();
+    if (!summary) {
+      summary = Summary$1.parse(sections = article.parse());
+    }
+    summary = new Summary$1(summary);
+    return {article, nav, cover, search, summary};
+  }
+
+  _compile() {
+    var article, cover, main, nav, page, search, side, summary;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    ({article, nav, cover, search, summary} = this._parse());
+    page = util$7.dom('#page');
+    side = util$7.dom('#side');
+    main = util$7.dom('#main');
+    page.append(cover.compile());
+    side.append(search.compile());
+    side.append(summary.compile());
+    main.append(article.compile());
+    page.append(side);
+    page.append(main);
+    return page.htmlSelf();
+  }
+
+  _render() {
+    //#######################################
+    //|
+    //|   @return {DOM} page
+    //|
+    //#######################################
+    return util$7.dom(this._compile());
+  }
+
 };
 
 var ObservableObject;
@@ -4789,106 +5338,20 @@ var ObservableObject_1 = ObservableObject = class ObservableObject {
 
 };
 
-var Article$1, Cover$1, Markdown$1, Page, Summary$1, util$8;
+var Article$2, Cover$2, ObservableObject$1, PageEventBus, Search$2, Summary$2,
+  boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
-Markdown$1 = Markdown_1;
-
-Cover$1 = Cover_1;
-
-Summary$1 = Summary_1;
-
-Article$1 = Article_1;
-
-util$8 = util;
-
-var Page_1 = Page = class Page {
-  //#######################################
-  //|
-  //|   new Page( text )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       handling the <div id="page">
-  //|   -----------------------------------
-  //|
-  //|   page.compile() -> html
-  //|   page.render()  -> dom
-  //|
-  //#######################################
-  constructor(text) {
-    this._parse = this._parse.bind(this);
-    this._compile = this._compile.bind(this);
-    this._render = this._render.bind(this);
-    this.text = text;
-    this.compile = this._compile;
-    this.render = this._render;
-  }
-
-  _parse() {
-    var article, cover, markdown, nav, sections, summary;
-    //#######################################
-    //|
-    //|   @return {object} - {Nav}     nav
-    //|                      {Cover}   cover
-    //|                      {Summary} summary
-    //|                      {Article} article
-    //|
-    //#######################################
-    markdown = new Markdown$1(this.text);
-    ({article, nav, cover, summary} = markdown.parse());
-    article = new Article$1(article);
-    cover = new Cover$1(cover);
-    if (!summary) {
-      summary = Summary$1.parse(sections = article.parse());
-    }
-    summary = new Summary$1(summary);
-    return {article, nav, cover, summary};
-  }
-
-  _compile() {
-    var article, cover, main, nav, page, side, summary;
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
-    ({article, nav, cover, summary} = this._parse());
-    page = util$8.dom('#page');
-    side = util$8.dom('#side');
-    main = util$8.dom('#main');
-    if (cover.exist()) {
-      page.append(cover.compile());
-    }
-    side.append(summary.compile());
-    main.append(article.compile());
-    page.append(side);
-    page.append(main);
-    return page.htmlSelf();
-  }
-
-  _render() {
-    //#######################################
-    //|
-    //|   @return {DOM} page
-    //|
-    //#######################################
-    return util$8.dom(this._compile());
-  }
-
-};
-
-var Article$2, Cover$2, ObservableObject$2, PageEventBus, Summary$2,
-  boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
-
-ObservableObject$2 = ObservableObject_1;
+ObservableObject$1 = ObservableObject_1;
 
 Article$2 = Article_1;
 
 Cover$2 = Cover_1;
 
+Search$2 = Search_1;
+
 Summary$2 = Summary_1;
 
-var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$2 {
+var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$1 {
   //#######################################
   //|
   //|   new PageEventBus( page-dom )
@@ -4906,24 +5369,32 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     this._onClickCoverButton = this._onClickCoverButton.bind(this);
     this._onClickSummaryLink = this._onClickSummaryLink.bind(this);
     this._onClickLink = this._onClickLink.bind(this);
+    this._onInputSearchInput = this._onInputSearchInput.bind(this);
+    this._onClickSearchClear = this._onClickSearchClear.bind(this);
+    this._onClickSearchItem = this._onClickSearchItem.bind(this);
     this._page = page;
-    this._main = page.find('#main');
-    this._side = page.find('#side');
-    this._nav = page.find('#nav');
-    this._cover = page.find('#cover');
-    this._summary = page.find('#summary');
-    this._article = page.find('#article');
+    this._main = this._page.find('#main');
+    this._side = this._page.find('#side');
+    this._nav = this._page.find('#nav');
+    this._cover = this._page.find('#cover');
     this._coverButtons = this._cover.findAll('.buttons a');
+    this._search = this._page.find('#search');
+    this._searchInput = this._search.find('input');
+    this._searchClear = this._search.find('.clear');
+    this._searchItems = this._search.find('.items');
+    this._summary = this._page.find('#summary');
     this._summaryLinks = this._summary.findAll('a');
+    this._article = this._page.find('#article');
     this._links = this._page.findAll('a');
-    this._overSide = false;
-    this._overMain = false;
+    this._isOverSide = false;
+    this._isOverMain = false;
+    this._sectionDatas = Article$2.getSectionDatas(this._article);
     this._bindEvents();
   }
 
   _bindEvents() {
-    var button, i, j, k, len, len1, len2, link, ref, ref1, ref2, results;
-    boundMethodCheck$1(this, PageEventBus);
+    var button, i, j, k, len, len1, len2, link, ref, ref1, ref2;
+    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   To bind all events of dom-tree.
@@ -4931,16 +5402,16 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     //#######################################
     window.addEventListener('scroll', this._onScrollArticle);
     this._side.on('mouseenter', () => {
-      return this._overSide = true;
+      return this._isOverSide = true;
     });
     this._main.on('mouseenter', () => {
-      return this._overMain = true;
+      return this._isOverMain = true;
     });
     this._side.on('mouseleave', () => {
-      return this._overSide = false;
+      return this._isOverSide = false;
     });
     this._main.on('mouseleave', () => {
-      return this._overMain = false;
+      return this._isOverMain = false;
     });
     ref = this._coverButtons;
     for (i = 0, len = ref.length; i < len; i++) {
@@ -4953,26 +5424,27 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
       link.on('click', this._onClickSummaryLink);
     }
     ref2 = this._links;
-    results = [];
     for (k = 0, len2 = ref2.length; k < len2; k++) {
       link = ref2[k];
-      results.push(link.on('click', this._onClickLink));
+      link.on('click', this._onClickLink);
     }
-    return results;
+    this._searchInput.on('input', this._onInputSearchInput);
+    return this._searchClear.on('click', this._onClickSearchClear);
   }
 
   _onScrollArticle() {
     var href, id;
-    boundMethodCheck$1(this, PageEventBus);
+    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   When scroll the article,
+    //|
     //|      1. redirect #id
     //|      2. active the summary
     //|      3. scroll the summary
     //|
     //#######################################
-    if (this._article.isVisible()) {
+    if (this._article.isVisible() && this._isOverMain) {
       id = Article$2.locateID(this._article);
       href = '#' + id;
       Breeze.go(href);
@@ -4983,8 +5455,10 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onClickCoverButton(button) {
     var href;
-    boundMethodCheck$1(this, PageEventBus);
+    boundMethodCheck(this, PageEventBus);
     //#######################################
+    //|
+    //|   @params {DOM} button
     //|
     //|   When click the cover's button,
     //|      1. if href is current page, hide the cover
@@ -4998,8 +5472,10 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onClickSummaryLink(link) {
     var href, id;
-    boundMethodCheck$1(this, PageEventBus);
+    boundMethodCheck(this, PageEventBus);
     //#######################################
+    //|
+    //|   @params {DOM} link
     //|
     //|   When click the summary's link,
     //|      1. active the summary
@@ -5016,8 +5492,10 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onClickLink(link) {
     var href;
-    boundMethodCheck$1(this, PageEventBus);
+    boundMethodCheck(this, PageEventBus);
     //#######################################
+    //|
+    //|   @params {DOM} link
     //|
     //|   When click any link,
     //|      1. redirect path#id | open url
@@ -5028,15 +5506,81 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     }
   }
 
+  _onInputSearchInput(input) {
+    var i, item, items, key, len;
+    boundMethodCheck(this, PageEventBus);
+    //#######################################
+    //|
+    //|   @params {DOM} input
+    //|
+    //|   When input search-key,
+    //|
+    //|      1. find items from section-datas
+    //|      2. show or hide clear
+    //|      3. show or hide items
+    //|      4. bind click-event of items
+    //|
+    //#######################################
+    if (key = input.val().trim()) {
+      items = Search$2.find(key, this._sectionDatas);
+      items = Search$2.showItems(this._searchItems, items);
+      for (i = 0, len = items.length; i < len; i++) {
+        item = items[i];
+        item.on('click', this._onClickSearchItem.bind(this, item));
+      }
+      return Search$2.showClear(this._searchClear);
+    } else {
+      Search$2.hideClear(this._searchClear);
+      return Search$2.hideItems(this._searchItems);
+    }
+  }
+
+  _onClickSearchClear(clear) {
+    boundMethodCheck(this, PageEventBus);
+    //#######################################
+    //|
+    //|   @params {DOM} clear
+    //|
+    //|   When click search clear-button,
+    //|
+    //|      1. clear input's key
+    //|      2. hide items
+    //|      3. hide clear
+    //|
+    //#######################################
+    Search$2.clear(this._searchInput);
+    Search$2.focus(this._searchInput);
+    Search$2.hideClear(this._searchClear);
+    return Search$2.hideItems(this._searchItems);
+  }
+
+  _onClickSearchItem(item) {
+    var href, id;
+    boundMethodCheck(this, PageEventBus);
+    //#######################################
+    //|
+    //|   @params {DOM} item
+    //|
+    //|   When click search item,
+    //|      1. scroll the article
+    //|
+    //#######################################
+    id = item.attr('data-id');
+    href = '#' + id;
+    Breeze.go(href);
+    Search$2.focus(this._searchInput);
+    return Article$2.scrollTo(this._article, id);
+  }
+
 };
 
-var App, Page$1, PageEventBus$1, util$9;
+var App, Page$1, PageEventBus$1, util$8;
 
 Page$1 = Page_1;
 
 PageEventBus$1 = PageEventBus_1;
 
-util$9 = util;
+util$8 = util;
 
 var App_1 = App = class App {
   //#######################################
@@ -5080,7 +5624,7 @@ var App_1 = App = class App {
     //|
     //#######################################
     page = document.querySelector('#page');
-    page = util$9.dom(page);
+    page = util$8.dom(page);
     return new PageEventBus$1(page);
   }
 
@@ -5151,12 +5695,12 @@ var App_1 = App = class App {
 
 };
 
-var Breeze$1, ObservableObject$3,
-  boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+var Breeze$1, ObservableObject$2,
+  boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
-ObservableObject$3 = ObservableObject_1;
+ObservableObject$2 = ObservableObject_1;
 
-var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$3 {
+var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$2 {
   //#######################################
   //|
   //|   window.Breeze = new Breeze()
@@ -5186,7 +5730,7 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$3 {
   }
 
   _config(name, value) {
-    boundMethodCheck$2(this, Breeze);
+    boundMethodCheck$1(this, Breeze);
     //#######################################
     //|
     //|   SET   @params {string} name

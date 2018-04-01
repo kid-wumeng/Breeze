@@ -39,8 +39,9 @@ module.exports = class Article
    #|   article.compile() -> html
    #|   article.render()  -> dom
    #|
-   #|   Article.locateID( dom ) -> id
    #|   Article.scrollTo( dom, id )
+   #|   Article.locateID( dom )        -> id
+   #|   Article.getSectionDatas( dom ) -> datas
    #|
    ########################################
 
@@ -509,11 +510,32 @@ module.exports = class Article
 
 
 
+Article.scrollTo = ( article, id ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    article
+   #|   @params {string} id
+   #|
+   ########################################
+
+   section = article.find("[id=\"#{id}\"]")
+
+   if section
+      top = section.top()
+      window.scrollBy(0, top)
+   else
+      window.scrollTo(0, 0)
+
+
+
+
+
 Article.locateID = ( article ) =>
 
    ########################################
    #|
-   #|   @params {DOM} article
+   #|   @params {DOM}    article
    #|   @return {string} id
    #|
    ########################################
@@ -530,19 +552,113 @@ Article.locateID = ( article ) =>
 
 
 
-Article.scrollTo = ( article, id ) =>
+Article.getSectionDatas = ( article ) =>
 
    ########################################
    #|
-   #|   @params {DOM} article
-   #|   @params {string} id
+   #|   @params {DOM}      article
+   #|   @return {object[]} sectionDatas - [{ id, heading, content, example }]
    #|
    ########################################
 
-   section = article.find("[id=\"#{id}\"]")
+   sections     = article.findAll('.section')
+   sectionDatas = []
 
-   if section
-      top = section.top()
-      window.scrollBy(0, top)
+   for section in sections
+       sectionData = Article._getSectionData( section )
+       sectionDatas.push( sectionData )
+
+   return sectionDatas
+
+
+
+
+
+Article._getSectionData = ( section ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    section
+   #|   @return {object} sectionData - {string} id
+   #|                                  {string} heading
+   #|                                  {string} content
+   #|                                  {string} example
+   #|
+   ########################################
+
+   id = section.attr('id') ? ''
+
+   heading = Article._getHeadingData( section )
+   content = Article._getContentData( section )
+   example = Article._getExampleData( section )
+
+   return { id, heading, content, example }
+
+
+
+
+
+Article._getHeadingData = ( section ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    section
+   #|   @return {string} heading
+   #|
+   ########################################
+
+   sels = [
+      '.section > h1'
+      '.section > h2'
+      '.section > h3'
+      '.section > h4'
+      '.section > h5'
+      '.section > h6'
+   ]
+
+   heading = section.find(sels.join(','))
+
+   if heading
+      return heading.text()
    else
-      window.scrollTo(0, 0)
+      return ''
+
+
+
+
+
+Article._getContentData = ( section ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    section
+   #|   @return {string} content
+   #|
+   ########################################
+
+   content = section.find('.content')
+
+   if content
+      return content.text().replace(/(?:\s|\n)+/g, '')
+   else
+      return ''
+
+
+
+
+
+Article._getExampleData = ( section ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    section
+   #|   @return {string} example
+   #|
+   ########################################
+
+   example = section.find('.example')
+
+   if example
+      return example.text().replace(/(?:\s|\n)+/g, '')
+   else
+      return ''

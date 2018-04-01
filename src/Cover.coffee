@@ -2,12 +2,25 @@ util = require('./util')
 
 
 
+
+
 module.exports = class Cover
 
    ########################################
-   #/
-   #/   Be responsible for rendering cover's dom.
-   #/
+   #|
+   #|   new Cover( html )
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       handling the <div id="cover">
+   #|   -----------------------------------
+   #|
+   #|   cover.exist()   -> bool
+   #|   cover.compile() -> html
+   #|   cover.render()  -> dom
+   #|
+   #|   Cover.hide( dom )
+   #|
    ########################################
 
 
@@ -17,23 +30,27 @@ module.exports = class Cover
    constructor: ( html ) ->
 
       ########################################
-      #/
-      #/   @params {string} html
-      #/
+      #|
+      #|   @params {string} html
+      #|
       ########################################
 
       @html = html
 
+      @exist   = @_exist
+      @compile = @_compile
+      @render  = @_render
 
 
 
 
-   exist: =>
+
+   _exist: =>
 
       ########################################
-      #/
-      #/   @return {boolean}
-      #/
+      #|
+      #|   @return {boolean}
+      #|
       ########################################
 
       return !!@html
@@ -42,12 +59,12 @@ module.exports = class Cover
 
 
 
-   compile: =>
+   _compile: =>
 
       ########################################
-      #/
-      #/   @return {string} html
-      #/
+      #|
+      #|   @return {string} html
+      #|
       ########################################
 
       dom   = util.dom(@html)
@@ -77,10 +94,10 @@ module.exports = class Cover
    _compileLogo: ( logo ) =>
 
       ########################################
-      #/
-      #/   @params {DOM} logo
-      #/   @return {DOM} logo
-      #/
+      #|
+      #|   @params {DOM} logo
+      #|   @return {DOM} logo
+      #|
       ########################################
 
       src  = logo.attr('src')
@@ -98,10 +115,10 @@ module.exports = class Cover
    _compileName: ( name ) =>
 
       ########################################
-      #/
-      #/   @params {DOM} name
-      #/   @return {DOM} name
-      #/
+      #|
+      #|   @params {DOM} name
+      #|   @return {DOM} name
+      #|
       ########################################
 
       text    = name.text()
@@ -121,10 +138,10 @@ module.exports = class Cover
    _compileDescs: ( descs ) =>
 
       ########################################
-      #/
-      #/   @params {DOM[]} descs
-      #/   @return {DOM}   ul.descs
-      #/
+      #|
+      #|   @params {DOM[]} descs
+      #|   @return {DOM}   ul.descs
+      #|
       ########################################
 
       ul = util.dom('ul.descs')
@@ -142,10 +159,10 @@ module.exports = class Cover
    _compileItems: ( items ) =>
 
       ########################################
-      #/
-      #/   @params {DOM[]} items
-      #/   @return {DOM}   ul.items
-      #/
+      #|
+      #|   @params {DOM[]} items
+      #|   @return {DOM}   ul.items
+      #|
       ########################################
 
       ul = util.dom('ul.items')
@@ -163,10 +180,10 @@ module.exports = class Cover
    _compileButtons: ( buttons ) =>
 
       ########################################
-      #/
-      #/   @params {DOM[]} buttons
-      #/   @return {DOM}   ul.buttons
-      #/
+      #|
+      #|   @params {DOM[]} buttons
+      #|   @return {DOM}   ul.buttons
+      #|
       ########################################
 
       ul = util.dom('ul.buttons')
@@ -195,46 +212,26 @@ module.exports = class Cover
 
 
 
-   render: ( bus ) =>
+   _render: =>
 
       ########################################
-      #/
-      #/   @params {Bus} bus
-      #/   @return {DOM} cover
-      #/
+      #|
+      #|   @return {DOM} cover
+      #|
       ########################################
 
-      cover = util.dom(@compile())
-      return cover
+      return util.dom(@_compile())
 
 
 
 
 
-   _bindEvent: ( cover ) =>
+Cover.hide = ( cover ) =>
 
-      ########################################
-      #/
-      #/   @params {DOM} cover
-      #/
-      ########################################
+   ########################################
+   #|
+   #|   @params {DOM} cover
+   #|
+   ########################################
 
-      buttons = cover.findAll('.buttons li')
-
-      for button in buttons
-          button.on('click', @_onClickButton.bind(@, cover))
-
-
-
-
-
-   _onClickButton: ( cover, button ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} cover
-      #/   @params {MouseEvent} e
-      #/
-      ########################################
-
-      cover.css('display', 'none')
+   cover.css('display', 'none')

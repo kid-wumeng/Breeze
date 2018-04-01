@@ -11,24 +11,4 @@
   <button active href="/zh-Hans">阅读文档2</button>
 </cover>
 
-<example>
-   <api>
-     <item>
-       <name>start</name>
-       <type>number</type>
-       <desc>Index at which to start changing the array (with origin 0). If greater than the length of the array, actual starting index will be set to the length of the array.</desc>
-     </item>
-   </api>
-</example>
-
-
-
-
-# Section 1
-this is section 1.
-
-
-
-
-#### Section 2
-this is section 2.
+abc

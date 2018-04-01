@@ -5,66 +5,129 @@ var DOM;
 
 var DOM_web = DOM = class DOM {
   //#######################################
-  ///
-  ///   Be responsible for querying and operating dom ( html-string ).
-  ///   Adapted to the web environment ( browser-runtime ).
-  ///
+  //|
+  //|   new DOM( html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       querying and operating dom ( html-string )
+  //|
+  //|    Adapted to the web environment ( browser-runtime )
+  //|   -----------------------------------
+  //|
+  //|   dom.find( sel )          -> dom
+  //|   dom.findAll( sel )       -> dom[]
+  //|   dom.parent()             -> dom
+  //|
+  //|   dom.htmlSelf( html )     -> dom
+  //|   dom.htmlSelf()           -> html
+  //|
+  //|   dom.html( html )         -> this
+  //|   dom.html()               -> html
+  //|
+  //|   dom.attr( name, value )  -> this
+  //|   dom.attr( name )         -> value
+  //|
+  //|   dom.text( text )         -> this
+  //|   dom.text()               -> text
+  //|
+  //|   dom.hasClass( name )     -> bool
+  //|   dom.addClass( name )     -> this
+  //|   dom.removeClass( name )  -> this
+  //|
+  //|   dom.append( child )      -> this
+  //|
+  //|   dom.css( name, value )   -> this
+  //|
+  //|   dom.width()              -> width
+  //|   dom.height()             -> height
+  //|   dom.top()                -> top
+  //|   dom.bottom()             -> bottom
+  //|   dom.isVisible()          -> bool
+  //|
+  //|   dom.scroll( deltaY )     -> this
+  //|
+  //|   dom.on( name, callback ) -> this
+  //|
+  //|   dom.element()            -> root's $el
+  //|
   //#######################################
-  constructor(html) {
-    this._getHTMLElement = this._getHTMLElement.bind(this);
-    this.find = this.find.bind(this);
-    this.findAll = this.findAll.bind(this);
-    this.htmlSelf = this.htmlSelf.bind(this);
-    this.html = this.html.bind(this);
-    this.attr = this.attr.bind(this);
-    this.text = this.text.bind(this);
-    this.addClass = this.addClass.bind(this);
-    this.hasClass = this.hasClass.bind(this);
-    this.removeClass = this.removeClass.bind(this);
-    this.append = this.append.bind(this);
-    this.css = this.css.bind(this);
-    this.width = this.width.bind(this);
-    this.height = this.height.bind(this);
-    this.top = this.top.bind(this);
-    this.bottom = this.bottom.bind(this);
-    this.isVisible = this.isVisible.bind(this);
-    this.scroll = this.scroll.bind(this);
-    this.on = this.on.bind(this);
+  constructor(arg) {
+    this._resolveRoot = this._resolveRoot.bind(this);
+    this._find = this._find.bind(this);
+    this._findAll = this._findAll.bind(this);
+    this._parent = this._parent.bind(this);
+    this._htmlSelf = this._htmlSelf.bind(this);
+    this._html = this._html.bind(this);
+    this._attr = this._attr.bind(this);
+    this._text = this._text.bind(this);
+    this._addClass = this._addClass.bind(this);
+    this._hasClass = this._hasClass.bind(this);
+    this._removeClass = this._removeClass.bind(this);
+    this._append = this._append.bind(this);
+    this._css = this._css.bind(this);
+    this._width = this._width.bind(this);
+    this._height = this._height.bind(this);
+    this._top = this._top.bind(this);
+    this._bottom = this._bottom.bind(this);
+    this._isVisible = this._isVisible.bind(this);
+    this._scroll = this._scroll.bind(this);
+    this._on = this._on.bind(this);
+    this._element = this._element.bind(this);
     //#######################################
-    ///
-    ///   @params {string|HTMLElement} html|$el
-    ///
+    //|
+    //|   @params {string|HTMLElement} html|$el
+    //|
     //#######################################
-    if (typeof html === 'string') {
-      this.root = this._getHTMLElement(html);
+    this._root = this._resolveRoot(arg);
+    this.find = this._find;
+    this.findAll = this._findAll;
+    this.parent = this._parent;
+    this.htmlSelf = this._htmlSelf;
+    this.html = this._html;
+    this.attr = this._attr;
+    this.text = this._text;
+    this.hasClass = this._hasClass;
+    this.addClass = this._addClass;
+    this.removeClass = this._removeClass;
+    this.append = this._append;
+    this.css = this._css;
+    this.width = this._width;
+    this.height = this._height;
+    this.top = this._top;
+    this.bottom = this._bottom;
+    this.isVisible = this._isVisible;
+    this.scroll = this._scroll;
+    this.on = this._on;
+    this.element = this._element;
+  }
+
+  _resolveRoot(arg) {
+    var $el, fragment, html;
+    //#######################################
+    //|
+    //|   @params {string|HTMLElement} html|$el
+    //|   @return {HTMLElement}
+    //|
+    //#######################################
+    if (typeof arg === 'string') {
+      fragment = document.createElement('fragment');
+      fragment.innerHTML = html = arg;
+      return fragment.childNodes[0];
     } else {
-      this.root = html;
+      return $el = arg;
     }
-    this.$el = this.root; // only exists in DOM.web for better semantics.
   }
 
-  _getHTMLElement(html) {
-    var fragment;
-    //#######################################
-    ///
-    ///   @params {string}      html
-    ///   @return {HTMLElement} root
-    ///
-    //#######################################
-    fragment = document.createElement('fragment');
-    fragment.innerHTML = html;
-    return fragment.childNodes[0];
-  }
-
-  find(selector) {
+  _find(selector) {
     var $el;
     //#######################################
-    ///
-    ///   @params {string} selector
-    ///   @return {DOM}    dom - return null when not found.
-    ///
+    //|
+    //|   @params {string} selector
+    //|   @return {DOM}    dom - return null when not found.
+    //|
     //#######################################
-    $el = this.root.querySelector(selector);
+    $el = this._root.querySelector(selector);
     if ($el) {
       return new DOM($el);
     } else {
@@ -72,16 +135,16 @@ var DOM_web = DOM = class DOM {
     }
   }
 
-  findAll(selector) {
+  _findAll(selector) {
     var $el, $els, dom, doms, i, len;
     //#######################################
-    ///
-    ///   @params {string} selector
-    ///   @return {DOM[]}  doms - return [] when not found.
-    ///
+    //|
+    //|   @params {string} selector
+    //|   @return {DOM[]}  doms - return [] when not found.
+    //|
     //#######################################
     doms = [];
-    $els = this.root.querySelectorAll(selector);
+    $els = this._root.querySelectorAll(selector);
     for (i = 0, len = $els.length; i < len; i++) {
       $el = $els[i];
       dom = new DOM($el);
@@ -90,218 +153,243 @@ var DOM_web = DOM = class DOM {
     return doms;
   }
 
-  htmlSelf(html) {
+  _parent() {
     //#######################################
-    ///
-    ///   SET   @params {string} html
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @return {string} html ( outer's )
-    ///
+    //|
+    //|   @return {DOM} parent
+    //|
+    //#######################################
+    return new DOM(this._root.parentNode);
+  }
+
+  _htmlSelf(html) {
+    //#######################################
+    //|
+    //|   SET   @params {string} html
+    //|         @return {DOM}    this
+    //|
+    //|   GET   @return {string} html ( outer's )
+    //|
     //#######################################
     if (html != null) {
       return new DOM(html);
     } else {
-      return this.root.outerHTML;
+      return this._root.outerHTML;
     }
   }
 
-  html(html) {
+  _html(html) {
     //#######################################
-    ///
-    ///   SET   @params {string} html
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @return {string} html ( inner's )
-    ///
+    //|
+    //|   SET   @params {string} html
+    //|         @return {DOM}    this
+    //|
+    //|   GET   @return {string} html ( inner's )
+    //|
     //#######################################
     if (html != null) {
-      this.root.innerHTML = html;
+      this._root.innerHTML = html;
       return this;
     } else {
-      return this.root.innerHTML;
+      return this._root.innerHTML;
     }
   }
 
-  attr(name, value) {
+  _attr(name, value) {
     //#######################################
-    ///
-    ///   SET   @params {string} name
-    ///         @params {string} value
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @params {string} name
-    ///         @return {string} value
-    ///
+    //|
+    //|   SET   @params {string} name
+    //|         @params {string} value
+    //|         @return {DOM}    this
+    //|
+    //|   GET   @params {string} name
+    //|         @return {string} value
+    //|
     //#######################################
     if (value != null) {
-      this.root.setAttribute(name, value);
+      this._root.setAttribute(name, value);
       return this;
     } else {
-      return this.root.getAttribute(name);
+      return this._root.getAttribute(name);
     }
   }
 
-  text(text) {
+  _text(text) {
     //#######################################
-    ///
-    ///   SET   @params {string} text
-    ///         @return {DOM}    this
-    ///
-    ///   GET   @return {string} text
-    ///
+    //|
+    //|   SET   @params {string} text
+    //|         @return {DOM}    this
+    //|
+    //|   GET   @return {string} text
+    //|
     //#######################################
     if (text != null) {
-      this.root.innerText = text;
+      this._root.innerText = text;
       return this;
     } else {
-      return this.root.innerText;
+      return this._root.innerText;
     }
   }
 
-  addClass(name) {
+  _addClass(name) {
     //#######################################
-    ///
-    ///   @params {string} name
-    ///   @return {DOM}    this
-    ///
+    //|
+    //|   @params {string} name
+    //|   @return {DOM}    this
+    //|
     //#######################################
-    this.root.classList.add(name);
+    this._root.classList.add(name);
     return this;
   }
 
-  hasClass(name) {
+  _hasClass(name) {
     //#######################################
-    ///
-    ///   @params {string} name
-    ///   @return {boolean}
-    ///
+    //|
+    //|   @params {string} name
+    //|   @return {boolean}
+    //|
     //#######################################
-    return this.root.classList.contains(name);
+    return this._root.classList.contains(name);
   }
 
-  removeClass(name) {
+  _removeClass(name) {
     //#######################################
-    ///
-    ///   @params {string} name
-    ///   @return {DOM}    this
-    ///
+    //|
+    //|   @params {string} name
+    //|   @return {DOM}    this
+    //|
     //#######################################
-    this.root.classList.remove(name);
+    this._root.classList.remove(name);
     return this;
   }
 
-  append(child) {
+  _append(child) {
     //#######################################
-    ///
-    ///   @params {DOM|string} child|html|selector
-    ///   @return {DOM} this
-    ///
+    //|
+    //|   @params {DOM|string} dom|html
+    //|   @return {DOM} this
+    //|
     //#######################################
     if (child) {
       if (typeof child === 'string') {
         child = new DOM(child);
       }
-      this.root.appendChild(child.root);
+      this._root.appendChild(child.element());
     }
     return this;
   }
 
-  css(name, value) {
+  _css(name, value) {
     //#######################################
-    ///
-    ///   @params {string} name
-    ///   @params {value}  name
-    ///   @return {DOM}    this
-    ///
-    ///   This method only exists in DOM.web
-    ///
+    //|
+    //|   @params {string} name
+    //|   @params {value}  name
+    //|   @return {DOM}    this
+    //|
+    //|   This method only exists in DOM.web
+    //|
     //#######################################
-    return this.root.style[name] = value;
+    this._root.style[name] = value;
+    return this;
   }
 
-  width() {
+  _width() {
     //#######################################
-    ///
-    ///   @return {number} width
-    ///
-    ///   This method only exists in DOM.web
-    ///
+    //|
+    //|   @return {number} width
+    //|
+    //|   This method only exists in DOM.web
+    //|
     //#######################################
-    return this.root.getBoundingClientRect().width;
+    return this._root.getBoundingClientRect().width;
   }
 
-  height() {
+  _height() {
     //#######################################
-    ///
-    ///   @return {number} height
-    ///
-    ///   This method only exists in DOM.web
-    ///
+    //|
+    //|   @return {number} height
+    //|
+    //|   This method only exists in DOM.web
+    //|
     //#######################################
-    return this.root.getBoundingClientRect().height;
+    return this._root.getBoundingClientRect().height;
   }
 
-  top() {
+  _top() {
     //#######################################
-    ///
-    ///   @return {number} top
-    ///
-    ///   This method only exists in DOM.web
-    ///
+    //|
+    //|   @return {number} top
+    //|
+    //|   This method only exists in DOM.web
+    //|
     //#######################################
-    return this.root.getBoundingClientRect().top;
+    return this._root.getBoundingClientRect().top;
   }
 
-  bottom() {
+  _bottom() {
     //#######################################
-    ///
-    ///   @return {number} top
-    ///
-    ///   This method only exists in DOM.web
-    ///
+    //|
+    //|   @return {number} top
+    //|
+    //|   This method only exists in DOM.web
+    //|
     //#######################################
-    return this.root.getBoundingClientRect().top;
+    return this._root.getBoundingClientRect().top;
   }
 
-  isVisible() {
+  _isVisible() {
     //#######################################
-    ///
-    ///   @return {boolean}
-    ///
-    ///   This method only exists in DOM.web
-    ///
+    //|
+    //|   @return {boolean}
+    //|
+    //|   This method only exists in DOM.web
+    //|
     //#######################################
     return this.width() > 0;
   }
 
-  scroll(deltaY) {
+  _scroll(deltaY) {
     //#######################################
-    ///
-    ///   @return {number} delta Y
-    ///
-    ///   This method only exists in DOM.web
-    ///
+    //|
+    //|   @params {number} delta Y
+    //|   @return {DOM}    this
+    //|
+    //|   This method only exists in DOM.web
+    //|
     //#######################################
-    return this.root.scrollBy(0, deltaY);
+    this._root.scrollBy(0, deltaY);
+    return this;
   }
 
-  on(name, callback) {
+  _on(name, callback) {
     //#######################################
-    ///
-    ///   @params {string}   name
-    ///   @params {function} callback
-    ///
-    ///   add an event listener to root,
-    ///   this method only exists in DOM.web
-    ///
+    //|
+    //|   @params {string}   name
+    //|   @params {function} callback
+    //|   @return {DOM}      this
+    //|
+    //|   add an event listener to root,
+    //|   this method only exists in DOM.web
+    //|
     //#######################################
-    return this.root.addEventListener(name, (e) => {
+    this._root.addEventListener(name, (e) => {
       var dom;
       dom = new DOM(e.target);
       callback(dom, e);
       return e.preventDefault();
     });
+    return this;
+  }
+
+  _element() {
+    //#######################################
+    //|
+    //|   @return {HTMLElement} root's $el
+    //|
+    //|   This method only exists in DOM.web
+    //|
+    //#######################################
+    return this._root;
   }
 
 };
@@ -313,9 +401,9 @@ function createCommonjsModule(fn, module) {
 }
 
 var util = createCommonjsModule(function (module, exports) {
-var _domBySelector, _elementByHTML, _elementBySelector, parseSelector;
+var dom, filePath, id, isUrl, parseSelector;
 
-exports.isUrl = (href) => {
+isUrl = (href) => {
   //#######################################
   ///
   ///   @params {string} href
@@ -325,7 +413,7 @@ exports.isUrl = (href) => {
   return /^(?:http)|(?:https)|(?:ftp):\/\//.test(href);
 };
 
-exports.filePath = (href = '') => {
+filePath = (href = '') => {
   var basePath, path;
   //#######################################
   ///
@@ -352,27 +440,7 @@ exports.filePath = (href = '') => {
   return path;
 };
 
-exports.ajax = (path, done) => {
-  var xhr;
-  //#######################################
-  ///
-  ///   @params {string}   path
-  ///   @params {function} done(text)
-  ///
-  //#######################################
-  xhr = new XMLHttpRequest;
-  xhr.open('GET', path, true);
-  xhr.send(null);
-  return xhr.onreadystatechange = () => {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        return done(xhr.responseText);
-      }
-    }
-  };
-};
-
-exports.id = (order, text = '') => {
+id = (order, text = '') => {
   //#######################################
   //|
   //|  @params {string} order
@@ -390,11 +458,11 @@ exports.id = (order, text = '') => {
   }
 };
 
-exports.dom = (html) => {
-  var $el, selector;
+dom = (arg) => {
+  var $el, classname, html, sel, tag;
   //#######################################
   ///
-  ///   @params {string|HTMLElement} html|selector|$el
+  ///   @params {string|HTMLElement} html|sel|$el
   ///   @return {DOM}
   ///
   ///   <html>  ->  DOM
@@ -402,73 +470,30 @@ exports.dom = (html) => {
   ///   $el#id  ->  DOM
   ///
   //#######################################
-  if (typeof html === 'string') {
-    if (html[0] === '<') {
-      return new Breeze.DOM(html);
+  if (typeof arg === 'string') {
+    if (arg[0] === '<') {
+      dom = new Breeze.DOM(html = arg);
     } else {
-      return _domBySelector(selector = html);
+      ({tag, id, classname} = parseSelector(sel = arg));
+      dom = new Breeze.DOM(`<${tag}>`);
+      if (id) {
+        dom.attr('id', id);
+      }
+      if (classname) {
+        dom.attr('class', classname);
+      }
     }
   } else {
-    return new Breeze.DOM($el = html);
-  }
-};
-
-_domBySelector = (selector) => {
-  var classname, dom, id, tag;
-  ({tag, id, classname} = parseSelector(selector));
-  dom = new Breeze.DOM('<' + tag + '>');
-  if (id) {
-    dom.attr('id', id);
-  }
-  if (classname) {
-    dom.attr('class', classname);
+    dom = new Breeze.DOM($el = arg);
   }
   return dom;
 };
 
-exports.element = (html) => {
-  var selector;
+parseSelector = (sel = 'div') => {
+  var classname, hasClass, hasID, parts, tag;
   //#######################################
   ///
-  ///   @params {string}      html|selector
-  ///   @return {HTMLElement}
-  ///
-  ///   <html>  ->  $html
-  ///   div#id  ->  $div#id
-  ///
-  //#######################################
-  if (html[0] === '<') {
-    return _elementByHTML(html);
-  } else {
-    return _elementBySelector(selector = html);
-  }
-};
-
-_elementByHTML = (html) => {
-  var fragment;
-  fragment = document.createElement('fragment');
-  fragment.innerHTML = html;
-  return fragment.childNodes[0];
-};
-
-_elementBySelector = (selector) => {
-  var $el, classname, id, tag;
-  ({tag, id, classname} = parseSelector(selector));
-  $el = document.createElement(tag);
-  if (id) {
-    $el.setAttribute('id', id);
-  }
-  if (classname) {
-    $el.classList.add(classname);
-  }
-  return $el;
-};
-
-parseSelector = (selector = 'div') => {
-  var classname, hasClass, hasID, id, parts, tag;
-  //#######################################
-  ///
-  ///   @params {string} selector
+  ///   @params {string} sel
   ///   @return {object} - {string} tag
   ///                      {string} id
   ///                      {string} classname
@@ -481,16 +506,16 @@ parseSelector = (selector = 'div') => {
   ///   'tag.classname'  -> { tag: 'tag', classname: 'classname' }
   ///
   ///
-  ///   This selector can't includes id and classname at the same time.
-  ///   This selector can't includes classname more than two.
+  ///   This sel can't includes id and classname at the same time.
+  ///   This sel can't includes classname more than two.
   ///
   //#######################################
-  hasID = /#/.test(selector);
-  hasClass = /\./.test(selector);
+  hasID = /#/.test(sel);
+  hasClass = /\./.test(sel);
   tag = 'div';
   id = '';
   classname = '';
-  parts = selector.split(/#|\./);
+  parts = sel.split(/#|\./);
   parts = parts.filter((part) => {
     return part;
   });
@@ -518,13 +543,22 @@ parseSelector = (selector = 'div') => {
   }
   return {tag, id, classname};
 };
+
+exports.isUrl = isUrl;
+
+exports.filePath = filePath;
+
+exports.id = id;
+
+exports.dom = dom;
+
+exports.parseSelector = parseSelector;
 });
 var util_1 = util.isUrl;
 var util_2 = util.filePath;
-var util_3 = util.ajax;
-var util_4 = util.id;
-var util_5 = util.dom;
-var util_6 = util.element;
+var util_3 = util.id;
+var util_4 = util.dom;
+var util_5 = util.parseSelector;
 
 var Loader, util$1;
 
@@ -532,29 +566,38 @@ util$1 = util;
 
 var Loader_web = Loader = class Loader {
   //#######################################
-  ///
-  ///   Be responsible for
-  ///      loading the normal and common pages.
-  ///
+  //|
+  //|   new Loader()
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       loading the normal and common pages.
+  //|
+  //|    Adapted to the web environment ( browser-runtime )
+  //|   -----------------------------------
+  //|
+  //|   loader.load( path, done, fail )
+  //|
   //#######################################
   constructor() {
-    this.load = this.load.bind(this);
+    this._load = this._load.bind(this);
     this._findOrReadCommon = this._findOrReadCommon.bind(this);
     this._readCommon = this._readCommon.bind(this);
     this._formatNormalPath = this._formatNormalPath.bind(this);
     this._formatCommonPaths = this._formatCommonPaths.bind(this);
     this._read = this._read.bind(this);
-    this._commonCache = {};
+    this._cache = {};
+    this.load = this._load;
   }
 
-  load(path, done, fail) {
+  _load(path, done, fail) {
     var commonPaths, normalPath;
     //#######################################
-    ///
-    ///   @params {string}   path
-    ///   @params {function} done( common + normal )
-    ///   @params {function} fail()
-    ///
+    //|
+    //|   @params {string}   path
+    //|   @params {function} done( text = common + normal )
+    //|   @params {function} fail()
+    //|
     //#######################################
     normalPath = this._formatNormalPath(path);
     commonPaths = this._formatCommonPaths(path);
@@ -572,10 +615,10 @@ var Loader_web = Loader = class Loader {
   _findOrReadCommon(paths, done) {
     var path;
     //#######################################
-    ///
-    ///   @params {string[]} paths
-    ///   @return {function} done( common )
-    ///
+    //|
+    //|   @params {string[]} paths
+    //|   @return {function} done( common )
+    //|
     //#######################################
     path = paths.pop();
     return this._readCommon(path, (common) => {
@@ -594,15 +637,15 @@ var Loader_web = Loader = class Loader {
   _readCommon(path, done) {
     var common;
     //#######################################
-    ///
-    ///   @params {string}   path
-    ///   @return {function} done( common )
-    ///
+    //|
+    //|   @params {string}   path
+    //|   @return {function} done( common )
+    //|
     //#######################################
-    common = this._commonCache[path];
+    common = this._cache[path];
     if (common === void 0) {
       return this._read(path, (common) => {
-        return done(this._commonCache[path] = common);
+        return done(this._cache[path] = common);
       });
     } else {
       return done(common);
@@ -611,10 +654,10 @@ var Loader_web = Loader = class Loader {
 
   _formatNormalPath(path) {
     //#######################################
-    ///
-    ///   @params {string} path
-    ///   @return {string} path
-    ///
+    //|
+    //|   @params {string} path
+    //|   @return {string} path
+    //|
     //#######################################
     path = util$1.filePath(path);
     if (path === '') {
@@ -629,13 +672,13 @@ var Loader_web = Loader = class Loader {
   _formatCommonPaths(path) {
     var part, parts, paths, queue;
     //#######################################
-    ///
-    ///   @params {string}   path
-    ///   @return {string[]} paths
-    ///
-    ///   basePath = '/docs'
-    ///   path     = '/api/math'  =>  ['@.md', 'docs/@.md', 'docs/api/@.md']
-    ///
+    //|
+    //|   @params {string}   path
+    //|   @return {string[]} paths
+    //|
+    //|   basePath = '/docs'
+    //|   path     = '/api/math'  =>  ['@.md', 'docs/@.md', 'docs/api/@.md']
+    //|
     //#######################################
     paths = [];
     queue = [];
@@ -655,11 +698,11 @@ var Loader_web = Loader = class Loader {
   _read(path, done) {
     var xhr;
     //#######################################
-    ///
-    ///   @params {string}   path
-    ///   @params {function} done( text ) - text = null if not found,
-    ///                                     should check by text? ( a coffeescript syntactic sugar )
-    ///
+    //|
+    //|   @params {string}   path
+    //|   @params {function} done( text ) - text = null if not found,
+    //|                                     when use, should check by << text? >> ( a coffeescript syntactic sugar )
+    //|
     //#######################################
     xhr = new XMLHttpRequest;
     xhr.open('GET', path, true);
@@ -1100,78 +1143,819 @@ var Router_1 = Router = class Router {
 
 };
 
-var ObservableObject;
+var Jade;
 
-var ObservableObject_1 = ObservableObject = class ObservableObject {
+var Jade_1 = Jade = class Jade {
   //#######################################
   //|
-  //|   new ObservableObject()
+  //|   new Jade( text )
   //|
   //|   -----------------------------------
   //|    Be responsible for
-  //|       binding and emitting events,
-  //|       generally be extended by other classes.
+  //|       compiling jade-like to html.
   //|   -----------------------------------
   //|
-  //|   observableObject.on( name, callback )
-  //|   observableObject.emit( name, params... )
+  //|   jade.compile() -> html
   //|
   //#######################################
-  constructor() {
-    this._on = this._on.bind(this);
-    this._emit = this._emit.bind(this);
-    this._events = {};
-    this.on = this._on;
-    this.emit = this._emit;
-  }
-
-  _on(name, callback) {
-    if (!this._events[name]) {
-      this._events[name] = [];
-    }
-    this._events[name].push(callback);
-    return this;
-  }
-
-  _emit(name, ...params) {
-    var callback, callbacks, i, len, ref;
+  constructor(text) {
+    this._compile = this._compile.bind(this);
+    this._parseNodes = this._parseNodes.bind(this);
+    this._parseNode = this._parseNode.bind(this);
+    this._parseDeep = this._parseDeep.bind(this);
+    this._parseTag = this._parseTag.bind(this);
+    this._parseAttr = this._parseAttr.bind(this);
+    this._parseText = this._parseText.bind(this);
+    this._parseTree = this._parseTree.bind(this);
+    this._compileTree = this._compileTree.bind(this);
+    this._compileNode = this._compileNode.bind(this);
     //#######################################
     //|
-    //|   Trigger an event.
-    //|
-    //|   @params {string} event's name
-    //|   @params {*...}   params...
-    //|
-    //|   @return {ObservableObject} this
+    //|   @params {string} text
     //|
     //#######################################
-    callbacks = (ref = this._events[name]) != null ? ref : [];
-    for (i = 0, len = callbacks.length; i < len; i++) {
-      callback = callbacks[i];
-      callback(...params);
+    this.text = text;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var html, nodes, tree;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    nodes = this._parseNodes(this.text);
+    tree = this._parseTree(nodes);
+    html = this._compileTree(tree);
+    return html;
+  }
+
+  _parseNodes(text) {
+    var lines, nodes;
+    //#######################################
+    //|
+    //|   @params {string}   text
+    //|   @return {object[]} nodes - [{ deep, tag, attr, text }]
+    //|
+    //#######################################
+    lines = text.split(/\n+/g);
+    nodes = lines.map((line) => {
+      if (line.trim()) {
+        return this._parseNode(line);
+      } else {
+        return null;
+      }
+    });
+    nodes = nodes.filter((node) => {
+      return node;
+    });
+    return nodes;
+  }
+
+  _parseNode(line) {
+    var attr, deep, rest, tag, text;
+    //#######################################
+    //|
+    //|   @params {string} line
+    //|   @return {object} - {number} deep
+    //|                      {string} tag
+    //|                      {string} attr
+    //|                      {string} text
+    //|
+    //#######################################
+    ({deep, rest} = this._parseDeep(line));
+    ({tag, rest} = this._parseTag(rest));
+    ({attr, rest} = this._parseAttr(rest));
+    ({text, rest} = this._parseText(rest));
+    return {deep, tag, attr, text};
+  }
+
+  _parseDeep(line) {
+    var deep, reg, rest;
+    //#######################################
+    //|
+    //|   @params {string} line
+    //|   @return {object} - {number} deep
+    //|                      {string} rest
+    //|
+    //#######################################
+    deep = 0;
+    reg = /^\s+/;
+    rest = line.replace(reg, (match) => {
+      deep = match.length;
+      return '';
+    });
+    return {deep, rest};
+  }
+
+  _parseTag(rest) {
+    var reg, tag;
+    //#######################################
+    //|
+    //|   @params {string} rest
+    //|   @return {object} - {string} tag
+    //|                      {string} rest
+    //|
+    //|   @errors when parse failed.
+    //|
+    //#######################################
+    tag = '';
+    reg = /^([A-Za-z0-9_\-]+)\s*/;
+    rest = rest.replace(reg, (_, match) => {
+      tag = match;
+      return '';
+    });
+    if (tag) {
+      return {tag, rest};
+    } else {
+      throw `Unknown jade-like syntax: ${this._line}`;
     }
-    return this;
+  }
+
+  _parseAttr(rest) {
+    var attr, reg;
+    //#######################################
+    //|
+    //|   @params {string} rest
+    //|   @return {object} - {string} attr
+    //|                      {string} rest
+    //|
+    //#######################################
+    attr = '';
+    reg = /^\(([^)]*)\)/;
+    rest = rest.replace(reg, (_, match) => {
+      attr = match.trim();
+      return '';
+    });
+    return {attr, rest};
+  }
+
+  _parseText(rest) {
+    var text;
+    //#######################################
+    //|
+    //|   @params {string} rest
+    //|   @return {object} - {string} text
+    //|                      {string} rest
+    //|
+    //#######################################
+    text = rest.trim();
+    rest = '';
+    return {text, rest};
+  }
+
+  _parseTree(nodes) {
+    var deep, i, len, node, root, tree;
+    //#######################################
+    //|
+    //|   @params {object[]} nodes - [{ deep, tag, attr, text }]
+    //|   @return {object}   tree
+    //|
+    //#######################################
+    root = {};
+    tree = root;
+    deep = -1;
+    for (i = 0, len = nodes.length; i < len; i++) {
+      node = nodes[i];
+      if (node.deep > deep) {
+        if (tree.children == null) {
+          tree.children = [];
+        }
+        tree.children.push(node);
+        node.parent = tree;
+        tree = node;
+        deep = node.deep;
+      } else if (node.deep === deep) {
+        tree.parent.children.push(node);
+        node.parent = tree;
+      } else if (node.deep < deep) {
+        while (node.deep <= tree.deep) {
+          tree = tree.parent;
+        }
+        tree.children.push(node);
+        node.parent = tree;
+        tree = node;
+        deep = node.deep;
+      }
+    }
+    return root;
+  }
+
+  _compileTree(tree) {
+    //#######################################
+    //|
+    //|   @params {object} tree - { tag, attr, text, children }
+    //|   @return {string} html
+    //|
+    //#######################################
+    return this._compileNode(tree);
+  }
+
+  _compileNode(node) {
+    var attr, children, end, html, start, tag, text;
+    //#######################################
+    //|
+    //|   @params {object} node - { tag, attr, text, children }
+    //|   @return {string} html
+    //|
+    //#######################################
+    ({tag, attr, text, children} = node);
+    start = tag ? `<${tag} ${attr}>` : '';
+    end = tag ? `</${tag}>` : '';
+    if (children) {
+      html = children.map(this._compileNode).join('');
+      return start + html + end;
+    } else {
+      return start + text + end;
+    }
   }
 
 };
 
-var Bus, ObservableObject$1;
+var Jade$1, Markdown;
 
-ObservableObject$1 = ObservableObject_1;
+Jade$1 = Jade_1;
 
-var Bus_1 = Bus = class Bus extends ObservableObject$1 {
+var Markdown_1 = Markdown = class Markdown {
   //#######################################
-  ///
-  ///   This is a common event bus, one page need one bus.
-  ///
-  ///   summary.select( href )
-  ///   article.scroll( href )
-  ///
+  //|
+  //|   new Markdown( text )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       compiling text to markdown and parsing some components,
+  //|       such as <nav>, <cover>, <summary> and so on.
+  //|   -----------------------------------
+  //|
+  //|   markdown.compile() -> markdown
+  //|   markdown.parse()   -> { nav, cover, summary, article }
+  //|
   //#######################################
-  constructor() {
-    super();
+  constructor(text) {
+    this._compile = this._compile.bind(this);
+    this._compileJadeByTag = this._compileJadeByTag.bind(this);
+    this._compileJadeByAttribute = this._compileJadeByAttribute.bind(this);
+    this._formatSelfClosingTag = this._formatSelfClosingTag.bind(this);
+    this._parse = this._parse.bind(this);
+    this._parseNav = this._parseNav.bind(this);
+    this._parseCover = this._parseCover.bind(this);
+    this._parseSummary = this._parseSummary.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|
+    //#######################################
+    this.text = text;
+    this.compile = this._compile;
+    this.parse = this._parse;
   }
 
+  _compile() {
+    var markdown, text;
+    //#######################################
+    //|
+    //|   @return {string} markdown
+    //|
+    //#######################################
+    text = this._compileJadeByTag(this.text);
+    text = this._compileJadeByAttribute(text);
+    text = this._formatSelfClosingTag(text);
+    return markdown = text;
+  }
+
+  _compileJadeByTag(text) {
+    var reg;
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|   @return {string} text
+    //|
+    //|   Compile and replace the <jade>...</jade> to html.
+    //|
+    //#######################################
+    reg = /<jade>((?:.|\n)*?)<\/jade>/g;
+    return text.replace(reg, (_, text) => {
+      var html, jade;
+      jade = new Jade$1(text);
+      html = jade.compile();
+      return html;
+    });
+  }
+
+  _compileJadeByAttribute(text) {
+    var reg;
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|   @return {string} text
+    //|
+    //|   Compile and replace the <tag jade>...</tag> to html.
+    //|
+    //#######################################
+    reg = /(<\s*(.+?)\s*.*\s+jade\s*.*>)((?:.|\n)*?)\s*(<\s*\/\2\s*>)/g;
+    return text.replace(reg, (_, start, name, text, end) => {
+      var html, jade;
+      jade = new Jade$1(text);
+      html = jade.compile();
+      return start + html + end;
+    });
+  }
+
+  _formatSelfClosingTag(text) {
+    var reg;
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|   @return {string} text
+    //|
+    //|   Format and replace <tag/> to <tag></tag>
+    //|
+    //#######################################
+    reg = /<([A-Za-z_-]+)((?:\s|\n)+(?:[^<]|\n)*?)?\/>/g;
+    return text.replace(reg, (_, tag, attr = '') => {
+      return `<${tag} ${attr}></${tag}>`;
+    });
+  }
+
+  _parse() {
+    var article, cover, markdown, nav, summary;
+    //#######################################
+    //|
+    //|   @return {object} - {string} nav     ( html )
+    //|                      {string} cover   ( html )
+    //|                      {string} summary ( html )
+    //|                      {string} article ( markdown )
+    //|
+    //#######################################
+    markdown = this._compile();
+    ({nav, markdown} = this._parseNav(markdown));
+    ({cover, markdown} = this._parseCover(markdown));
+    ({summary, markdown} = this._parseSummary(markdown));
+    article = markdown.trim();
+    return {nav, cover, summary, article};
+  }
+
+  _parseNav(markdown) {
+    var nav, navReg;
+    //#######################################
+    //|
+    //|   @params {string} markdown
+    //|   @return {object} - {string} nav ( html )
+    //|                      {string} markdown
+    //|
+    //#######################################
+    nav = '';
+    navReg = /<nav.*?>(?:.|\n)*?<\/nav>/g;
+    markdown = markdown.replace(navReg, (match) => {
+      nav = match;
+      return '';
+    });
+    return {nav, markdown};
+  }
+
+  _parseCover(markdown) {
+    var cover, coverReg;
+    //#######################################
+    //|
+    //|   @params {string} markdown
+    //|   @return {object} - {string} cover ( html )
+    //|                      {string} markdown
+    //|
+    //#######################################
+    cover = '';
+    coverReg = /<cover.*?>(?:.|\n)*?<\/cover>/g;
+    markdown = markdown.replace(coverReg, (match) => {
+      cover = match;
+      return '';
+    });
+    return {cover, markdown};
+  }
+
+  _parseSummary(markdown) {
+    var summary, summaryReg;
+    //#######################################
+    //|
+    //|   @params {string} markdown
+    //|   @return {object} - {string} summary ( html )
+    //|                      {string} markdown
+    //|
+    //#######################################
+    summary = '';
+    summaryReg = /<summary.*?>(?:.|\n)*?<\/summary>/g;
+    markdown = markdown.replace(summaryReg, (match) => {
+      summary = match;
+      return '';
+    });
+    return {summary, markdown};
+  }
+
+};
+
+var Cover, util$3;
+
+util$3 = util;
+
+var Cover_1 = Cover = class Cover {
+  //#######################################
+  //|
+  //|   new Cover( html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="cover">
+  //|   -----------------------------------
+  //|
+  //|   cover.exist()   -> bool
+  //|   cover.compile() -> html
+  //|   cover.render()  -> dom
+  //|
+  //|   Cover.hide( dom )
+  //|
+  //#######################################
+  constructor(html) {
+    this._exist = this._exist.bind(this);
+    this._compile = this._compile.bind(this);
+    this._compileLogo = this._compileLogo.bind(this);
+    this._compileName = this._compileName.bind(this);
+    this._compileDescs = this._compileDescs.bind(this);
+    this._compileItems = this._compileItems.bind(this);
+    this._compileButtons = this._compileButtons.bind(this);
+    this._render = this._render.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|
+    //#######################################
+    this.html = html;
+    this.exist = this._exist;
+    this.compile = this._compile;
+    this.render = this._render;
+  }
+
+  _exist() {
+    return !!this.html;
+  }
+
+  _compile() {
+    var buttons, cover, descs, dom, items, logo, name, wrap;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    dom = util$3.dom(this.html);
+    cover = util$3.dom('#cover');
+    wrap = util$3.dom('.wrap');
+    logo = dom.find('cover > logo');
+    name = dom.find('cover > name');
+    descs = dom.findAll('cover > desc');
+    items = dom.findAll('cover > item');
+    buttons = dom.findAll('cover > button');
+    if (logo) {
+      wrap.append(this._compileLogo(logo));
+    }
+    if (name) {
+      wrap.append(this._compileName(name));
+    }
+    if (descs.length) {
+      wrap.append(this._compileDescs(descs));
+    }
+    if (items.length) {
+      wrap.append(this._compileItems(items));
+    }
+    if (buttons.length) {
+      wrap.append(this._compileButtons(buttons));
+    }
+    cover.append(wrap);
+    return cover.htmlSelf();
+  }
+
+  _compileLogo(logo) {
+    var src;
+    //#######################################
+    //|
+    //|   @params {DOM} logo
+    //|   @return {DOM} logo
+    //|
+    //#######################################
+    src = logo.attr('src');
+    src = util$3.filePath(src);
+    logo = util$3.dom('img.logo');
+    logo.attr('src', src);
+    return logo;
+  }
+
+  _compileName(name) {
+    var ref, text, version;
+    //#######################################
+    //|
+    //|   @params {DOM} name
+    //|   @return {DOM} name
+    //|
+    //#######################################
+    text = name.text();
+    version = (ref = name.attr('version')) != null ? ref : '';
+    name = util$3.dom('.name').text(text);
+    version = util$3.dom('.version').text(version);
+    name.append(version);
+    return name;
+  }
+
+  _compileDescs(descs) {
+    var desc, i, len, li, ul;
+    //#######################################
+    //|
+    //|   @params {DOM[]} descs
+    //|   @return {DOM}   ul.descs
+    //|
+    //#######################################
+    ul = util$3.dom('ul.descs');
+    for (i = 0, len = descs.length; i < len; i++) {
+      desc = descs[i];
+      li = util$3.dom('li').text(desc.text());
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _compileItems(items) {
+    var i, item, len, li, ul;
+    //#######################################
+    //|
+    //|   @params {DOM[]} items
+    //|   @return {DOM}   ul.items
+    //|
+    //#######################################
+    ul = util$3.dom('ul.items');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      li = util$3.dom('li').text(item.text());
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _compileButtons(buttons) {
+    var a, button, href, i, len, li, ref, text, ul;
+    //#######################################
+    //|
+    //|   @params {DOM[]} buttons
+    //|   @return {DOM}   ul.buttons
+    //|
+    //#######################################
+    ul = util$3.dom('ul.buttons');
+    for (i = 0, len = buttons.length; i < len; i++) {
+      button = buttons[i];
+      li = util$3.dom('li');
+      a = util$3.dom('a');
+      if (button.attr('active') != null) {
+        li.addClass('active');
+        a.addClass('active');
+      }
+      href = (ref = button.attr('href')) != null ? ref : '';
+      a.attr('href', href);
+      text = button.text();
+      a.text(text);
+      li.append(a);
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _render() {
+    //#######################################
+    //|
+    //|   @return {DOM} cover
+    //|
+    //#######################################
+    return util$3.dom(this._compile());
+  }
+
+};
+
+Cover.hide = (cover) => {
+  //#######################################
+  //|
+  //|   @params {DOM} cover
+  //|
+  //#######################################
+  return cover.css('display', 'none');
+};
+
+var Summary, util$4;
+
+util$4 = util;
+
+var Summary_1 = Summary = class Summary {
+  //#######################################
+  //|
+  //|   new Summary( html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="summary">
+  //|   -----------------------------------
+  //|
+  //|   summary.compile() -> html
+  //|   summary.render()  -> dom
+  //|
+  //|   Summary.parse( sections ) -> html
+  //|   Summary.activeTo( summary, id )
+  //|   Summary.scrollTo( summary, id )
+  //|
+  //#######################################
+  constructor(html) {
+    this._compile = this._compile.bind(this);
+    this._compileItem = this._compileItem.bind(this);
+    this._compileItemByLink = this._compileItemByLink.bind(this);
+    this._compileItemByHint = this._compileItemByHint.bind(this);
+    this._render = this._render.bind(this);
+    this.html = html;
+    this.compile = this._compile;
+    this.render = this._render;
+  }
+
+  _compile() {
+    var i, item, items, len, li, model, summary, ul;
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|   @return {string} html
+    //|
+    //#######################################
+    model = util$4.dom(this.html);
+    summary = util$4.dom('#summary');
+    ul = util$4.dom('ul');
+    items = model.findAll('item');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      li = this._compileItem(item);
+      ul.append(li);
+    }
+    summary.append(ul);
+    return summary.htmlSelf();
+  }
+
+  _compileItem(item) {
+    var href, lv, name;
+    //#######################################
+    //|
+    //|   @params {DOM} item
+    //|   @return {DOM} li
+    //|
+    //#######################################
+    name = item.find('name');
+    href = item.attr('href');
+    lv = item.attr('lv');
+    if (href) {
+      return this._compileItemByLink(name, href, lv);
+    } else {
+      return this._compileItemByHint(name, href, lv);
+    }
+  }
+
+  _compileItemByLink(name, href, lv = '1') {
+    var a, li;
+    //#######################################
+    //|
+    //|   @params {DOM}    name
+    //|   @params {string} href
+    //|   @params {string} lv
+    //|
+    //|   @return {DOM}    li.lvX
+    //|
+    //#######################################
+    li = util$4.dom('li').attr('href', href).addClass(`lv${lv}`);
+    a = util$4.dom('a').attr('href', href);
+    if (name) {
+      a.text(name.text());
+    }
+    return li.append(a);
+  }
+
+  _compileItemByHint(name, href, lv = '1') {
+    var li;
+    //#######################################
+    //|
+    //|   @params {DOM}    name
+    //|   @params {string} href
+    //|   @params {string} lv
+    //|
+    //|   @return {DOM}    li.label.lvX
+    //|
+    //#######################################
+    li = util$4.dom('li.hint').addClass(`lv${lv}`);
+    if (name) {
+      li.text(name.text());
+    }
+    return li;
+  }
+
+  _render() {
+    //#######################################
+    //|
+    //|   @return {DOM} summary
+    //|
+    //#######################################
+    return util$4.dom(this._compile());
+  }
+
+};
+
+Summary.parse = (sections) => {
+  //#######################################
+  //|
+  //|   @params {object[]} sections - [{ heading, content, example }]
+  //|   @return {string}   html
+  //|
+  //#######################################
+  sections = sections.filter(Summary._filterSection);
+  sections = sections.map(Summary._mapSection);
+  return `<summary>${sections.join('')}</summary>`;
+};
+
+Summary._filterSection = (section) => {
+  //#######################################
+  //|
+  //|   @params {object} section - {object} heading - { lv, text, order }
+  //|                              {string} content
+  //|                              {string} example
+  //|
+  //|   @return {boolean}
+  //|
+  //#######################################
+  if (section.heading) {
+    if (section.heading.lv <= Breeze.config('summary.showLevel')) {
+      return true;
+    }
+  }
+  return false;
+};
+
+Summary._mapSection = (section) => {
+  var href, lv, order, text;
+  //#######################################
+  //|
+  //|   @params {object} section - {object} heading - { lv, text, order }
+  //|                              {string} content
+  //|                              {string} example
+  //|
+  //|   @return {string} html
+  //|
+  //#######################################
+  ({lv, text, order} = section.heading);
+  href = util$4.id(order, text);
+  return `<item lv="${lv}" href="#${href}">\n   <name>${text}</name>\n</item>`;
+};
+
+Summary.activeTo = (summary, id) => {
+  var current, link;
+  //#######################################
+  //|
+  //|   @params {DOM}    summary
+  //|   @params {string} id
+  //|
+  //#######################################
+  if (link = Summary._findLink(summary, id)) {
+    if (current = summary.find('li.active')) {
+      current.removeClass('active');
+    }
+    return link.parent().addClass('active');
+  }
+};
+
+Summary.scrollTo = (summary, id) => {
+  var bottom, link, side, top;
+  //#######################################
+  //|
+  //|   @params {DOM}    summary
+  //|   @params {string} id
+  //|
+  //#######################################
+  if (link = Summary._findLink(summary, id)) {
+    side = summary.parent();
+    top = link.top();
+    bottom = link.bottom();
+    if (top + 200 > window.innerHeight) {
+      return side.scroll(top + 200 - window.innerHeight);
+    } else if (bottom < 200) {
+      return side.scroll(bottom - 200);
+    }
+  }
+};
+
+Summary._findLink = (summary, id) => {
+  var href;
+  //#######################################
+  //|
+  //|   @params {DOM}    summary
+  //|   @params {string} id
+  //|   @return {DOM}    link
+  //|
+  //#######################################
+  href = '#' + id;
+  return summary.find(`a[href="${href}"]`);
 };
 
 var marked = createCommonjsModule(function (module, exports) {
@@ -2549,836 +3333,6 @@ marked.parse = marked;
 })(commonjsGlobal || (typeof window !== 'undefined' ? window : commonjsGlobal));
 });
 
-var Jade;
-
-var Jade_1 = Jade = class Jade {
-  //#######################################
-  ///
-  ///   Be responsible for compiling the jade-like to html.
-  ///   For example,
-  ///
-  ///   ul(start="1")  =>  <ul start="1">
-  ///     li ...       =>    <li>...</li>
-  ///                  =>  </ul>
-  ///
-  //#######################################
-  constructor(text) {
-    this.compile = this.compile.bind(this);
-    this._parseNodes = this._parseNodes.bind(this);
-    this._parseNode = this._parseNode.bind(this);
-    this._parseDeep = this._parseDeep.bind(this);
-    this._parseTag = this._parseTag.bind(this);
-    this._parseAttr = this._parseAttr.bind(this);
-    this._parseText = this._parseText.bind(this);
-    this._parseTree = this._parseTree.bind(this);
-    this._compile = this._compile.bind(this);
-    //#######################################
-    ///
-    ///   @params {string} text
-    ///
-    //#######################################
-    this.text = text;
-  }
-
-  compile() {
-    var html, nodes, tree;
-    //#######################################
-    ///
-    ///   @return {string} html
-    ///
-    //#######################################
-    nodes = this._parseNodes(this.text);
-    tree = this._parseTree(nodes);
-    html = this._compile(tree);
-    return html;
-  }
-
-  _parseNodes(text) {
-    var lines, nodes;
-    //#######################################
-    ///
-    ///   @params {string}   text
-    ///   @return {object[]} nodes - [{ deep, tag, attr, text }]
-    ///
-    //#######################################
-    lines = text.split(/\n+/g);
-    nodes = lines.map((line) => {
-      if (line.trim()) {
-        return this._parseNode(line);
-      } else {
-        return null;
-      }
-    });
-    nodes = nodes.filter((node) => {
-      return node;
-    });
-    return nodes;
-  }
-
-  _parseNode(line) {
-    var attr, deep, rest, tag, text;
-    //#######################################
-    ///
-    ///   @params {string} line
-    ///   @return {object} {number} deep
-    ///                    {string} tag
-    ///                    {string} attr
-    ///                    {string} text
-    ///
-    //#######################################
-    ({deep, rest} = this._parseDeep(line));
-    ({tag, rest} = this._parseTag(rest));
-    ({attr, rest} = this._parseAttr(rest));
-    ({text, rest} = this._parseText(rest));
-    return {deep, tag, attr, text};
-  }
-
-  _parseDeep(line) {
-    var deep, reg, rest;
-    //#######################################
-    ///
-    ///   @params {string} line
-    ///   @return {object} {number} deep
-    ///                    {string} rest
-    ///
-    //#######################################
-    deep = 0;
-    reg = /^\s+/;
-    rest = line.replace(reg, (match) => {
-      deep = match.length;
-      return '';
-    });
-    return {deep, rest};
-  }
-
-  _parseTag(rest) {
-    var reg, tag;
-    //#######################################
-    ///
-    ///   @params {string} rest
-    ///   @return {object} {string} tag
-    ///                    {string} rest
-    ///
-    ///   @errors when parse failed.
-    ///
-    //#######################################
-    tag = '';
-    reg = /^([A-Za-z0-9_\-]+)\s*/;
-    rest = rest.replace(reg, (_, match) => {
-      tag = match;
-      return '';
-    });
-    if (tag) {
-      return {tag, rest};
-    } else {
-      throw `Unknown jade-like syntax: ${this._line}`;
-    }
-  }
-
-  _parseAttr(rest) {
-    var attr, reg;
-    //#######################################
-    ///
-    ///   @params {string} rest
-    ///   @return {object} {string} attr
-    ///                    {string} rest
-    ///
-    //#######################################
-    attr = '';
-    reg = /^\(([^)]*)\)/;
-    rest = rest.replace(reg, (_, match) => {
-      attr = match.trim();
-      return '';
-    });
-    return {attr, rest};
-  }
-
-  _parseText(rest) {
-    var text;
-    //#######################################
-    ///
-    ///   @params {string} rest
-    ///   @return {object} {string} text
-    ///                    {string} rest
-    ///
-    //#######################################
-    text = rest.trim();
-    rest = '';
-    return {text, rest};
-  }
-
-  _parseTree(nodes) {
-    var deep, i, len, node, root, tree;
-    //#######################################
-    ///
-    ///   @params {object[]} nodes
-    ///   @return {object}   tree
-    ///
-    //#######################################
-    root = {};
-    tree = root;
-    deep = -1;
-    for (i = 0, len = nodes.length; i < len; i++) {
-      node = nodes[i];
-      if (node.deep > deep) {
-        if (tree.children == null) {
-          tree.children = [];
-        }
-        tree.children.push(node);
-        node.parent = tree;
-        tree = node;
-        deep = node.deep;
-      } else if (node.deep === deep) {
-        tree.parent.children.push(node);
-        node.parent = tree;
-      } else if (node.deep < deep) {
-        while (node.deep <= tree.deep) {
-          tree = tree.parent;
-        }
-        tree.children.push(node);
-        node.parent = tree;
-        tree = node;
-        deep = node.deep;
-      }
-    }
-    return root;
-  }
-
-  _compile(node) {
-    var attr, children, end, html, start, tag, text;
-    //#######################################
-    ///
-    ///   @params {object} node - { tag, attr, text, children }
-    ///   @return {string} html
-    ///
-    //#######################################
-    ({tag, attr, text, children} = node);
-    start = tag ? `<${tag} ${attr}>` : '';
-    end = tag ? `</${tag}>` : '';
-    if (children) {
-      html = children.map(this._compile).join('');
-      return start + html + end;
-    } else {
-      return start + text + end;
-    }
-  }
-
-};
-
-var Jade$1, Markdown;
-
-Jade$1 = Jade_1;
-
-var Markdown_1 = Markdown = class Markdown {
-  //#######################################
-  ///
-  ///   Be responsible for
-  ///      compiling text to markdown and parsing some components,
-  ///      such as <nav>, <cover>, <summary> and so on.
-  ///
-  //#######################################
-  constructor(text) {
-    this.compile = this.compile.bind(this);
-    this.parse = this.parse.bind(this);
-    this._compileJadeByTag = this._compileJadeByTag.bind(this);
-    this._compileJadeByAttribute = this._compileJadeByAttribute.bind(this);
-    this._formatSelfClosingTag = this._formatSelfClosingTag.bind(this);
-    this._parseNav = this._parseNav.bind(this);
-    this._parseCover = this._parseCover.bind(this);
-    this._parseSummary = this._parseSummary.bind(this);
-    //#######################################
-    ///
-    ///   @params {string} text
-    ///
-    //#######################################
-    this.text = text;
-  }
-
-  compile() {
-    var markdown, text;
-    //#######################################
-    ///
-    ///   @return {string} markdown
-    ///
-    //#######################################
-    text = this._compileJadeByTag(this.text);
-    text = this._compileJadeByAttribute(text);
-    text = this._formatSelfClosingTag(text);
-    return markdown = text;
-  }
-
-  parse() {
-    var article, cover, markdown, nav, summary;
-    //#######################################
-    ///
-    ///   @return {object} {string} nav     ( html )
-    ///                    {string} cover   ( html )
-    ///                    {string} summary ( html )
-    ///                    {string} article ( markdown )
-    ///
-    //#######################################
-    markdown = this.compile();
-    ({nav, markdown} = this._parseNav(markdown));
-    ({cover, markdown} = this._parseCover(markdown));
-    ({summary, markdown} = this._parseSummary(markdown));
-    article = markdown.trim();
-    return {nav, cover, summary, article};
-  }
-
-  _compileJadeByTag(text) {
-    var reg;
-    //#######################################
-    ///
-    ///   @params {string} text
-    ///   @return {string} text
-    ///
-    ///   Compile and replace the <jade>...</jade> to html.
-    ///
-    //#######################################
-    reg = /<jade>((?:.|\n)*?)<\/jade>/g;
-    return text.replace(reg, (_, text) => {
-      var html, jade;
-      jade = new Jade$1(text);
-      html = jade.compile();
-      return html;
-    });
-  }
-
-  _compileJadeByAttribute(text) {
-    var reg;
-    //#######################################
-    ///
-    ///   @params {string} text
-    ///   @return {string} text
-    ///
-    ///   Compile and replace the <tag jade>...</tag> to html.
-    ///
-    //#######################################
-    reg = /(<\s*(.+?)\s*.*\s+jade\s*.*>)((?:.|\n)*?)\s*(<\s*\/\2\s*>)/g;
-    return text.replace(reg, (_, start, name, text, end) => {
-      var html, jade;
-      jade = new Jade$1(text);
-      html = jade.compile();
-      return start + html + end;
-    });
-  }
-
-  _formatSelfClosingTag(text) {
-    var reg;
-    //#######################################
-    ///
-    ///   @params {string} text
-    ///   @return {string} text
-    ///
-    ///   Format and replace <tag/> to <tag></tag>
-    ///
-    //#######################################
-    reg = /<([A-Za-z_-]+)((?:\s|\n)+(?:[^<]|\n)*?)?\/>/g;
-    return text.replace(reg, (_, tag, attr = '') => {
-      return `<${tag} ${attr}></${tag}>`;
-    });
-  }
-
-  _parseNav(markdown) {
-    var nav, navReg;
-    //#######################################
-    ///
-    ///   @params {string} markdown
-    ///   @return {object} {string} nav ( html )
-    ///                    {string} markdown
-    ///
-    //#######################################
-    nav = '';
-    navReg = /<nav.*?>(?:.|\n)*?<\/nav>/g;
-    markdown = markdown.replace(navReg, (match) => {
-      nav = match;
-      return '';
-    });
-    return {nav, markdown};
-  }
-
-  _parseCover(markdown) {
-    var cover, coverReg;
-    //#######################################
-    ///
-    ///   @params {string} markdown
-    ///   @return {object} {string} cover ( html )
-    ///                    {string} markdown
-    ///
-    //#######################################
-    cover = '';
-    coverReg = /<cover.*?>(?:.|\n)*?<\/cover>/g;
-    markdown = markdown.replace(coverReg, (match) => {
-      cover = match;
-      return '';
-    });
-    return {cover, markdown};
-  }
-
-  _parseSummary(markdown) {
-    var summary, summaryReg;
-    //#######################################
-    ///
-    ///   @params {string} markdown
-    ///   @return {object} {string} summary ( html )
-    ///                    {string} markdown
-    ///
-    //#######################################
-    summary = '';
-    summaryReg = /<summary.*?>(?:.|\n)*?<\/summary>/g;
-    markdown = markdown.replace(summaryReg, (match) => {
-      summary = match;
-      return '';
-    });
-    return {summary, markdown};
-  }
-
-};
-
-var Cover, util$3;
-
-util$3 = util;
-
-var Cover_1 = Cover = class Cover {
-  //#######################################
-  ///
-  ///   Be responsible for rendering cover's dom.
-  ///
-  //#######################################
-  constructor(html) {
-    this.exist = this.exist.bind(this);
-    this.compile = this.compile.bind(this);
-    this._compileLogo = this._compileLogo.bind(this);
-    this._compileName = this._compileName.bind(this);
-    this._compileDescs = this._compileDescs.bind(this);
-    this._compileItems = this._compileItems.bind(this);
-    this._compileButtons = this._compileButtons.bind(this);
-    this.render = this.render.bind(this);
-    this._bindEvent = this._bindEvent.bind(this);
-    this._onClickButton = this._onClickButton.bind(this);
-    //#######################################
-    ///
-    ///   @params {string} html
-    ///
-    //#######################################
-    this.html = html;
-  }
-
-  exist() {
-    return !!this.html;
-  }
-
-  compile() {
-    var buttons, cover, descs, dom, items, logo, name, wrap;
-    //#######################################
-    ///
-    ///   @return {string} html
-    ///
-    //#######################################
-    dom = util$3.dom(this.html);
-    cover = util$3.dom('#cover');
-    wrap = util$3.dom('.wrap');
-    logo = dom.find('cover > logo');
-    name = dom.find('cover > name');
-    descs = dom.findAll('cover > desc');
-    items = dom.findAll('cover > item');
-    buttons = dom.findAll('cover > button');
-    if (logo) {
-      wrap.append(this._compileLogo(logo));
-    }
-    if (name) {
-      wrap.append(this._compileName(name));
-    }
-    if (descs.length) {
-      wrap.append(this._compileDescs(descs));
-    }
-    if (items.length) {
-      wrap.append(this._compileItems(items));
-    }
-    if (buttons.length) {
-      wrap.append(this._compileButtons(buttons));
-    }
-    cover.append(wrap);
-    return cover.htmlSelf();
-  }
-
-  _compileLogo(logo) {
-    var src;
-    //#######################################
-    ///
-    ///   @params {DOM} logo
-    ///   @return {DOM} logo
-    ///
-    //#######################################
-    src = logo.attr('src');
-    src = util$3.filePath(src);
-    logo = util$3.dom('img.logo');
-    logo.attr('src', src);
-    return logo;
-  }
-
-  _compileName(name) {
-    var ref, text, version;
-    //#######################################
-    ///
-    ///   @params {DOM} name
-    ///   @return {DOM} name
-    ///
-    //#######################################
-    text = name.text();
-    version = (ref = name.attr('version')) != null ? ref : '';
-    name = util$3.dom('.name').text(text);
-    version = util$3.dom('.version').text(version);
-    name.append(version);
-    return name;
-  }
-
-  _compileDescs(descs) {
-    var desc, i, len, li, ul;
-    //#######################################
-    ///
-    ///   @params {DOM[]} descs
-    ///   @return {DOM}   ul.descs
-    ///
-    //#######################################
-    ul = util$3.dom('ul.descs');
-    for (i = 0, len = descs.length; i < len; i++) {
-      desc = descs[i];
-      li = util$3.dom('li').text(desc.text());
-      ul.append(li);
-    }
-    return ul;
-  }
-
-  _compileItems(items) {
-    var i, item, len, li, ul;
-    //#######################################
-    ///
-    ///   @params {DOM[]} items
-    ///   @return {DOM}   ul.items
-    ///
-    //#######################################
-    ul = util$3.dom('ul.items');
-    for (i = 0, len = items.length; i < len; i++) {
-      item = items[i];
-      li = util$3.dom('li').text(item.text());
-      ul.append(li);
-    }
-    return ul;
-  }
-
-  _compileButtons(buttons) {
-    var a, button, href, i, len, li, ref, text, ul;
-    //#######################################
-    ///
-    ///   @params {DOM[]} buttons
-    ///   @return {DOM}   ul.buttons
-    ///
-    //#######################################
-    ul = util$3.dom('ul.buttons');
-    for (i = 0, len = buttons.length; i < len; i++) {
-      button = buttons[i];
-      li = util$3.dom('li');
-      a = util$3.dom('a');
-      if (button.attr('active') != null) {
-        li.addClass('active');
-        a.addClass('active');
-      }
-      href = (ref = button.attr('href')) != null ? ref : '';
-      a.attr('href', href);
-      text = button.text();
-      a.text(text);
-      li.append(a);
-      ul.append(li);
-    }
-    return ul;
-  }
-
-  render(bus) {
-    var cover;
-    //#######################################
-    ///
-    ///   @params {Bus} bus
-    ///   @return {DOM} cover
-    ///
-    //#######################################
-    cover = util$3.dom(this.compile());
-    return cover;
-  }
-
-  _bindEvent(cover) {
-    var button, buttons, i, len, results;
-    //#######################################
-    ///
-    ///   @params {DOM} cover
-    ///
-    //#######################################
-    buttons = cover.findAll('.buttons li');
-    results = [];
-    for (i = 0, len = buttons.length; i < len; i++) {
-      button = buttons[i];
-      results.push(button.on('click', this._onClickButton.bind(this, cover)));
-    }
-    return results;
-  }
-
-  _onClickButton(cover, button) {
-    //#######################################
-    ///
-    ///   @params {DOM} cover
-    ///   @params {MouseEvent} e
-    ///
-    //#######################################
-    return cover.css('display', 'none');
-  }
-
-};
-
-var Summary, util$4;
-
-util$4 = util;
-
-var Summary_1 = Summary = class Summary {
-  //#######################################
-  ///
-  ///   Be responsible for rendering summary's dom.
-  ///
-  //#######################################
-  constructor(html) {
-    this.exist = this.exist.bind(this);
-    this.compile = this.compile.bind(this);
-    this._compileItem = this._compileItem.bind(this);
-    this._compileItemByLink = this._compileItemByLink.bind(this);
-    this._compileItemByHint = this._compileItemByHint.bind(this);
-    this.render = this.render.bind(this);
-    this._bindEvent = this._bindEvent.bind(this);
-    this._onClickItem = this._onClickItem.bind(this);
-    this._onArticleScroll = this._onArticleScroll.bind(this);
-    this._active = this._active.bind(this);
-    this._scroll = this._scroll.bind(this);
-    this.html = html;
-  }
-
-  exist() {
-    return !!this.html;
-  }
-
-  compile() {
-    var i, item, items, len, li, model, summary, ul;
-    //#######################################
-    ///
-    ///   @params {string} html
-    ///   @return {string} html
-    ///
-    //#######################################
-    model = util$4.dom(this.html);
-    summary = util$4.dom('#summary');
-    ul = util$4.dom('ul');
-    items = model.findAll('item');
-    for (i = 0, len = items.length; i < len; i++) {
-      item = items[i];
-      li = this._compileItem(item);
-      ul.append(li);
-    }
-    summary.append(ul);
-    return summary.htmlSelf();
-  }
-
-  _compileItem(item) {
-    var href, lv, name;
-    //#######################################
-    ///
-    ///   @params {DOM} item
-    ///   @return {DOM} li
-    ///
-    //#######################################
-    name = item.find('name');
-    href = item.attr('href');
-    lv = item.attr('lv');
-    if (href) {
-      return this._compileItemByLink(name, href, lv);
-    } else {
-      return this._compileItemByHint(name, href, lv);
-    }
-  }
-
-  _compileItemByLink(name, href, lv = '1') {
-    var a, li;
-    //#######################################
-    ///
-    ///   @params {DOM}    name
-    ///   @params {string} href
-    ///   @params {string} lv
-    ///
-    ///   @return {DOM}    li.lvX
-    ///
-    //#######################################
-    li = util$4.dom('li').attr('href', href).addClass(`lv${lv}`);
-    a = util$4.dom('a').attr('href', href);
-    if (name) {
-      a.text(name.text());
-    }
-    return li.append(a);
-  }
-
-  _compileItemByHint(name, href, lv = '1') {
-    var li;
-    //#######################################
-    ///
-    ///   @params {DOM}    name
-    ///   @params {string} href
-    ///   @params {string} lv
-    ///
-    ///   @return {DOM}    li.label.lvX
-    ///
-    //#######################################
-    li = util$4.dom('li.hint').addClass(`lv${lv}`);
-    if (name) {
-      li.text(name.text());
-    }
-    return li;
-  }
-
-  render(bus) {
-    var summary;
-    //#######################################
-    ///
-    ///   @params {Bus} bus
-    ///   @return {DOM} summary
-    ///
-    //#######################################
-    summary = util$4.dom(this.compile());
-    this._bindEvent(bus, summary);
-    return summary;
-  }
-
-  _bindEvent(bus, summary) {
-    var i, items, len, li;
-    //#######################################
-    ///
-    ///   @params {DOM} summary
-    ///
-    //#######################################
-    items = summary.findAll('li');
-    for (i = 0, len = items.length; i < len; i++) {
-      li = items[i];
-      li.on('click', this._onClickItem.bind(this, bus, summary, li));
-    }
-    return bus.on('article.scroll', this._onArticleScroll.bind(this, summary));
-  }
-
-  _onClickItem(bus, summary, li) {
-    var href;
-    //#######################################
-    ///
-    ///   @params {Bus} bus
-    ///   @params {DOM} summary
-    ///   @params {DOM} li
-    ///
-    //#######################################
-    this._active(summary, li);
-    if (href = li.attr('href')) {
-      return bus.emit('summary.select', href);
-    }
-  }
-
-  _onArticleScroll(summary, href) {
-    var li;
-    //#######################################
-    ///
-    ///   @params {DOM}    summary
-    ///   @params {string} href
-    ///
-    //#######################################
-    li = summary.find(`li[href="${href}"]`);
-    if (li) {
-      this._active(summary, li);
-      return this._scroll(summary, li);
-    }
-  }
-
-  _active(summary, li) {
-    var old;
-    //#######################################
-    ///
-    ///   @params {DOM} summary
-    ///   @params {DOM} li
-    ///
-    //#######################################
-    if (li.find('a')) {
-      if (old = summary.find('li.active')) {
-        old.removeClass('active');
-      }
-      return li.addClass('active');
-    }
-  }
-
-  _scroll(summary, li) {
-    var bottom, side, top;
-    //#######################################
-    ///
-    ///   @params {DOM} summary
-    ///   @params {DOM} li
-    ///
-    //#######################################
-    side = util$4.dom(document.querySelector('#side'));
-    top = li.top();
-    bottom = li.bottom();
-    if (top + 200 > window.innerHeight) {
-      return side.scroll(top + 200 - window.innerHeight);
-    } else if (bottom < 200) {
-      return side.scroll(bottom - 200);
-    }
-  }
-
-};
-
-Summary.parse = (sections) => {
-  //#######################################
-  ///
-  ///   @params {object[]} sections - [{ heading, content, example }]
-  ///   @return {string}   html
-  ///
-  //#######################################
-  sections = sections.filter(Summary._filterSection);
-  sections = sections.map(Summary._mapSection);
-  return `<summary>${sections.join('')}</summary>`;
-};
-
-Summary._filterSection = (section) => {
-  //#######################################
-  ///
-  ///   @params {object} section - {object} heading - { lv, text, order }
-  ///                              {string} content
-  ///                              {string} example
-  ///
-  ///   @return {boolean}
-  ///
-  //#######################################
-  if (section.heading) {
-    if (section.heading.lv <= Breeze.config('summary.showLevel')) {
-      return true;
-    }
-  }
-  return false;
-};
-
-Summary._mapSection = (section) => {
-  var href, lv, order, text;
-  //#######################################
-  ///
-  ///   @params {object} section - {object} heading - { lv, text, order }
-  ///                              {string} content
-  ///                              {string} example
-  ///
-  ///   @return {string} html
-  ///
-  //#######################################
-  ({lv, text, order} = section.heading);
-  href = util$4.id(order, text);
-  return `<item lv="${lv}" href="#${href}">\n   <name>${text}</name>\n</item>`;
-};
-
 var prism = createCommonjsModule(function (module) {
 /* **********************************************
      Begin prism-core.js
@@ -4319,9 +4273,9 @@ var Api = API = class API {
 
 };
 
-var Api$1, Article, Prism, marked$3, util$6;
+var Api$1, Article, Prism, marked$1, util$6;
 
-marked$3 = marked;
+marked$1 = marked;
 
 Prism = prism;
 
@@ -4329,7 +4283,7 @@ Api$1 = Api;
 
 util$6 = util;
 
-marked$3.setOptions({
+marked$1.setOptions({
   gfm: true,
   tables: true,
   highlight: (code, lang) => {
@@ -4652,9 +4606,9 @@ var Article_1 = Article = class Article {
     //|   @return {string} content ( html )
     //|
     //#######################################
-    renderer = new marked$3.Renderer();
+    renderer = new marked$1.Renderer();
     renderer.html = this._compileHTML;
-    content = marked$3(content, {renderer});
+    content = marked$1(content, {renderer});
     return `<div class="content">${content}</div>`;
   }
 
@@ -4666,9 +4620,9 @@ var Article_1 = Article = class Article {
     //|   @return {string} example ( html )
     //|
     //#######################################
-    renderer = new marked$3.Renderer();
+    renderer = new marked$1.Renderer();
     renderer.html = this._compileHTML;
-    example = marked$3(example, {renderer});
+    example = marked$1(example, {renderer});
     return `<div class="example">${example}</div>`;
   }
 
@@ -4734,10 +4688,9 @@ var Article_1 = Article = class Article {
     return reg.test(html);
   }
 
-  _render(bus) {
+  _render() {
     //#######################################
     //|
-    //|   @params {Bus} bus
     //|   @return {DOM} article
     //|
     //#######################################
@@ -4746,22 +4699,6 @@ var Article_1 = Article = class Article {
 
 };
 
-// _onSummarySelect: ( article, href ) =>
-
-//    ########################################
-//    #/
-//    #/   @params {DOM} article
-//    #/   @params {string} href
-//    #/
-//    ########################################
-
-//    section = article.find(".section[href=\"#{href}\"]")
-
-//    if section
-//       top = section.top()
-//       window.scrollBy(0, top)
-//    else
-//       window.scrollTo(0, 0)
 Article.locateID = (article) => {
   var i, j, len, ref, section, sections;
   //#######################################
@@ -4797,12 +4734,62 @@ Article.scrollTo = (article, id) => {
   }
 };
 
-var Article$1, Bus$1, Cover$1, Markdown$1, ObservableObject$3, Page, Summary$1, util$8,
-  boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+var ObservableObject;
 
-ObservableObject$3 = ObservableObject_1;
+var ObservableObject_1 = ObservableObject = class ObservableObject {
+  //#######################################
+  //|
+  //|   new ObservableObject()
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       binding and emitting events,
+  //|       generally be extended by other classes.
+  //|   -----------------------------------
+  //|
+  //|   observableObject.on( name, callback )
+  //|   observableObject.emit( name, params... )
+  //|
+  //#######################################
+  constructor() {
+    this._on = this._on.bind(this);
+    this._emit = this._emit.bind(this);
+    this._events = {};
+    this.on = this._on;
+    this.emit = this._emit;
+  }
 
-Bus$1 = Bus_1;
+  _on(name, callback) {
+    if (!this._events[name]) {
+      this._events[name] = [];
+    }
+    this._events[name].push(callback);
+    return this;
+  }
+
+  _emit(name, ...params) {
+    var callback, callbacks, i, len, ref;
+    //#######################################
+    //|
+    //|   Trigger an event.
+    //|
+    //|   @params {string} event's name
+    //|   @params {*...}   params...
+    //|
+    //|   @return {ObservableObject} this
+    //|
+    //#######################################
+    callbacks = (ref = this._events[name]) != null ? ref : [];
+    for (i = 0, len = callbacks.length; i < len; i++) {
+      callback = callbacks[i];
+      callback(...params);
+    }
+    return this;
+  }
+
+};
+
+var Article$1, Cover$1, Markdown$1, Page, Summary$1, util$8;
 
 Markdown$1 = Markdown_1;
 
@@ -4814,60 +4801,38 @@ Article$1 = Article_1;
 
 util$8 = util;
 
-var Page_1 = Page = class Page extends ObservableObject$3 {
+var Page_1 = Page = class Page {
   //#######################################
-  ///
-  ///   new Page( text )
-  ///
-  ///   parse()    ->  { article, nav, cover, summary }
-  ///   compile()  ->  page ( html-string )
-  ///   render()   ->  page ( DOM )
-  ///
-  ///   Page.bindEvent( page )
-  ///
+  //|
+  //|   new Page( text )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="page">
+  //|   -----------------------------------
+  //|
+  //|   page.compile() -> html
+  //|   page.render()  -> dom
+  //|
   //#######################################
   constructor(text) {
-    super();
-    // super()
-
-    // @isOverMain = false
-
-    // @$root = util.element('#root')
-    // @$side = util.element('#side')
-    // @$main = util.element('#main')
-
-    // @navigator = new Navigator(navigator)
-    // @article   = new Article(article)
-    // @summary   = new Summary(@article.summary)
-    // @search    = new Search(@article.$sections)
-
-    // @article.on('scroll', ( id ) => if @isOverMain then @rehash( id ))
-    // @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
-    // @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
-
-    // @search.on('select',  @rehash)
-    // @search.on('select',  @article.scroll)
-
-    // if @query.id
-    //    @article.scroll(@query.id)
-    //    @summary.scroll(@query.id)
-    //    @summary.active(@query.id)
-    this.parse = this.parse.bind(this);
-    this.compile = this.compile.bind(this);
-    this.render = this.render.bind(this);
+    this._parse = this._parse.bind(this);
+    this._compile = this._compile.bind(this);
+    this._render = this._render.bind(this);
     this.text = text;
+    this.compile = this._compile;
+    this.render = this._render;
   }
 
-  parse() {
+  _parse() {
     var article, cover, markdown, nav, sections, summary;
-    boundMethodCheck$1(this, Page);
     //#######################################
-    ///
-    ///   @return {object} - {Nav}     nav
-    ///                      {Cover}   cover
-    ///                      {Summary} summary
-    ///                      {Article} article
-    ///
+    //|
+    //|   @return {object} - {Nav}     nav
+    //|                      {Cover}   cover
+    //|                      {Summary} summary
+    //|                      {Article} article
+    //|
     //#######################################
     markdown = new Markdown$1(this.text);
     ({article, nav, cover, summary} = markdown.parse());
@@ -4877,13 +4842,17 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
       summary = Summary$1.parse(sections = article.parse());
     }
     summary = new Summary$1(summary);
-    return {nav, cover, summary, article};
+    return {article, nav, cover, summary};
   }
 
-  compile() {
+  _compile() {
     var article, cover, main, nav, page, side, summary;
-    boundMethodCheck$1(this, Page);
-    ({nav, cover, summary, article} = this.parse());
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    ({article, nav, cover, summary} = this._parse());
     page = util$8.dom('#page');
     side = util$8.dom('#side');
     main = util$8.dom('#main');
@@ -4897,87 +4866,29 @@ var Page_1 = Page = class Page extends ObservableObject$3 {
     return page.htmlSelf();
   }
 
-  render() {
-    var article, bus, cover, main, nav, page, side, summary;
-    boundMethodCheck$1(this, Page);
+  _render() {
     //#######################################
-    ///
-    ///   @return {DOM} page
-    ///
+    //|
+    //|   @return {DOM} page
+    //|
     //#######################################
-    ({nav, cover, summary, article} = this.parse());
-    bus = new Bus$1;
-    page = util$8.dom('#page');
-    side = util$8.dom('#side');
-    main = util$8.dom('#main');
-    if (cover.exist()) {
-      page.append(cover.render(bus));
-    }
-    side.append(summary.render(bus));
-    main.append(article.render(bus));
-    page.append(side);
-    page.append(main);
-    return page;
+    return util$8.dom(this._compile());
   }
 
 };
 
-Page.bindEvent = (page) => {
-  var article, bus, i, len, link, links;
-  //#######################################
-  ///
-  ///   @params {DOM} page
-  ///
-  //#######################################
-  links = page.findAll('a');
-  for (i = 0, len = links.length; i < len; i++) {
-    link = links[i];
-    link.on('click', Page._event_linkClick);
-  }
-  bus = new Bus$1();
-  bus.on('article.scroll', Page._event_articleScroll);
-  article = page.find('#article');
-  Article$1.bindEvent(bus, article);
-  return window.addEventListener('scroll', Page._onWindowScroll);
-};
+var Article$2, Cover$2, ObservableObject$2, PageEventBus, Summary$2,
+  boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
-Page._onWindowScroll = (e) => {
-  //#######################################
-  ///
-  ///   @params {Event} e
-  ///
-  //#######################################
-  return console.log(e);
-};
-
-Page._event_linkClick = (link) => {
-  var href;
-  //#######################################
-  ///
-  ///   @params {DOM} link
-  ///
-  //#######################################
-  href = link.attr('href');
-  return Breeze.go(href);
-};
-
-Page._event_articleScroll = (href) => {
-  //#######################################
-  ///
-  ///   @params {string} href
-  ///
-  //#######################################
-  return Breeze.go(href);
-};
-
-var Article$2, ObservableObject$4, PageEventBus,
-  boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
-
-ObservableObject$4 = ObservableObject_1;
+ObservableObject$2 = ObservableObject_1;
 
 Article$2 = Article_1;
 
-var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$4 {
+Cover$2 = Cover_1;
+
+Summary$2 = Summary_1;
+
+var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$2 {
   //#######################################
   //|
   //|   new PageEventBus( page-dom )
@@ -4992,8 +4903,9 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     super();
     this._bindEvents = this._bindEvents.bind(this);
     this._onScrollArticle = this._onScrollArticle.bind(this);
-    this._onClickLink = this._onClickLink.bind(this);
+    this._onClickCoverButton = this._onClickCoverButton.bind(this);
     this._onClickSummaryLink = this._onClickSummaryLink.bind(this);
+    this._onClickLink = this._onClickLink.bind(this);
     this._page = page;
     this._main = page.find('#main');
     this._side = page.find('#side');
@@ -5001,16 +4913,17 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     this._cover = page.find('#cover');
     this._summary = page.find('#summary');
     this._article = page.find('#article');
-    this._links = page.findAll('a');
+    this._coverButtons = this._cover.findAll('.buttons a');
     this._summaryLinks = this._summary.findAll('a');
+    this._links = this._page.findAll('a');
     this._overSide = false;
     this._overMain = false;
     this._bindEvents();
   }
 
   _bindEvents() {
-    var i, j, len, len1, link, ref, ref1, results;
-    boundMethodCheck$2(this, PageEventBus);
+    var button, i, j, k, len, len1, len2, link, ref, ref1, ref2, results;
+    boundMethodCheck$1(this, PageEventBus);
     //#######################################
     //|
     //|   To bind all events of dom-tree.
@@ -5029,39 +4942,81 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     this._main.on('mouseleave', () => {
       return this._overMain = false;
     });
-    ref = this._links;
+    ref = this._coverButtons;
     for (i = 0, len = ref.length; i < len; i++) {
-      link = ref[i];
-      link.on('click', this._onClickLink);
+      button = ref[i];
+      button.on('click', this._onClickCoverButton);
     }
     ref1 = this._summaryLinks;
-    results = [];
     for (j = 0, len1 = ref1.length; j < len1; j++) {
       link = ref1[j];
-      results.push(link.on('click', this._onClickSummaryLink));
+      link.on('click', this._onClickSummaryLink);
+    }
+    ref2 = this._links;
+    results = [];
+    for (k = 0, len2 = ref2.length; k < len2; k++) {
+      link = ref2[k];
+      results.push(link.on('click', this._onClickLink));
     }
     return results;
   }
 
   _onScrollArticle() {
     var href, id;
-    boundMethodCheck$2(this, PageEventBus);
+    boundMethodCheck$1(this, PageEventBus);
     //#######################################
     //|
     //|   When scroll the article,
     //|      1. redirect #id
+    //|      2. active the summary
+    //|      3. scroll the summary
     //|
     //#######################################
     if (this._article.isVisible()) {
       id = Article$2.locateID(this._article);
       href = '#' + id;
-      return Breeze.go(href);
+      Breeze.go(href);
+      Summary$2.activeTo(this._summary, id);
+      return Summary$2.scrollTo(this._summary, id);
+    }
+  }
+
+  _onClickCoverButton(button) {
+    var href;
+    boundMethodCheck$1(this, PageEventBus);
+    //#######################################
+    //|
+    //|   When click the cover's button,
+    //|      1. if href is current page, hide the cover
+    //|
+    //#######################################
+    href = button.attr('href');
+    if (href && Breeze.isCurrentPath(href)) {
+      return Cover$2.hide(this._cover);
+    }
+  }
+
+  _onClickSummaryLink(link) {
+    var href, id;
+    boundMethodCheck$1(this, PageEventBus);
+    //#######################################
+    //|
+    //|   When click the summary's link,
+    //|      1. active the summary
+    //|      2. scroll the article
+    //|
+    //#######################################
+    href = link.attr('href');
+    if (href && Breeze.isCurrentPath(href)) {
+      id = Breeze.resolveID(href);
+      Summary$2.activeTo(this._summary, id);
+      return Article$2.scrollTo(this._article, id);
     }
   }
 
   _onClickLink(link) {
     var href;
-    boundMethodCheck$2(this, PageEventBus);
+    boundMethodCheck$1(this, PageEventBus);
     //#######################################
     //|
     //|   When click any link,
@@ -5070,22 +5025,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     //#######################################
     if (href = link.attr('href')) {
       return Breeze.go(href);
-    }
-  }
-
-  _onClickSummaryLink(link) {
-    var href, id;
-    boundMethodCheck$2(this, PageEventBus);
-    //#######################################
-    //|
-    //|   When click the summary's link,
-    //|      1. scroll the article
-    //|
-    //#######################################
-    href = link.attr('href');
-    if (href && Breeze.isCurrentPath(href)) {
-      id = Breeze.resolveID(href);
-      return Article$2.scrollTo(this._article, id);
     }
   }
 
@@ -5204,20 +5143,20 @@ var App_1 = App = class App {
     //#######################################
     currentPage = document.querySelector('body > #page');
     if (currentPage) {
-      return document.body.replaceChild(page.root, currentPage);
+      return document.body.replaceChild(page.element(), currentPage);
     } else {
-      return document.body.appendChild(page.root);
+      return document.body.appendChild(page.element());
     }
   }
 
 };
 
-var Breeze$1, ObservableObject$5,
-  boundMethodCheck$3 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+var Breeze$1, ObservableObject$3,
+  boundMethodCheck$2 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
 
-ObservableObject$5 = ObservableObject_1;
+ObservableObject$3 = ObservableObject_1;
 
-var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$5 {
+var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$3 {
   //#######################################
   //|
   //|   window.Breeze = new Breeze()
@@ -5235,18 +5174,19 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$5 {
   //#######################################
   constructor() {
     super();
-    this.config = this.config.bind(this);
+    this._config = this._config.bind(this);
     this._options = {};
-    this.config('basePath', '');
-    this.config('common.use', false);
-    this.config('common.map', {});
-    this.config('summary.showLevel', 3);
-    this.config('summary.showOrderLevel', 0);
-    this.config('article.showOrderLevel', 0);
+    this._config('basePath', '');
+    this._config('common.use', false);
+    this._config('common.map', {});
+    this._config('summary.showLevel', 3);
+    this._config('summary.showOrderLevel', 0);
+    this._config('article.showOrderLevel', 0);
+    this.config = this._config;
   }
 
-  config(name, value) {
-    boundMethodCheck$3(this, Breeze);
+  _config(name, value) {
+    boundMethodCheck$2(this, Breeze);
     //#######################################
     //|
     //|   SET   @params {string} name

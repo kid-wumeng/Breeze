@@ -52,13 +52,24 @@ module.exports = class DOM
       #|
       ########################################
 
-      @root = cheerio.load( html )('body > *')
+      @_root = cheerio.load( html )('body > *')
+
+      @find        = @_find
+      @findAll     = @_findAll
+      @htmlSelf    = @_htmlSelf
+      @html        = @_html
+      @attr        = @_attr
+      @text        = @_text
+      @hasClass    = @_hasClass
+      @addClass    = @_addClass
+      @removeClass = @_removeClass
+      @append      = @_append
 
 
 
 
 
-   find: ( sel ) =>
+   _find: ( sel ) =>
 
       ########################################
       #|
@@ -67,7 +78,7 @@ module.exports = class DOM
       #|
       ########################################
 
-      el = @root.find(sel)[0]
+      el = @_root.find( sel )[0]
 
       if el
          html = cheerio('<fragment>').append(el).html()
@@ -80,7 +91,7 @@ module.exports = class DOM
 
 
 
-   findAll: ( sel ) =>
+   _findAll: ( sel ) =>
 
       ########################################
       #|
@@ -90,7 +101,7 @@ module.exports = class DOM
       ########################################
 
       doms = []
-      els  = @root.find(sel)
+      els  = @_root.find(sel)
 
       for el in els
           html = cheerio('<fragment>').append(el).html()
@@ -103,7 +114,7 @@ module.exports = class DOM
 
 
 
-   htmlSelf: ( html ) =>
+   _htmlSelf: ( html ) =>
 
       ########################################
       #|
@@ -118,13 +129,13 @@ module.exports = class DOM
          return new DOM( html )
 
       else
-         return cheerio('<fragment>').append( @root ).html()
+         return cheerio('<fragment>').append( @_root ).html()
 
 
 
 
 
-   html: ( html ) =>
+   _html: ( html ) =>
 
       ########################################
       #|
@@ -136,17 +147,17 @@ module.exports = class DOM
       ########################################
 
       if html?
-         @root.html( html )
+         @_root.html( html )
          return @
 
       else
-         return @root.html()
+         return @_root.html()
 
 
 
 
 
-   attr: ( name, value ) =>
+   _attr: ( name, value ) =>
 
       ########################################
       #|
@@ -160,17 +171,17 @@ module.exports = class DOM
       ########################################
 
       if value?
-         @root.attr( name, value )
+         @_root.attr( name, value )
          return @
 
       else
-         return @root.attr( name )
+         return @_root.attr( name )
 
 
 
 
 
-   text: ( text ) =>
+   _text: ( text ) =>
 
       ########################################
       #|
@@ -182,17 +193,17 @@ module.exports = class DOM
       ########################################
 
       if text?
-         @root.text( text )
+         @_root.text( text )
          return @
 
       else
-         return @root.text()
+         return @_root.text()
 
 
 
 
 
-   hasClass: ( name ) =>
+   _hasClass: ( name ) =>
 
       ########################################
       #|
@@ -201,30 +212,13 @@ module.exports = class DOM
       #|
       ########################################
 
-      return @root.hasClass( name )
+      return @_root.hasClass( name )
 
 
 
 
 
-   addClass: ( name ) =>
-
-      ########################################
-      #|
-      #|   @params {string} name
-      #|   @return {DOM}    this
-      #|
-      ########################################
-
-      @root.addClass( name )
-      return @
-
-
-
-
-
-
-   removeClass: ( name ) =>
+   _addClass: ( name ) =>
 
       ########################################
       #|
@@ -233,27 +227,43 @@ module.exports = class DOM
       #|
       ########################################
 
-      @root.removeClass( name )
+      @_root.addClass( name )
       return @
 
 
 
 
 
-   append: ( child ) =>
+   _removeClass: ( name ) =>
 
       ########################################
       #|
-      #|   @params {DOM|string} child|html|sel
+      #|   @params {string} name
+      #|   @return {DOM}    this
+      #|
+      ########################################
+
+      @_root.removeClass( name )
+      return @
+
+
+
+
+
+   _append: ( child ) =>
+
+      ########################################
+      #|
+      #|   @params {DOM|string} dom|html
       #|   @return {DOM} this
       #|
       ########################################
 
       if child
-
+         
          if typeof(child) is 'string'
             child = new DOM(child)
 
-         @root.append(child.root)
+         @_root.append(child.root)
 
       return @

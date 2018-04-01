@@ -1,16 +1,24 @@
-marked = require('marked')
-Jade   = require('./Jade')
+Jade = require('./Jade')
+
+
 
 
 
 module.exports = class Markdown
 
    ########################################
-   #/
-   #/   Be responsible for
-   #/      compiling text to markdown and parsing some components,
-   #/      such as <nav>, <cover>, <summary> and so on.
-   #/
+   #|
+   #|   new Markdown( text )
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       compiling text to markdown and parsing some components,
+   #|       such as <nav>, <cover>, <summary> and so on.
+   #|   -----------------------------------
+   #|
+   #|   markdown.compile() -> markdown
+   #|   markdown.parse()   -> { nav, cover, summary, article }
+   #|
    ########################################
 
 
@@ -20,23 +28,26 @@ module.exports = class Markdown
    constructor: ( text ) ->
 
       ########################################
-      #/
-      #/   @params {string} text
-      #/
+      #|
+      #|   @params {string} text
+      #|
       ########################################
 
       @text = text
 
+      @compile = @_compile
+      @parse   = @_parse
 
 
 
 
-   compile: =>
+
+   _compile: =>
 
       ########################################
-      #/
-      #/   @return {string} markdown
-      #/
+      #|
+      #|   @return {string} markdown
+      #|
       ########################################
 
       text = @_compileJadeByTag( @text )
@@ -49,41 +60,15 @@ module.exports = class Markdown
 
 
 
-   parse: =>
-
-      ########################################
-      #/
-      #/   @return {object} {string} nav     ( html )
-      #/                    {string} cover   ( html )
-      #/                    {string} summary ( html )
-      #/                    {string} article ( markdown )
-      #/
-      ########################################
-
-      markdown = @compile()
-
-      { nav,     markdown } = @_parseNav( markdown )
-      { cover,   markdown } = @_parseCover( markdown )
-      { summary, markdown } = @_parseSummary( markdown )
-
-
-      article = markdown.trim()
-
-      return { nav, cover, summary, article }
-
-
-
-
-
    _compileJadeByTag: ( text ) =>
 
       ########################################
-      #/
-      #/   @params {string} text
-      #/   @return {string} text
-      #/
-      #/   Compile and replace the <jade>...</jade> to html.
-      #/
+      #|
+      #|   @params {string} text
+      #|   @return {string} text
+      #|
+      #|   Compile and replace the <jade>...</jade> to html.
+      #|
       ########################################
 
       reg = /<jade>((?:.|\n)*?)<\/jade>/g
@@ -102,12 +87,12 @@ module.exports = class Markdown
    _compileJadeByAttribute: ( text ) =>
 
       ########################################
-      #/
-      #/   @params {string} text
-      #/   @return {string} text
-      #/
-      #/   Compile and replace the <tag jade>...</tag> to html.
-      #/
+      #|
+      #|   @params {string} text
+      #|   @return {string} text
+      #|
+      #|   Compile and replace the <tag jade>...</tag> to html.
+      #|
       ########################################
 
       reg = /(<\s*(.+?)\s*.*\s+jade\s*.*>)((?:.|\n)*?)\s*(<\s*\/\2\s*>)/g
@@ -126,12 +111,12 @@ module.exports = class Markdown
    _formatSelfClosingTag: ( text ) =>
 
       ########################################
-      #/
-      #/   @params {string} text
-      #/   @return {string} text
-      #/
-      #/   Format and replace <tag/> to <tag></tag>
-      #/
+      #|
+      #|   @params {string} text
+      #|   @return {string} text
+      #|
+      #|   Format and replace <tag/> to <tag></tag>
+      #|
       ########################################
 
       reg = /<([A-Za-z_-]+)((?:\s|\n)+(?:[^<]|\n)*?)?\/>/g
@@ -143,14 +128,40 @@ module.exports = class Markdown
 
 
 
+   _parse: =>
+
+      ########################################
+      #|
+      #|   @return {object} - {string} nav     ( html )
+      #|                      {string} cover   ( html )
+      #|                      {string} summary ( html )
+      #|                      {string} article ( markdown )
+      #|
+      ########################################
+
+      markdown = @_compile()
+
+      { nav,     markdown } = @_parseNav( markdown )
+      { cover,   markdown } = @_parseCover( markdown )
+      { summary, markdown } = @_parseSummary( markdown )
+
+
+      article = markdown.trim()
+
+      return { nav, cover, summary, article }
+
+
+
+
+
    _parseNav: ( markdown ) =>
 
       ########################################
-      #/
-      #/   @params {string} markdown
-      #/   @return {object} {string} nav ( html )
-      #/                    {string} markdown
-      #/
+      #|
+      #|   @params {string} markdown
+      #|   @return {object} - {string} nav ( html )
+      #|                      {string} markdown
+      #|
       ########################################
 
       nav    = ''
@@ -169,11 +180,11 @@ module.exports = class Markdown
    _parseCover: ( markdown ) =>
 
       ########################################
-      #/
-      #/   @params {string} markdown
-      #/   @return {object} {string} cover ( html )
-      #/                    {string} markdown
-      #/
+      #|
+      #|   @params {string} markdown
+      #|   @return {object} - {string} cover ( html )
+      #|                      {string} markdown
+      #|
       ########################################
 
       cover    = ''
@@ -192,11 +203,11 @@ module.exports = class Markdown
    _parseSummary: ( markdown ) =>
 
       ########################################
-      #/
-      #/   @params {string} markdown
-      #/   @return {object} {string} summary ( html )
-      #/                    {string} markdown
-      #/
+      #|
+      #|   @params {string} markdown
+      #|   @return {object} - {string} summary ( html )
+      #|                      {string} markdown
+      #|
       ########################################
 
       summary    = ''

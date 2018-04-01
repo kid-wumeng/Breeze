@@ -1,4 +1,4 @@
-exports.isUrl = ( href ) =>
+isUrl = ( href ) =>
 
    ########################################
    #/
@@ -13,7 +13,7 @@ exports.isUrl = ( href ) =>
 
 
 
-exports.filePath = ( href = '' ) =>
+filePath = ( href = '' ) =>
 
    ########################################
    #/
@@ -44,30 +44,7 @@ exports.filePath = ( href = '' ) =>
 
 
 
-exports.ajax = ( path, done ) =>
-
-   ########################################
-   #/
-   #/   @params {string}   path
-   #/   @params {function} done(text)
-   #/
-   ########################################
-
-   xhr = new XMLHttpRequest
-
-   xhr.open('GET', path, true)
-   xhr.send(null)
-
-   xhr.onreadystatechange = =>
-      if xhr.readyState is 4
-         if xhr.status is 200
-            done( xhr.responseText )
-
-
-
-
-
-exports.id = ( order, text = '' ) =>
+id = ( order, text = '' ) =>
 
    ########################################
    #|
@@ -90,11 +67,11 @@ exports.id = ( order, text = '' ) =>
 
 
 
-exports.dom = ( html ) =>
+dom = ( arg ) =>
 
    ########################################
    #/
-   #/   @params {string|HTMLElement} html|selector|$el
+   #/   @params {string|HTMLElement} html|sel|$el
    #/   @return {DOM}
    #/
    #/   <html>  ->  DOM
@@ -103,27 +80,21 @@ exports.dom = ( html ) =>
    #/
    ########################################
 
-   if typeof( html ) is 'string'
-      if html[0] is '<'
-         return new Breeze.DOM( html )
+   if typeof(arg) is 'string'
+
+      if arg[0] is '<'
+         dom = new Breeze.DOM( html = arg )
+
       else
-         return _domBySelector( selector = html )
+         { tag, id, classname } = parseSelector( sel = arg )
+
+         dom = new Breeze.DOM("<#{tag}>")
+
+         dom.attr('id',    id)        if id
+         dom.attr('class', classname) if classname
 
    else
-      return new Breeze.DOM( $el = html )
-
-
-
-
-
-_domBySelector = ( selector ) =>
-
-   { tag, id, classname } = parseSelector( selector )
-
-   dom = new Breeze.DOM('<'+tag+'>')
-
-   dom.attr('id', id)           if id
-   dom.attr('class', classname) if classname
+      dom = new Breeze.DOM( $el = arg )
 
    return dom
 
@@ -131,58 +102,11 @@ _domBySelector = ( selector ) =>
 
 
 
-exports.element = ( html ) =>
+parseSelector = ( sel = 'div' ) =>
 
    ########################################
    #/
-   #/   @params {string}      html|selector
-   #/   @return {HTMLElement}
-   #/
-   #/   <html>  ->  $html
-   #/   div#id  ->  $div#id
-   #/
-   ########################################
-
-   if html[0] is '<'
-      return _elementByHTML( html )
-   else
-      return _elementBySelector( selector = html )
-
-
-
-
-
-_elementByHTML = ( html ) =>
-
-   fragment = document.createElement('fragment')
-   fragment.innerHTML = html
-
-   return fragment.childNodes[0]
-
-
-
-
-
-_elementBySelector = ( selector ) =>
-
-   { tag, id, classname } = parseSelector( selector )
-
-   $el = document.createElement(tag)
-
-   $el.setAttribute('id', id)   if id
-   $el.classList.add(classname) if classname
-
-   return $el
-
-
-
-
-
-parseSelector = ( selector = 'div' ) =>
-
-   ########################################
-   #/
-   #/   @params {string} selector
+   #/   @params {string} sel
    #/   @return {object} - {string} tag
    #/                      {string} id
    #/                      {string} classname
@@ -195,19 +119,19 @@ parseSelector = ( selector = 'div' ) =>
    #/   'tag.classname'  -> { tag: 'tag', classname: 'classname' }
    #/
    #/
-   #/   This selector can't includes id and classname at the same time.
-   #/   This selector can't includes classname more than two.
+   #/   This sel can't includes id and classname at the same time.
+   #/   This sel can't includes classname more than two.
    #/
    ########################################
 
-   hasID    = /#/.test( selector )
-   hasClass = /\./.test( selector )
+   hasID    = /#/.test( sel )
+   hasClass = /\./.test( sel )
 
    tag       = 'div'
    id        = ''
    classname = ''
 
-   parts = selector.split(/#|\./)
+   parts = sel.split(/#|\./)
    parts = parts.filter ( part ) => part
 
    switch parts.length
@@ -224,3 +148,13 @@ parseSelector = ( selector = 'div' ) =>
             when hasClass then ( tag = parts[0] ) and ( classname = parts[1] )
 
    return { tag, id, classname }
+
+
+
+
+
+exports.isUrl         = isUrl
+exports.filePath      = filePath
+exports.id            = id
+exports.dom           = dom
+exports.parseSelector = parseSelector

@@ -32,8 +32,8 @@ module.exports = class API
       ########################################
 
       @html = html
-
       @compile = @_compile
+
 
 
 

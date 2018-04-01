@@ -1,5 +1,3 @@
-ObservableObject = require('./ObservableObject')
-Bus              = require('./Bus')
 Markdown         = require('./Markdown')
 Cover            = require('./Cover')
 Summary          = require('./Summary')
@@ -9,69 +7,48 @@ util             = require('./util')
 
 
 
-module.exports = class Page extends ObservableObject
+
+
+module.exports = class Page
 
    ########################################
-   #/
-   #/   new Page( text )
-   #/
-   #/   parse()    ->  { article, nav, cover, summary }
-   #/   compile()  ->  page ( html-string )
-   #/   render()   ->  page ( DOM )
-   #/
-   #/   Page.bindEvent( page )
-   #/
+   #|
+   #|   new Page( text )
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       handling the <div id="page">
+   #|   -----------------------------------
+   #|
+   #|   page.compile() -> html
+   #|   page.render()  -> dom
+   #|
    ########################################
+
+
 
 
 
    constructor: ( text ) ->
 
-      super()
-
       @text = text
 
-      # super()
-      #
-      # @isOverMain = false
-      #
-      # @$root = util.element('#root')
-      # @$side = util.element('#side')
-      # @$main = util.element('#main')
-
-
-
-
-         # @navigator = new Navigator(navigator)
-         # @article   = new Article(article)
-         # @summary   = new Summary(@article.summary)
-         # @search    = new Search(@article.$sections)
-         #
-         # @article.on('scroll', ( id ) => if @isOverMain then @rehash( id ))
-         # @article.on('scroll', ( id ) => if @isOverMain then @summary.scroll( id ))
-         # @article.on('scroll', ( id ) => if @isOverMain then @summary.active( id ))
-         #
-         # @search.on('select',  @rehash)
-         # @search.on('select',  @article.scroll)
-         #
-         # if @query.id
-         #    @article.scroll(@query.id)
-         #    @summary.scroll(@query.id)
-         #    @summary.active(@query.id)
+      @compile = @_compile
+      @render  = @_render
 
 
 
 
 
-   parse: =>
+   _parse: =>
 
       ########################################
-      #/
-      #/   @return {object} - {Nav}     nav
-      #/                      {Cover}   cover
-      #/                      {Summary} summary
-      #/                      {Article} article
-      #/
+      #|
+      #|   @return {object} - {Nav}     nav
+      #|                      {Cover}   cover
+      #|                      {Summary} summary
+      #|                      {Article} article
+      #|
       ########################################
 
       markdown = new Markdown(@text)
@@ -85,15 +62,21 @@ module.exports = class Page extends ObservableObject
         summary = Summary.parse(sections = article.parse())
       summary = new Summary(summary)
 
-      return { nav, cover, summary, article }
+      return { article, nav, cover, summary }
 
 
 
 
 
-   compile: =>
+   _compile: =>
 
-      { nav, cover, summary, article } = @parse()
+      ########################################
+      #|
+      #|   @return {string} html
+      #|
+      ########################################
+
+      { article, nav, cover, summary } = @_parse()
 
       page = util.dom('#page')
       side = util.dom('#side')
@@ -112,93 +95,12 @@ module.exports = class Page extends ObservableObject
 
 
 
-   render: =>
+   _render: =>
 
       ########################################
-      #/
-      #/   @return {DOM} page
-      #/
+      #|
+      #|   @return {DOM} page
+      #|
       ########################################
 
-      { nav, cover, summary, article } = @parse()
-
-      bus = new Bus
-
-      page = util.dom('#page')
-      side = util.dom('#side')
-      main = util.dom('#main')
-
-      page.append(cover.render( bus )) if cover.exist()
-      side.append(summary.render( bus ))
-      main.append(article.render( bus ))
-
-      page.append(side)
-      page.append(main)
-
-      return page
-
-
-
-
-
-Page.bindEvent = ( page ) =>
-
-   ########################################
-   #/
-   #/   @params {DOM} page
-   #/
-   ########################################
-
-   links   = page.findAll('a')
-
-   for link in links
-       link.on('click', Page._event_linkClick)
-
-   bus = new Bus()
-   bus.on('article.scroll', Page._event_articleScroll)
-
-   article = page.find('#article')
-   Article.bindEvent( bus, article )
-
-   window.addEventListener('scroll', Page._onWindowScroll)
-
-
-
-
-Page._onWindowScroll = ( e ) =>
-
-   ########################################
-   #/
-   #/   @params {Event} e
-   #/
-   ########################################
-
-   console.log e
-
-
-
-
-Page._event_linkClick = ( link ) =>
-
-   ########################################
-   #/
-   #/   @params {DOM} link
-   #/
-   ########################################
-
-   href = link.attr('href')
-   Breeze.go( href )
-
-
-
-
-
-Page._event_articleScroll = ( href ) =>
-
-   ########################################
-   #/
-   #/   @params {string} href
-   #/
-   ########################################
-
-   Breeze.go( href )
+      return util.dom(@_compile())

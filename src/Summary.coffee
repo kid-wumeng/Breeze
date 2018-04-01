@@ -1,14 +1,27 @@
-marked = require('marked')
-util   = require('./util')
+util = require('./util')
+
+
 
 
 
 module.exports = class Summary
 
    ########################################
-   #/
-   #/   Be responsible for rendering summary's dom.
-   #/
+   #|
+   #|   new Summary( html )
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       handling the <div id="summary">
+   #|   -----------------------------------
+   #|
+   #|   summary.compile() -> html
+   #|   summary.render()  -> dom
+   #|
+   #|   Summary.parse( sections ) -> html
+   #|   Summary.activeTo( summary, id )
+   #|   Summary.scrollTo( summary, id )
+   #|
    ########################################
 
 
@@ -19,31 +32,20 @@ module.exports = class Summary
 
       @html = html
 
-
-
-
-
-   exist: =>
-
-      ########################################
-      #/
-      #/   @return {boolean}
-      #/
-      ########################################
-
-      return !!@html
+      @compile = @_compile
+      @render  = @_render
 
 
 
 
 
-   compile: =>
+   _compile: =>
 
       ########################################
-      #/
-      #/   @params {string} html
-      #/   @return {string} html
-      #/
+      #|
+      #|   @params {string} html
+      #|   @return {string} html
+      #|
       ########################################
 
       model   = util.dom(@html)
@@ -67,10 +69,10 @@ module.exports = class Summary
    _compileItem: ( item ) =>
 
       ########################################
-      #/
-      #/   @params {DOM} item
-      #/   @return {DOM} li
-      #/
+      #|
+      #|   @params {DOM} item
+      #|   @return {DOM} li
+      #|
       ########################################
 
       name = item.find('name')
@@ -89,13 +91,13 @@ module.exports = class Summary
    _compileItemByLink: ( name, href, lv = '1' ) =>
 
       ########################################
-      #/
-      #/   @params {DOM}    name
-      #/   @params {string} href
-      #/   @params {string} lv
-      #/
-      #/   @return {DOM}    li.lvX
-      #/
+      #|
+      #|   @params {DOM}    name
+      #|   @params {string} href
+      #|   @params {string} lv
+      #|
+      #|   @return {DOM}    li.lvX
+      #|
       ########################################
 
       li = util.dom('li').attr('href', href).addClass("lv#{lv}")
@@ -113,13 +115,13 @@ module.exports = class Summary
    _compileItemByHint: ( name, href, lv = '1' ) =>
 
       ########################################
-      #/
-      #/   @params {DOM}    name
-      #/   @params {string} href
-      #/   @params {string} lv
-      #/
-      #/   @return {DOM}    li.label.lvX
-      #/
+      #|
+      #|   @params {DOM}    name
+      #|   @params {string} href
+      #|   @params {string} lv
+      #|
+      #|   @return {DOM}    li.label.lvX
+      #|
       ########################################
 
       li = util.dom('li.hint').addClass("lv#{lv}")
@@ -133,121 +135,15 @@ module.exports = class Summary
 
 
 
-   render: ( bus ) =>
+   _render: =>
 
       ########################################
-      #/
-      #/   @params {Bus} bus
-      #/   @return {DOM} summary
-      #/
+      #|
+      #|   @return {DOM} summary
+      #|
       ########################################
 
-      summary = util.dom(@compile())
-
-      @_bindEvent( bus, summary )
-
-      return summary
-
-
-
-
-
-   _bindEvent: ( bus, summary ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} summary
-      #/
-      ########################################
-
-      items = summary.findAll('li')
-
-      for li in items
-          li.on('click', @_onClickItem.bind(@, bus, summary, li))
-
-      bus.on('article.scroll', @_onArticleScroll.bind(@, summary))
-
-
-
-
-
-   _onClickItem: ( bus, summary, li ) =>
-
-      ########################################
-      #/
-      #/   @params {Bus} bus
-      #/   @params {DOM} summary
-      #/   @params {DOM} li
-      #/
-      ########################################
-
-      @_active( summary, li )
-
-      if href = li.attr('href')
-         bus.emit('summary.select', href)
-
-
-
-
-
-   _onArticleScroll: ( summary, href ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM}    summary
-      #/   @params {string} href
-      #/
-      ########################################
-
-      li = summary.find("li[href=\"#{href}\"]")
-
-      if li
-         @_active( summary, li )
-         @_scroll( summary, li )
-
-
-
-
-
-   _active: ( summary, li ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} summary
-      #/   @params {DOM} li
-      #/
-      ########################################
-
-      if li.find('a')
-
-         if old = summary.find('li.active')
-            old.removeClass('active')
-
-         li.addClass('active')
-
-
-
-
-
-   _scroll: ( summary, li ) =>
-
-      ########################################
-      #/
-      #/   @params {DOM} summary
-      #/   @params {DOM} li
-      #/
-      ########################################
-
-      side = util.dom(document.querySelector('#side'))
-
-      top    = li.top()
-      bottom = li.bottom()
-
-      if top + 200 > window.innerHeight
-         side.scroll(top + 200 - window.innerHeight)
-
-      else if bottom < 200
-         side.scroll(bottom - 200)
+      return util.dom(@_compile())
 
 
 
@@ -256,10 +152,10 @@ module.exports = class Summary
 Summary.parse = ( sections ) =>
 
    ########################################
-   #/
-   #/   @params {object[]} sections - [{ heading, content, example }]
-   #/   @return {string}   html
-   #/
+   #|
+   #|   @params {object[]} sections - [{ heading, content, example }]
+   #|   @return {string}   html
+   #|
    ########################################
 
    sections = sections.filter( Summary._filterSection )
@@ -274,13 +170,13 @@ Summary.parse = ( sections ) =>
 Summary._filterSection = ( section ) =>
 
    ########################################
-   #/
-   #/   @params {object} section - {object} heading - { lv, text, order }
-   #/                              {string} content
-   #/                              {string} example
-   #/
-   #/   @return {boolean}
-   #/
+   #|
+   #|   @params {object} section - {object} heading - { lv, text, order }
+   #|                              {string} content
+   #|                              {string} example
+   #|
+   #|   @return {boolean}
+   #|
    ########################################
 
    if section.heading
@@ -296,13 +192,13 @@ Summary._filterSection = ( section ) =>
 Summary._mapSection = ( section ) =>
 
    ########################################
-   #/
-   #/   @params {object} section - {object} heading - { lv, text, order }
-   #/                              {string} content
-   #/                              {string} example
-   #/
-   #/   @return {string} html
-   #/
+   #|
+   #|   @params {object} section - {object} heading - { lv, text, order }
+   #|                              {string} content
+   #|                              {string} example
+   #|
+   #|   @return {string} html
+   #|
    ########################################
 
    { lv, text, order } = section.heading
@@ -314,3 +210,65 @@ Summary._mapSection = ( section ) =>
          <name>#{ text }</name>
       </item>
    """
+
+
+
+
+
+Summary.activeTo = ( summary, id ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    summary
+   #|   @params {string} id
+   #|
+   ########################################
+
+   if link = Summary._findLink( summary, id )
+
+      if current = summary.find('li.active')
+         current.removeClass('active')
+
+      link.parent().addClass('active')
+
+
+
+
+
+Summary.scrollTo = ( summary, id ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    summary
+   #|   @params {string} id
+   #|
+   ########################################
+
+   if link = Summary._findLink( summary, id )
+
+      side   = summary.parent()
+      top    = link.top()
+      bottom = link.bottom()
+
+      if top + 200 > window.innerHeight
+         side.scroll( top + 200 - window.innerHeight )
+
+      else if bottom < 200
+         side.scroll( bottom - 200 )
+
+
+
+
+
+Summary._findLink = ( summary, id ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM}    summary
+   #|   @params {string} id
+   #|   @return {DOM}    link
+   #|
+   ########################################
+
+   href = '#' + id
+   return summary.find("a[href=\"#{href}\"]")

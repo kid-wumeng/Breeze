@@ -143,6 +143,6 @@ module.exports = class App
       currentPage = document.querySelector('body > #page')
 
       if currentPage
-         document.body.replaceChild( page.root, currentPage )
+         document.body.replaceChild( page.element(), currentPage )
       else
-         document.body.appendChild( page.root )
+         document.body.appendChild( page.element() )

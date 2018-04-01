@@ -495,37 +495,15 @@ module.exports = class Article
 
 
 
-   _render: ( bus ) =>
+   _render: =>
 
       ########################################
       #|
-      #|   @params {Bus} bus
       #|   @return {DOM} article
       #|
       ########################################
 
       return util.dom(@_compile())
-
-
-
-
-
-   # _onSummarySelect: ( article, href ) =>
-   #
-   #    ########################################
-   #    #/
-   #    #/   @params {DOM} article
-   #    #/   @params {string} href
-   #    #/
-   #    ########################################
-   #
-   #    section = article.find(".section[href=\"#{href}\"]")
-   #
-   #    if section
-   #       top = section.top()
-   #       window.scrollBy(0, top)
-   #    else
-   #       window.scrollTo(0, 0)
 
 
 

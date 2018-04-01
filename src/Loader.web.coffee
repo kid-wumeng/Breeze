@@ -7,10 +7,18 @@ util = require('./util')
 module.exports = class Loader
 
    ########################################
-   #/
-   #/   Be responsible for
-   #/      loading the normal and common pages.
-   #/
+   #|
+   #|   new Loader()
+   #|
+   #|   -----------------------------------
+   #|    Be responsible for
+   #|       loading the normal and common pages.
+   #|
+   #|    Adapted to the web environment ( browser-runtime )
+   #|   -----------------------------------
+   #|
+   #|   loader.load( path, done, fail )
+   #|
    ########################################
 
 
@@ -19,20 +27,22 @@ module.exports = class Loader
 
    constructor: ->
 
-      @_commonCache = {}
+      @_cache = {}
+
+      @load = @_load
 
 
 
 
 
-   load: ( path, done, fail ) =>
+   _load: ( path, done, fail ) =>
 
       ########################################
-      #/
-      #/   @params {string}   path
-      #/   @params {function} done( common + normal )
-      #/   @params {function} fail()
-      #/
+      #|
+      #|   @params {string}   path
+      #|   @params {function} done( text = common + normal )
+      #|   @params {function} fail()
+      #|
       ########################################
 
       normalPath  = @_formatNormalPath( path )
@@ -52,10 +62,10 @@ module.exports = class Loader
    _findOrReadCommon: ( paths, done ) =>
 
       ########################################
-      #/
-      #/   @params {string[]} paths
-      #/   @return {function} done( common )
-      #/
+      #|
+      #|   @params {string[]} paths
+      #|   @return {function} done( common )
+      #|
       ########################################
 
       path = paths.pop()
@@ -78,16 +88,16 @@ module.exports = class Loader
    _readCommon: ( path, done ) =>
 
       ########################################
-      #/
-      #/   @params {string}   path
-      #/   @return {function} done( common )
-      #/
+      #|
+      #|   @params {string}   path
+      #|   @return {function} done( common )
+      #|
       ########################################
 
-      common = @_commonCache[path]
+      common = @_cache[ path ]
 
       if common is undefined
-         @_read path, ( common ) => done( @_commonCache[path] = common )
+         @_read path, ( common ) => done( @_cache[ path ] = common )
 
       else
          done( common )
@@ -99,10 +109,10 @@ module.exports = class Loader
    _formatNormalPath: ( path ) =>
 
       ########################################
-      #/
-      #/   @params {string} path
-      #/   @return {string} path
-      #/
+      #|
+      #|   @params {string} path
+      #|   @return {string} path
+      #|
       ########################################
 
       path = util.filePath( path )
@@ -122,13 +132,13 @@ module.exports = class Loader
    _formatCommonPaths: ( path )=>
 
       ########################################
-      #/
-      #/   @params {string}   path
-      #/   @return {string[]} paths
-      #/
-      #/   basePath = '/docs'
-      #/   path     = '/api/math'  =>  ['@.md', 'docs/@.md', 'docs/api/@.md']
-      #/
+      #|
+      #|   @params {string}   path
+      #|   @return {string[]} paths
+      #|
+      #|   basePath = '/docs'
+      #|   path     = '/api/math'  =>  ['@.md', 'docs/@.md', 'docs/api/@.md']
+      #|
       ########################################
 
       paths = []
@@ -155,11 +165,11 @@ module.exports = class Loader
    _read: ( path, done ) =>
 
       ########################################
-      #/
-      #/   @params {string}   path
-      #/   @params {function} done( text ) - text = null if not found,
-      #/                                     should check by text? ( a coffeescript syntactic sugar )
-      #/
+      #|
+      #|   @params {string}   path
+      #|   @params {function} done( text ) - text = null if not found,
+      #|                                     when use, should check by << text? >> ( a coffeescript syntactic sugar )
+      #|
       ########################################
 
       xhr = new XMLHttpRequest

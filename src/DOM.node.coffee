@@ -81,7 +81,7 @@ module.exports = class DOM
       el = @_root.find( sel )[0]
 
       if el
-         html = cheerio('<fragment>').append(el).html()
+         html = cheerio('<fragment>').append( el ).html()
          return new DOM( html )
 
       else
@@ -101,12 +101,12 @@ module.exports = class DOM
       ########################################
 
       doms = []
-      els  = @_root.find(sel)
+      els  = @_root.find( sel )
 
       for el in els
-          html = cheerio('<fragment>').append(el).html()
+          html = cheerio('<fragment>').append( el ).html()
           dom  = new DOM( html )
-          doms.push(dom)
+          doms.push( dom )
 
       return doms
 
@@ -260,7 +260,7 @@ module.exports = class DOM
       ########################################
 
       if child
-         
+
          if typeof(child) is 'string'
             child = new DOM(child)
 

@@ -3,5 +3,4 @@ DOM = require('./src/DOM.node')
 
 
 
-dom = new DOM('<h1>')
-console.log dom.htmlSelf()
+dom = new DOM('<h1><div id="yhu"><span>sss</span><div></h1>')

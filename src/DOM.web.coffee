@@ -13,7 +13,6 @@ module.exports = class DOM
    #|
    #|   dom.find( sel )          -> dom
    #|   dom.findAll( sel )       -> dom[]
-   #|   dom.parent()             -> dom
    #|
    #|   dom.htmlSelf( html )     -> dom
    #|   dom.htmlSelf()           -> html
@@ -33,19 +32,19 @@ module.exports = class DOM
    #|
    #|   dom.append( child )      -> this
    #|
-   #|   dom.css( name, value )   -> this
    #|
+   #|   << The following methods exist only in web environment >>
+   #|
+   #|   dom.element()            -> root's $el
+   #|   dom.parent()             -> dom
+   #|   dom.css( name, value )   -> this
    #|   dom.width()              -> width
    #|   dom.height()             -> height
    #|   dom.top()                -> top
    #|   dom.bottom()             -> bottom
    #|   dom.isVisible()          -> bool
-   #|
    #|   dom.scroll( deltaY )     -> this
-   #|
    #|   dom.on( name, callback ) -> this
-   #|
-   #|   dom.element()            -> root's $el
    #|
    ########################################
 
@@ -65,7 +64,6 @@ module.exports = class DOM
 
       @find        = @_find
       @findAll     = @_findAll
-      @parent      = @_parent
       @htmlSelf    = @_htmlSelf
       @html        = @_html
       @attr        = @_attr
@@ -74,6 +72,9 @@ module.exports = class DOM
       @addClass    = @_addClass
       @removeClass = @_removeClass
       @append      = @_append
+
+      @element     = @_element
+      @parent      = @_parent
       @css         = @_css
       @width       = @_width
       @height      = @_height
@@ -82,7 +83,6 @@ module.exports = class DOM
       @isVisible   = @_isVisible
       @scroll      = @_scroll
       @on          = @_on
-      @element     = @_element
 
 
 
@@ -106,7 +106,6 @@ module.exports = class DOM
 
       else
          return $el = arg
-
 
 
 
@@ -148,20 +147,6 @@ module.exports = class DOM
           doms.push( dom )
 
       return doms
-
-
-
-
-
-   _parent: =>
-
-      ########################################
-      #|
-      #|   @return {DOM} parent
-      #|
-      ########################################
-
-      return new DOM( @_root.parentNode )
 
 
 
@@ -325,6 +310,43 @@ module.exports = class DOM
 
 
 
+   _element: =>
+
+      ########################################
+      #|
+      #|   @return {HTMLElement} root's $el
+      #|
+      #|   This method only exists in DOM.web
+      #|
+      ########################################
+
+      return @_root
+
+
+
+
+
+   _parent: =>
+
+      ########################################
+      #|
+      #|   @return {DOM} parent - return null when not found.
+      #|
+      #|   This method only exists in DOM.web
+      #|
+      ########################################
+
+      $el = @_root.parentNode
+
+      if $el
+         return new DOM( $el )
+      else
+         return null
+
+
+
+
+
    _css: ( name, value ) =>
 
       ########################################
@@ -465,19 +487,3 @@ module.exports = class DOM
          e.preventDefault()
 
       return @
-
-
-
-
-
-   _element: =>
-
-      ########################################
-      #|
-      #|   @return {HTMLElement} root's $el
-      #|
-      #|   This method only exists in DOM.web
-      #|
-      ########################################
-
-      return @_root

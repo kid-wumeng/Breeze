@@ -165,7 +165,7 @@ module.exports = class Markdown
       ########################################
 
       nav    = ''
-      navReg = /<nav.*?>(?:.|\n)*?<\/nav>/g
+      navReg = /<nav(?:\s+.*)?>(?:.|\n)*?<\/nav>/g
 
       markdown = markdown.replace navReg, ( match ) =>
          nav = match
@@ -188,7 +188,7 @@ module.exports = class Markdown
       ########################################
 
       cover    = ''
-      coverReg = /<cover.*?>(?:.|\n)*?<\/cover>/g
+      coverReg = /<cover(?:\s+.*)?>(?:.|\n)*?<\/cover>/g
 
       markdown = markdown.replace coverReg, ( match ) =>
          cover = match

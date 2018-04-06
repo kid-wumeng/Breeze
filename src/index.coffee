@@ -15,7 +15,7 @@ router = new Router( isJIT = true )
 
 
 
-window.onload = =>
+window.addEventListener 'load', =>
 
    window.app    = new App( isJIT = true )
 

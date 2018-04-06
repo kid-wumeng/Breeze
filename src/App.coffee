@@ -115,8 +115,6 @@ module.exports = class App
       page = new Page( text )
       page = page.render()
 
-      new PageEventBus( page )
-
       @_cache[ Breeze.getPath() ] = page
       @_mountPage( page )
 
@@ -146,3 +144,6 @@ module.exports = class App
          document.body.replaceChild( page.element(), currentPage )
       else
          document.body.appendChild( page.element() )
+
+      Page.layout( page )
+      new PageEventBus( page )

@@ -18,7 +18,8 @@ module.exports = class DOM
    #|   -----------------------------------
    #|
    #|   dom.find( sel )         -> dom
-   #|   dom.findAll( sel )      -> dom[]
+   #|   dom.findAll( sel )      -> doms
+   #|   dom.children()          -> doms
    #|
    #|   dom.htmlSelf( html )    -> dom
    #|   dom.htmlSelf()          -> html
@@ -56,6 +57,7 @@ module.exports = class DOM
 
       @find        = @_find
       @findAll     = @_findAll
+      @children    = @_children
       @htmlSelf    = @_htmlSelf
       @html        = @_html
       @attr        = @_attr
@@ -102,6 +104,28 @@ module.exports = class DOM
 
       doms = []
       els  = @_root.find( sel )
+
+      for el in els
+          html = cheerio('<fragment>').append( el ).html()
+          dom  = new DOM( html )
+          doms.push( dom )
+
+      return doms
+
+
+
+
+
+   _children: ( sel ) =>
+
+      ########################################
+      #|
+      #|   @return {DOM[]} doms - return [] when not found.
+      #|
+      ########################################
+
+      doms = []
+      els  = @_root.children()
 
       for el in els
           html = cheerio('<fragment>').append( el ).html()

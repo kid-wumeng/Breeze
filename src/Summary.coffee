@@ -82,7 +82,7 @@ module.exports = class Summary
       if href
          return @_compileItemByLink( name, href, lv )
       else
-         return @_compileItemByHint( name, href, lv )
+         return @_compileItemByHint( name, lv )
 
 
 
@@ -112,15 +112,14 @@ module.exports = class Summary
 
 
 
-   _compileItemByHint: ( name, href, lv = '1' ) =>
+   _compileItemByHint: ( name, lv = '1' ) =>
 
       ########################################
       #|
       #|   @params {DOM}    name
-      #|   @params {string} href
       #|   @params {string} lv
       #|
-      #|   @return {DOM}    li.label.lvX
+      #|   @return {DOM}    li.hint.lvX
       #|
       ########################################
 

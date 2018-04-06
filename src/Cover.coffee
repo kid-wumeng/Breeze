@@ -54,15 +54,15 @@ module.exports = class Cover
       if !@html
          return "<div id=\"cover\" style=\"display: none\"/>"
 
-      dom   = util.dom(@html)
+      model = util.dom(@html)
       cover = util.dom('#cover')
       wrap  = util.dom('.wrap')
 
-      logo    = dom.find('cover > logo')
-      name    = dom.find('cover > name')
-      descs   = dom.findAll('cover > desc')
-      items   = dom.findAll('cover > item')
-      buttons = dom.findAll('cover > button')
+      logo    = model.find('cover > logo')
+      name    = model.find('cover > name')
+      descs   = model.findAll('cover > desc')
+      items   = model.findAll('cover > item')
+      buttons = model.findAll('cover > button')
 
       wrap.append(@_compileLogo(logo))       if logo
       wrap.append(@_compileName(name))       if name

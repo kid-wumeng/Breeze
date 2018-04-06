@@ -47,10 +47,10 @@ module.exports = class API
       #|
       ########################################
 
-      dom = util.dom(@html)
-      api = util.dom('.api')
+      model = util.dom(@html)
+      api   = util.dom('.api')
 
-      items = dom.findAll('item')
+      items = model.findAll('item')
 
       for item in items
           api.append(@_compileItem( item ))

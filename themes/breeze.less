@@ -1,11 +1,11 @@
-@import "_base";
-@import "_page";
-@import "_navigator";
-@import "_cover";
-@import "_search";
-@import "_summary";
-@import "_article";
-@import "_api";
+@import "@/base";
+@import "@/page";
+@import "@/nav";
+@import "@/cover";
+@import "@/search";
+@import "@/summary";
+@import "@/article";
+@import "@/api";
 
 
 
@@ -36,6 +36,31 @@ html {
   #main {
     &::before { background-color: #FFFFFF }
     &::after  { background-color: #2D3134 }
+  }
+}
+
+
+
+
+
+#nav {
+  background-color: #FFFFFF;
+  border-bottom: @border;
+
+  .menu h1         { color: #364149 }
+  .menu h1 a       { color: #364149 }
+  .menu:hover h1 a { color: #3A97FC }
+
+  .menu {
+    ul {
+      background-color: #FFFFFF;
+      border-color: #DDE1E5;
+
+      li a       { color: #364149 }
+      li.hint    { color: #A2AEBA }
+      li a:hover { background-color: #F8FAFB }
+      li.line    { background-color: #F6F6F6 }
+    }
   }
 }
 
@@ -104,11 +129,11 @@ html {
 #summary {
   li.hint     { color: #A2AEBA }
   li.lv1    a { color: #364149 }
-  li.lv2    a { color: #505d6b }
-  li.lv3    a { color: #505d6b }
-  li.lv4    a { color: #505d6b }
-  li.lv5    a { color: #505d6b }
-  li.lv6    a { color: #505d6b }
+  li.lv2    a { color: #505D6B }
+  li.lv3    a { color: #505D6B }
+  li.lv4    a { color: #505D6B }
+  li.lv5    a { color: #505D6B }
+  li.lv6    a { color: #505D6B }
   li.active a { color: #FFFFFF }
 
   li:hover  a { background-color: #F8FAFB }

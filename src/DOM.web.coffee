@@ -12,7 +12,8 @@ module.exports = class DOM
    #|   -----------------------------------
    #|
    #|   dom.find( sel )          -> dom
-   #|   dom.findAll( sel )       -> dom[]
+   #|   dom.findAll( sel )       -> doms
+   #|   dom.children()           -> doms
    #|
    #|   dom.htmlSelf( html )     -> dom
    #|   dom.htmlSelf()           -> html
@@ -66,8 +67,10 @@ module.exports = class DOM
 
       @find        = @_find
       @findAll     = @_findAll
+      @children    = @_children
       @htmlSelf    = @_htmlSelf
       @html        = @_html
+      @tag         = @_tag
       @attr        = @_attr
       @text        = @_text
       @hasClass    = @_hasClass
@@ -113,16 +116,17 @@ module.exports = class DOM
 
 
 
-   _find: ( selector ) =>
+
+   _find: ( sel ) =>
 
       ########################################
       #|
-      #|   @params {string} selector
+      #|   @params {string} sel
       #|   @return {DOM}    dom - return null when not found.
       #|
       ########################################
 
-      $el = @_root.querySelector( selector )
+      $el = @_root.querySelector( sel )
 
       if $el
          return new DOM( $el )
@@ -133,21 +137,43 @@ module.exports = class DOM
 
 
 
-   _findAll: ( selector ) =>
+   _findAll: ( sel ) =>
 
       ########################################
       #|
-      #|   @params {string} selector
+      #|   @params {string} sel
       #|   @return {DOM[]}  doms - return [] when not found.
       #|
       ########################################
 
       doms = []
-      $els = @_root.querySelectorAll( selector )
+      $els = @_root.querySelectorAll( sel )
 
       for $el in $els
           dom = new DOM( $el )
           doms.push( dom )
+
+      return doms
+
+
+
+
+
+   _children: =>
+
+      ########################################
+      #|
+      #|   @return {DOM[]} doms - return [] when not found.
+      #|
+      ########################################
+
+      doms = []
+      $els = @_root.childNodes
+
+      for $el in $els
+          if $el.nodeType is 1
+             dom = new DOM( $el )
+             doms.push( dom )
 
       return doms
 
@@ -193,6 +219,20 @@ module.exports = class DOM
 
       else
          return @_root.innerHTML
+
+
+
+
+
+   _tag: =>
+
+      ########################################
+      #|
+      #|   @return {string} value
+      #|
+      ########################################
+
+      return @_root.tagName.toLowerCase()
 
 
 
@@ -379,7 +419,7 @@ module.exports = class DOM
       ########################################
       #|
       #|   @params {string} name
-      #|   @params {value}  name
+      #|   @params {*}      value
       #|   @return {DOM}    this
       #|
       #|   This method only exists in DOM.web

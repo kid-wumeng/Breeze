@@ -212,7 +212,8 @@ module.exports = class Jade
 
          else if node.deep is deep
             tree.parent.children.push(node)
-            node.parent = tree
+            node.parent = tree.parent
+            tree = node
 
          else if node.deep < deep
 

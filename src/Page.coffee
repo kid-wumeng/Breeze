@@ -1,4 +1,5 @@
 Markdown         = require('./Markdown')
+Nav              = require('./Nav')
 Cover            = require('./Cover')
 Summary          = require('./Summary')
 Article          = require('./Article')
@@ -22,6 +23,8 @@ module.exports = class Page
    #|
    #|   page.compile() -> html
    #|   page.render()  -> dom
+   #|
+   #|   Page.layout( dom )
    #|
    ########################################
 
@@ -57,6 +60,7 @@ module.exports = class Page
       { article, nav, cover, summary } = markdown.parse()
 
       article = new Article(article)
+      nav     = new Nav(nav)
       cover   = new Cover(cover)
       search  = new Search()
 
@@ -84,6 +88,7 @@ module.exports = class Page
       side = util.dom('#side')
       main = util.dom('#main')
 
+      page.append(nav.compile())
       page.append(cover.compile())
       side.append(search.compile())
       side.append(summary.compile())
@@ -107,3 +112,30 @@ module.exports = class Page
       ########################################
 
       return util.dom(@_compile())
+
+
+
+
+
+Page.layout = ( page ) =>
+
+   Page._layoutNav( page )
+
+
+
+
+
+Page._layoutNav = ( page ) =>
+
+   nav  = page.find('#nav')
+   side = page.find('#side')
+   main = page.find('#main')
+
+   if nav and nav.hasClass('fixed')
+      Breeze.navHeight = nav.height()
+
+      side.css('paddingTop', Breeze.navHeight + 'px')
+      main.css('paddingTop', Breeze.navHeight + 'px')
+
+   else
+      Breeze.navHeight = 0

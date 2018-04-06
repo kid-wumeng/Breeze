@@ -1,18 +1,19 @@
-<nav jade>
-  menu(name="翻译")
-    pane(name="欧文")
-      item(name="English" href="")
-
-    pane(name="亚文")
-      item(name="简体中文" href="zh-Hans")
-      item(name="日本語" href="jp")
-
+<nav fixed jade>
+  menu(name="Translations")
+    item(name="世界语" href="/world")
+    line
+    item(name="欧文")
+    item(name="English" href="/")
+    line
+    item(name="亚文")
+    item(name="简体中文与繁体中文" href="/zh-Hans")
+    item(name="日本語" href="/jp-jp")
   menu(name="API" href="/api")
 </nav>
 
 
 
-<cover2>
+<cover>
   <logo src="logo.svg"/>
   <!-- <name>Breeze</name> -->
   <desc>超简单、超漂亮的 API 文档生成器！</desc>
@@ -23,7 +24,7 @@
 
   <button href="https://github.com/kid-wumeng/Breeze">Github</button>
   <button active href="#yyhh">阅读文档</button>
-</cover2>
+</cover>
 
 
 This is Breeze.

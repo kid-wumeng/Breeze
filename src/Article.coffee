@@ -523,7 +523,7 @@ Article.scrollTo = ( article, id ) =>
 
    if section
       top = section.top()
-      window.scrollBy(0, top)
+      window.scrollBy(0, top - Breeze.navHeight + 1)
    else
       window.scrollTo(0, 0)
 
@@ -546,7 +546,11 @@ Article.locateID = ( article ) =>
       if section.top() > 0
          break
 
-   return sections[i-1].attr('id') ? ''
+   if section = sections[i-1]
+      if id = section.attr('id')
+         return id
+
+   return ''
 
 
 

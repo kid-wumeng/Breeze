@@ -49,13 +49,14 @@ module.exports = class App
       ########################################
       #|
       #|   when no-JIT,
-      #|      bindEvents
+      #|      layoutPage -> bindEvents
       #|
       ########################################
 
       page = document.querySelector('#page')
       page = util.dom( page )
 
+      Page.layout( page )
       new PageEventBus( page )
 
 
@@ -67,7 +68,7 @@ module.exports = class App
       ########################################
       #|
       #|   when JIT,
-      #|      loadPage -> renderPage -> mountPage -> bindEvents
+      #|      loadPage -> renderPage -> mountPage -> layoutPage -> bindEvents
       #|
       ########################################
 
@@ -138,12 +139,13 @@ module.exports = class App
       #|
       ########################################
 
-      currentPage = document.querySelector('body > #page')
+      $new = page.element()
+      $old = document.querySelector('body > #page')
 
-      if currentPage
-         document.body.replaceChild( page.element(), currentPage )
+      if $old
+         document.body.replaceChild( $new, $old )
       else
-         document.body.appendChild( page.element() )
+         document.body.appendChild( $new )
 
       Page.layout( page )
       new PageEventBus( page )

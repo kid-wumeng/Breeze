@@ -1,5 +1,4 @@
 util = require('./util')
-pretty = require('pretty')
 
 
 
@@ -26,8 +25,30 @@ module.exports = class Nav
 
    constructor: ( html ) ->
 
+      ########################################
+      #|
+      #|   @params {string} html
+      #|
+      ########################################
+
       @html = html
+
+      @exist   = @_exist
       @compile = @_compile
+
+
+
+
+
+   _exist: =>
+
+      ########################################
+      #|
+      #|   @return {boolean}
+      #|
+      ########################################
+
+      return !!@html
 
 
 
@@ -37,12 +58,12 @@ module.exports = class Nav
 
       ########################################
       #|
-      #|   @return {DOM} div.nav
+      #|   @return {string} html
       #|
       ########################################
 
-      if !@html
-         return "<div id=\"nav\" style=\"display: none\"/>"
+      if !@_exist()
+         return @_compileEmpty()
 
       model = util.dom( @html )
       nav   = util.dom('#nav')
@@ -57,6 +78,20 @@ module.exports = class Nav
           nav.append( menu )
 
       return nav.htmlSelf()
+
+
+
+
+
+   _compileEmpty: =>
+
+      ########################################
+      #|
+      #|   @return {string} html
+      #|
+      ########################################
+
+      return "<div id=\"nav\" style=\"display: none\"/>"
 
 
 

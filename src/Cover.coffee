@@ -36,8 +36,23 @@ module.exports = class Cover
 
       @html = html
 
+      @exist   = @_exist
       @compile = @_compile
       @render  = @_render
+
+
+
+
+
+   _exist: =>
+
+      ########################################
+      #|
+      #|   @return {boolean}
+      #|
+      ########################################
+
+      return !!@html
 
 
 
@@ -51,8 +66,8 @@ module.exports = class Cover
       #|
       ########################################
 
-      if !@html
-         return "<div id=\"cover\" style=\"display: none\"/>"
+      if !@_exist()
+         return @_compileEmpty()
 
       model = util.dom(@html)
       cover = util.dom('#cover')
@@ -73,6 +88,20 @@ module.exports = class Cover
       cover.append(wrap)
 
       return cover.htmlSelf()
+
+
+
+
+
+   _compileEmpty: =>
+
+      ########################################
+      #|
+      #|   @return {string} html
+      #|
+      ########################################
+
+      return "<div id=\"cover\" style=\"display: none\"/>"
 
 
 

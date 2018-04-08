@@ -1,3 +1,18 @@
+isH5 = =>
+
+   ########################################
+   #|
+   #|   @return {boolean}
+   #|
+   ########################################
+
+   width = document?.documentElement?.clientWidth ? 0
+   return width <= 1024
+
+
+
+
+
 isUrl = ( href ) =>
 
    ########################################
@@ -153,6 +168,7 @@ parseSelector = ( sel = 'div' ) =>
 
 
 
+exports.isH5          = isH5
 exports.isUrl         = isUrl
 exports.filePath      = filePath
 exports.id            = id

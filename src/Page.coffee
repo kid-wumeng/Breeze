@@ -1,4 +1,5 @@
 Markdown         = require('./Markdown')
+Head             = require('./Head')
 Nav              = require('./Nav')
 Cover            = require('./Cover')
 Summary          = require('./Summary')
@@ -84,16 +85,19 @@ module.exports = class Page
 
       { article, nav, cover, search, summary } = @_parse()
 
+      head = new Head(nav.compile())
+
       page = util.dom('#page')
       side = util.dom('#side')
       main = util.dom('#main')
 
-      page.append(nav.compile())
       page.append(cover.compile())
       side.append(search.compile())
+      side.append(util.dom('#h5-nav-placeholder'))
       side.append(summary.compile())
       main.append(article.compile())
 
+      page.append(head.compile())
       page.append(side)
       page.append(main)
 
@@ -119,23 +123,52 @@ module.exports = class Page
 
 Page.layout = ( page ) =>
 
-   Page._layoutNav( page )
+   ########################################
+   #|
+   #|   @params {DOM} page
+   #|
+   ########################################
+
+   if Breeze.isH5
+      Page._replaceNav( page )
+
+   Page._layoutHead( page )
 
 
 
 
 
-Page._layoutNav = ( page ) =>
+Page._replaceNav = ( page ) =>
 
-   nav  = page.find('#nav')
+   ########################################
+   #|
+   #|   @params {DOM} page
+   #|
+   ########################################
+
+   nav = page.find('#nav')
+   ph  = page.find('#h5-nav-placeholder')
+   ph.replace( nav )
+
+
+
+
+
+Page._layoutHead = ( page ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} page
+   #|
+   #|   Will set the Breeze.headHeight
+   #|
+   ########################################
+
+   head = page.find('#head')
    side = page.find('#side')
    main = page.find('#main')
 
-   if nav and nav.hasClass('fixed')
-      Breeze.navHeight = nav.height()
+   Breeze.headHeight = head.height()
 
-      side.css('paddingTop', Breeze.navHeight + 'px')
-      main.css('paddingTop', Breeze.navHeight + 'px')
-
-   else
-      Breeze.navHeight = 0
+   side.css('paddingTop', Breeze.headHeight + 'px')
+   main.css('paddingTop', Breeze.headHeight + 'px')

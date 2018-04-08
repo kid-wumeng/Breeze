@@ -68,9 +68,6 @@ module.exports = class Nav
       model = util.dom( @html )
       nav   = util.dom('#nav')
 
-      if model.attr('fixed')?
-         nav.addClass('fixed')
-
       menus = model.findAll('nav > menu')
 
       for menu in menus

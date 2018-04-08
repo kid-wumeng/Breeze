@@ -13,7 +13,7 @@
 
 
 
-<cover>
+<cover2>
   <logo src="logo.svg"/>
   <!-- <name>Breeze</name> -->
   <desc>超简单、超漂亮的 API 文档生成器！</desc>
@@ -24,7 +24,7 @@
 
   <button href="https://github.com/kid-wumeng/Breeze">Github</button>
   <button active href="#yyhh">阅读文档</button>
-</cover>
+</cover2>
 
 
 This is Breeze.

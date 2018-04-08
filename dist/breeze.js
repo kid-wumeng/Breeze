@@ -1,6 +1,186 @@
 var Breeze = (function () {
 'use strict';
 
+var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+function createCommonjsModule(fn, module) {
+	return module = { exports: {} }, fn(module, module.exports), module.exports;
+}
+
+var util = createCommonjsModule(function (module, exports) {
+var dom, filePath, id, isH5, isUrl, parseSelector;
+
+isH5 = () => {
+  var ref, ref1, width;
+  //#######################################
+  //|
+  //|   @return {boolean}
+  //|
+  //#######################################
+  width = (ref = typeof document !== "undefined" && document !== null ? (ref1 = document.documentElement) != null ? ref1.clientWidth : void 0 : void 0) != null ? ref : 0;
+  return width <= 1024;
+};
+
+isUrl = (href) => {
+  //#######################################
+  ///
+  ///   @params {string} href
+  ///   @return {boolean}
+  ///
+  //#######################################
+  return /^(?:http)|(?:https)|(?:ftp):\/\//.test(href);
+};
+
+filePath = (href = '') => {
+  var basePath, path;
+  //#######################################
+  ///
+  ///   @params {string} href
+  ///   @return {string} path
+  ///
+  ///   href  ->  basePath/href  ( won't format when href is url )
+  ///
+  //#######################################
+  if (exports.isUrl(href)) {
+    return href;
+  } else {
+    path = href;
+  }
+  if (basePath = Breeze.config('basePath')) {
+    path = basePath + '/' + path;
+  }
+  if (path) {
+    path = path.replace(/\/{2,}/g, '/');
+  }
+  if (path[0] === '/') {
+    path = path.slice(1);
+  }
+  return path;
+};
+
+id = (order, text = '') => {
+  //#######################################
+  //|
+  //|  @params {string} order
+  //|  @params {string} text
+  //|  @return {string} id
+  //|
+  //#######################################
+  text = text.replace(/\s+/g, '-');
+  text = text.replace(/&lt;/g, '<');
+  text = text.replace(/&gt;/g, '>');
+  if (text) {
+    return order + '-' + text;
+  } else {
+    return order;
+  }
+};
+
+dom = (arg) => {
+  var $el, classname, html, sel, tag;
+  //#######################################
+  ///
+  ///   @params {string|HTMLElement} html|sel|$el
+  ///   @return {DOM}
+  ///
+  ///   <html>  ->  DOM
+  ///   sel#id  ->  DOM
+  ///   $el#id  ->  DOM
+  ///
+  //#######################################
+  if (typeof arg === 'string') {
+    if (arg[0] === '<') {
+      dom = new Breeze.DOM(html = arg);
+    } else {
+      ({tag, id, classname} = parseSelector(sel = arg));
+      dom = new Breeze.DOM(`<${tag}>`);
+      if (id) {
+        dom.attr('id', id);
+      }
+      if (classname) {
+        dom.attr('class', classname);
+      }
+    }
+  } else {
+    dom = new Breeze.DOM($el = arg);
+  }
+  return dom;
+};
+
+parseSelector = (sel = 'div') => {
+  var classname, hasClass, hasID, parts, tag;
+  //#######################################
+  ///
+  ///   @params {string} sel
+  ///   @return {object} - {string} tag
+  ///                      {string} id
+  ///                      {string} classname
+  ///
+  ///
+  ///   'tag'            -> { tag: 'tag' }
+  ///   '#id'            -> { tag: 'div', id: 'id' }
+  ///   '.classname'     -> { tag: 'div', classname: 'classname' }
+  ///   'tag#id'         -> { tag: 'tag', id: 'id' }
+  ///   'tag.classname'  -> { tag: 'tag', classname: 'classname' }
+  ///
+  ///
+  ///   This sel can't includes id and classname at the same time.
+  ///   This sel can't includes classname more than two.
+  ///
+  //#######################################
+  hasID = /#/.test(sel);
+  hasClass = /\./.test(sel);
+  tag = 'div';
+  id = '';
+  classname = '';
+  parts = sel.split(/#|\./);
+  parts = parts.filter((part) => {
+    return part;
+  });
+  switch (parts.length) {
+    case 1:
+      switch (false) {
+        case !hasID:
+          id = parts[0];
+          break;
+        case !hasClass:
+          classname = parts[0];
+          break;
+        default:
+          tag = parts[0];
+      }
+      break;
+    case 2:
+      switch (false) {
+        case !hasID:
+          (tag = parts[0]) && (id = parts[1]);
+          break;
+        case !hasClass:
+          (tag = parts[0]) && (classname = parts[1]);
+      }
+  }
+  return {tag, id, classname};
+};
+
+exports.isH5 = isH5;
+
+exports.isUrl = isUrl;
+
+exports.filePath = filePath;
+
+exports.id = id;
+
+exports.dom = dom;
+
+exports.parseSelector = parseSelector;
+});
+var util_1 = util.isH5;
+var util_2 = util.isUrl;
+var util_3 = util.filePath;
+var util_4 = util.id;
+var util_5 = util.dom;
+var util_6 = util.parseSelector;
+
 var DOM;
 
 var DOM_web = DOM = class DOM {
@@ -41,6 +221,7 @@ var DOM_web = DOM = class DOM {
   //|   << The following methods exist only in web environment >>
   //|
   //|   dom.element()            -> root's $el
+  //|   dom.replace( newDom )    -> this
   //|   dom.val( value )         -> this
   //|   dom.val()                -> value
   //|   dom.parent()             -> dom
@@ -69,6 +250,7 @@ var DOM_web = DOM = class DOM {
     this._removeClass = this._removeClass.bind(this);
     this._append = this._append.bind(this);
     this._element = this._element.bind(this);
+    this._replace = this._replace.bind(this);
     this._val = this._val.bind(this);
     this._parent = this._parent.bind(this);
     this._css = this._css.bind(this);
@@ -98,6 +280,7 @@ var DOM_web = DOM = class DOM {
     this.removeClass = this._removeClass;
     this.append = this._append;
     this.element = this._element;
+    this.replace = this._replace;
     this.val = this._val;
     this.parent = this._parent;
     this.css = this._css;
@@ -317,6 +500,19 @@ var DOM_web = DOM = class DOM {
     return this._root;
   }
 
+  _replace(newDom) {
+    //#######################################
+    //|
+    //|   @params {DOM} newDom
+    //|   @return {DOM} newDom
+    //|
+    //|   This method only exists in DOM.web
+    //|
+    //#######################################
+    this._root.parentNode.replaceChild(newDom.element(), this._root);
+    return newDom;
+  }
+
   _val(value) {
     //#######################################
     //|
@@ -456,172 +652,6 @@ var DOM_web = DOM = class DOM {
   }
 
 };
-
-var commonjsGlobal = typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-function createCommonjsModule(fn, module) {
-	return module = { exports: {} }, fn(module, module.exports), module.exports;
-}
-
-var util = createCommonjsModule(function (module, exports) {
-var dom, filePath, id, isUrl, parseSelector;
-
-isUrl = (href) => {
-  //#######################################
-  ///
-  ///   @params {string} href
-  ///   @return {boolean}
-  ///
-  //#######################################
-  return /^(?:http)|(?:https)|(?:ftp):\/\//.test(href);
-};
-
-filePath = (href = '') => {
-  var basePath, path;
-  //#######################################
-  ///
-  ///   @params {string} href
-  ///   @return {string} path
-  ///
-  ///   href  ->  basePath/href  ( won't format when href is url )
-  ///
-  //#######################################
-  if (exports.isUrl(href)) {
-    return href;
-  } else {
-    path = href;
-  }
-  if (basePath = Breeze.config('basePath')) {
-    path = basePath + '/' + path;
-  }
-  if (path) {
-    path = path.replace(/\/{2,}/g, '/');
-  }
-  if (path[0] === '/') {
-    path = path.slice(1);
-  }
-  return path;
-};
-
-id = (order, text = '') => {
-  //#######################################
-  //|
-  //|  @params {string} order
-  //|  @params {string} text
-  //|  @return {string} id
-  //|
-  //#######################################
-  text = text.replace(/\s+/g, '-');
-  text = text.replace(/&lt;/g, '<');
-  text = text.replace(/&gt;/g, '>');
-  if (text) {
-    return order + '-' + text;
-  } else {
-    return order;
-  }
-};
-
-dom = (arg) => {
-  var $el, classname, html, sel, tag;
-  //#######################################
-  ///
-  ///   @params {string|HTMLElement} html|sel|$el
-  ///   @return {DOM}
-  ///
-  ///   <html>  ->  DOM
-  ///   sel#id  ->  DOM
-  ///   $el#id  ->  DOM
-  ///
-  //#######################################
-  if (typeof arg === 'string') {
-    if (arg[0] === '<') {
-      dom = new Breeze.DOM(html = arg);
-    } else {
-      ({tag, id, classname} = parseSelector(sel = arg));
-      dom = new Breeze.DOM(`<${tag}>`);
-      if (id) {
-        dom.attr('id', id);
-      }
-      if (classname) {
-        dom.attr('class', classname);
-      }
-    }
-  } else {
-    dom = new Breeze.DOM($el = arg);
-  }
-  return dom;
-};
-
-parseSelector = (sel = 'div') => {
-  var classname, hasClass, hasID, parts, tag;
-  //#######################################
-  ///
-  ///   @params {string} sel
-  ///   @return {object} - {string} tag
-  ///                      {string} id
-  ///                      {string} classname
-  ///
-  ///
-  ///   'tag'            -> { tag: 'tag' }
-  ///   '#id'            -> { tag: 'div', id: 'id' }
-  ///   '.classname'     -> { tag: 'div', classname: 'classname' }
-  ///   'tag#id'         -> { tag: 'tag', id: 'id' }
-  ///   'tag.classname'  -> { tag: 'tag', classname: 'classname' }
-  ///
-  ///
-  ///   This sel can't includes id and classname at the same time.
-  ///   This sel can't includes classname more than two.
-  ///
-  //#######################################
-  hasID = /#/.test(sel);
-  hasClass = /\./.test(sel);
-  tag = 'div';
-  id = '';
-  classname = '';
-  parts = sel.split(/#|\./);
-  parts = parts.filter((part) => {
-    return part;
-  });
-  switch (parts.length) {
-    case 1:
-      switch (false) {
-        case !hasID:
-          id = parts[0];
-          break;
-        case !hasClass:
-          classname = parts[0];
-          break;
-        default:
-          tag = parts[0];
-      }
-      break;
-    case 2:
-      switch (false) {
-        case !hasID:
-          (tag = parts[0]) && (id = parts[1]);
-          break;
-        case !hasClass:
-          (tag = parts[0]) && (classname = parts[1]);
-      }
-  }
-  return {tag, id, classname};
-};
-
-exports.isUrl = isUrl;
-
-exports.filePath = filePath;
-
-exports.id = id;
-
-exports.dom = dom;
-
-exports.parseSelector = parseSelector;
-});
-var util_1 = util.isUrl;
-var util_2 = util.filePath;
-var util_3 = util.id;
-var util_4 = util.dom;
-var util_5 = util.parseSelector;
 
 var Loader, util$1;
 
@@ -1616,9 +1646,76 @@ var Markdown_1 = Markdown = class Markdown {
 
 };
 
-var Nav, util$3;
+var Head, util$3;
 
 util$3 = util;
+
+var Head_1 = Head = class Head {
+  //#######################################
+  //|
+  //|   new Head( nav-html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="head">
+  //|   -----------------------------------
+  //|
+  //|   head.compile() -> html
+  //|
+  //|   Head.renderHamburger( head )
+  //|
+  //#######################################
+  constructor(nav) {
+    this._compile = this._compile.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} nav-html
+    //|
+    //#######################################
+    this.nav = nav;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var center, head, left, right;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    head = util$3.dom('#head');
+    left = util$3.dom('.left');
+    center = util$3.dom('.center');
+    right = util$3.dom('.right');
+    right.append(this.nav);
+    head.append(left);
+    head.append(center);
+    head.append(right);
+    return head.htmlSelf();
+  }
+
+};
+
+Head.renderHamburger = (head) => {
+  var items, key;
+  //#######################################
+  //|
+  //|   @params {string}   key
+  //|   @params {object[]} datas - [{ id, heading, content, example }]
+  //|
+  //|   @return {object[]} items - [{ id, heading, content, example }]
+  //|
+  //#######################################
+  key = key.replace('\\', '\\\\');
+  key = key.replace(/(?:\s|\n)+/g, '');
+  items = Head._match(key, datas);
+  items = Head._sortItems(items);
+  return items;
+};
+
+var Nav, util$4;
+
+util$4 = util;
 
 var Nav_1 = Nav = class Nav {
   //#######################################
@@ -1663,11 +1760,8 @@ var Nav_1 = Nav = class Nav {
     if (!this._exist()) {
       return this._compileEmpty();
     }
-    model = util$3.dom(this.html);
-    nav = util$3.dom('#nav');
-    if (model.attr('fixed') != null) {
-      nav.addClass('fixed');
-    }
+    model = util$4.dom(this.html);
+    nav = util$4.dom('#nav');
     menus = model.findAll('nav > menu');
     for (i = 0, len = menus.length; i < len; i++) {
       menu = menus[i];
@@ -1710,10 +1804,10 @@ var Nav_1 = Nav = class Nav {
     //#######################################
     name = menu.attr('name');
     href = menu.attr('href');
-    h1 = util$3.dom('h1');
-    a = util$3.dom('a').attr('href', href).text(name);
+    h1 = util$4.dom('h1');
+    a = util$4.dom('a').attr('href', href).text(name);
     h1.append(a);
-    return util$3.dom('.menu').append(h1);
+    return util$4.dom('.menu').append(h1);
   }
 
   _compileMenuByItems(menu) {
@@ -1726,8 +1820,8 @@ var Nav_1 = Nav = class Nav {
     //#######################################
     name = menu.attr('name');
     items = menu.findAll('menu > item, menu > line');
-    h1 = util$3.dom('h1').text(name).addClass('hint');
-    ul = util$3.dom('ul');
+    h1 = util$4.dom('h1').text(name).addClass('hint');
+    ul = util$4.dom('ul');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
       switch (item.tag()) {
@@ -1739,7 +1833,7 @@ var Nav_1 = Nav = class Nav {
       }
       ul.append(li);
     }
-    return util$3.dom('.menu').append(h1).append(ul);
+    return util$4.dom('.menu').append(h1).append(ul);
   }
 
   _compileItem(item) {
@@ -1766,8 +1860,8 @@ var Nav_1 = Nav = class Nav {
     //#######################################
     name = item.attr('name');
     href = item.attr('href');
-    li = util$3.dom('li');
-    a = util$3.dom('a').attr('href', href).text(name);
+    li = util$4.dom('li');
+    a = util$4.dom('a').attr('href', href).text(name);
     return li.append(a);
   }
 
@@ -1780,7 +1874,7 @@ var Nav_1 = Nav = class Nav {
     //|
     //#######################################
     name = item.attr('name');
-    li = util$3.dom('li.hint').text(name);
+    li = util$4.dom('li.hint').text(name);
     return li;
   }
 
@@ -1790,14 +1884,14 @@ var Nav_1 = Nav = class Nav {
     //|   @return {DOM} li
     //|
     //#######################################
-    return util$3.dom('li.line');
+    return util$4.dom('li.line');
   }
 
 };
 
-var Cover, util$4;
+var Cover, util$5;
 
-util$4 = util;
+util$5 = util;
 
 var Cover_1 = Cover = class Cover {
   //#######################################
@@ -1845,9 +1939,9 @@ var Cover_1 = Cover = class Cover {
     if (!this._exist()) {
       return this._compileEmpty();
     }
-    model = util$4.dom(this.html);
-    cover = util$4.dom('#cover');
-    wrap = util$4.dom('.wrap');
+    model = util$5.dom(this.html);
+    cover = util$5.dom('#cover');
+    wrap = util$5.dom('.wrap');
     logo = model.find('cover > logo');
     name = model.find('cover > name');
     descs = model.findAll('cover > desc');
@@ -1890,8 +1984,8 @@ var Cover_1 = Cover = class Cover {
     //|
     //#######################################
     src = logo.attr('src');
-    src = util$4.filePath(src);
-    logo = util$4.dom('img.logo');
+    src = util$5.filePath(src);
+    logo = util$5.dom('img.logo');
     logo.attr('src', src);
     return logo;
   }
@@ -1906,8 +2000,8 @@ var Cover_1 = Cover = class Cover {
     //#######################################
     text = name.text();
     version = (ref = name.attr('version')) != null ? ref : '';
-    name = util$4.dom('.name').text(text);
-    version = util$4.dom('.version').text(version);
+    name = util$5.dom('.name').text(text);
+    version = util$5.dom('.version').text(version);
     name.append(version);
     return name;
   }
@@ -1920,10 +2014,10 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM}   ul.descs
     //|
     //#######################################
-    ul = util$4.dom('ul.descs');
+    ul = util$5.dom('ul.descs');
     for (i = 0, len = descs.length; i < len; i++) {
       desc = descs[i];
-      li = util$4.dom('li').text(desc.text());
+      li = util$5.dom('li').text(desc.text());
       ul.append(li);
     }
     return ul;
@@ -1937,10 +2031,10 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM}   ul.items
     //|
     //#######################################
-    ul = util$4.dom('ul.items');
+    ul = util$5.dom('ul.items');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
-      li = util$4.dom('li').text(item.text());
+      li = util$5.dom('li').text(item.text());
       ul.append(li);
     }
     return ul;
@@ -1954,11 +2048,11 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM}   ul.buttons
     //|
     //#######################################
-    ul = util$4.dom('ul.buttons');
+    ul = util$5.dom('ul.buttons');
     for (i = 0, len = buttons.length; i < len; i++) {
       button = buttons[i];
-      li = util$4.dom('li');
-      a = util$4.dom('a');
+      li = util$5.dom('li');
+      a = util$5.dom('a');
       if (button.attr('active') != null) {
         li.addClass('active');
         a.addClass('active');
@@ -1979,7 +2073,7 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM} cover
     //|
     //#######################################
-    return util$4.dom(this._compile());
+    return util$5.dom(this._compile());
   }
 
 };
@@ -1993,9 +2087,9 @@ Cover.hide = (cover) => {
   return cover.css('display', 'none');
 };
 
-var Summary, util$5;
+var Summary, util$6;
 
-util$5 = util;
+util$6 = util;
 
 var Summary_1 = Summary = class Summary {
   //#######################################
@@ -2034,9 +2128,9 @@ var Summary_1 = Summary = class Summary {
     //|   @return {string} html
     //|
     //#######################################
-    model = util$5.dom(this.html);
-    summary = util$5.dom('#summary');
-    ul = util$5.dom('ul');
+    model = util$6.dom(this.html);
+    summary = util$6.dom('#summary');
+    ul = util$6.dom('ul');
     items = model.findAll('item');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
@@ -2076,8 +2170,8 @@ var Summary_1 = Summary = class Summary {
     //|   @return {DOM}    li.lvX
     //|
     //#######################################
-    li = util$5.dom('li').attr('href', href).addClass(`lv${lv}`);
-    a = util$5.dom('a').attr('href', href);
+    li = util$6.dom('li').attr('href', href).addClass(`lv${lv}`);
+    a = util$6.dom('a').attr('href', href);
     if (name) {
       a.text(name.text());
     }
@@ -2094,7 +2188,7 @@ var Summary_1 = Summary = class Summary {
     //|   @return {DOM}    li.hint.lvX
     //|
     //#######################################
-    li = util$5.dom('li.hint').addClass(`lv${lv}`);
+    li = util$6.dom('li.hint').addClass(`lv${lv}`);
     if (name) {
       li.text(name.text());
     }
@@ -2107,7 +2201,7 @@ var Summary_1 = Summary = class Summary {
     //|   @return {DOM} summary
     //|
     //#######################################
-    return util$5.dom(this._compile());
+    return util$6.dom(this._compile());
   }
 
 };
@@ -2154,7 +2248,7 @@ Summary._mapSection = (section) => {
   //|
   //#######################################
   ({lv, text, order} = section.heading);
-  href = util$5.id(order, text);
+  href = util$6.id(order, text);
   return `<item lv="${lv}" href="#${href}">\n   <name>${text}</name>\n</item>`;
 };
 
@@ -4444,9 +4538,9 @@ Prism.languages.js = Prism.languages.javascript;
 })();
 });
 
-var API, util$6;
+var API, util$7;
 
-util$6 = util;
+util$7 = util;
 
 var Api = API = class API {
   //#######################################
@@ -4481,8 +4575,8 @@ var Api = API = class API {
     //|   @return {string} html
     //|
     //#######################################
-    model = util$6.dom(this.html);
-    api = util$6.dom('.api');
+    model = util$7.dom(this.html);
+    api = util$7.dom('.api');
     items = model.findAll('item');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
@@ -4502,27 +4596,27 @@ var Api = API = class API {
     name = item.find('name');
     type = item.find('type');
     desc = item.find('desc');
-    left = util$6.dom('.left');
-    right = util$6.dom('.right');
+    left = util$7.dom('.left');
+    right = util$7.dom('.right');
     if (name) {
-      name = util$6.dom('.name').text(name.text());
+      name = util$7.dom('.name').text(name.text());
       left.append(name);
     }
     if (type) {
-      type = util$6.dom('.type').text(type.text());
+      type = util$7.dom('.type').text(type.text());
       left.append(type);
     }
     if (desc) {
-      desc = util$6.dom('.desc').text(desc.text());
+      desc = util$7.dom('.desc').text(desc.text());
       right.append(desc);
     }
-    item = util$6.dom('.item').append(left).append(right);
+    item = util$7.dom('.item').append(left).append(right);
     return item;
   }
 
 };
 
-var Api$1, Article, Prism, marked$1, util$7;
+var Api$1, Article, Prism, marked$1, util$8;
 
 marked$1 = marked;
 
@@ -4530,7 +4624,7 @@ Prism = prism;
 
 Api$1 = Api;
 
-util$7 = util;
+util$8 = util;
 
 marked$1.setOptions({
   gfm: true,
@@ -4791,7 +4885,7 @@ var Article_1 = Article = class Article {
     //#######################################
     sections = this._parse();
     sections = sections.map(this._compileSection).join('');
-    article = util$7.dom('#article');
+    article = util$8.dom('#article');
     article.html(sections);
     return article.htmlSelf();
   }
@@ -4810,12 +4904,12 @@ var Article_1 = Article = class Article {
     lv = heading != null ? heading.lv : void 0;
     text = heading != null ? heading.text : void 0;
     order = heading != null ? heading.order : void 0;
-    id = util$7.id(order, text);
+    id = util$8.id(order, text);
     heading = heading ? this._compileHeading(heading) : '';
     content = content ? this._compileContent(content) : '';
     example = example ? this._compileExample(example) : '';
     section = heading + content + example;
-    section = util$7.dom('.section').html(section);
+    section = util$8.dom('.section').html(section);
     if (id) {
       section.attr('id', id);
     }
@@ -4845,7 +4939,7 @@ var Article_1 = Article = class Article {
     if (lv <= Breeze.config('article.showOrderLevel')) {
       text = `${order} ${text}`;
     }
-    return `<h${lv}>${text.trim()}</h${lv}>`;
+    return `<h${lv} class="heading">${text.trim()}</h${lv}>`;
   }
 
   _compileContent(content) {
@@ -4904,7 +4998,7 @@ var Article_1 = Article = class Article {
     //|   @return {string} html
     //|
     //#######################################
-    pre = util$7.dom(html);
+    pre = util$8.dom(html);
     pre.html(pre.html().trim());
     if (code = pre.find('code')) {
       code.html(code.html().trim());
@@ -4944,7 +5038,7 @@ var Article_1 = Article = class Article {
     //|   @return {DOM} article
     //|
     //#######################################
-    return util$7.dom(this._compile());
+    return util$8.dom(this._compile());
   }
 
 };
@@ -4960,7 +5054,7 @@ Article.scrollTo = (article, id) => {
   section = article.find(`[id="${id}"]`);
   if (section) {
     top = section.top();
-    return window.scrollBy(0, top - Breeze.navHeight + 1);
+    return window.scrollBy(0, top - Breeze.headHeight + 1);
   } else {
     return window.scrollTo(0, 0);
   }
@@ -5425,9 +5519,11 @@ Search.hideClear = (clear) => {
   return clear.css('display', 'none');
 };
 
-var Article$1, Cover$1, Markdown$1, Nav$1, Page, Search$1, Summary$1, util$8;
+var Article$1, Cover$1, Head$1, Markdown$1, Nav$1, Page, Search$1, Summary$1, util$9;
 
 Markdown$1 = Markdown_1;
+
+Head$1 = Head_1;
 
 Nav$1 = Nav_1;
 
@@ -5439,7 +5535,7 @@ Article$1 = Article_1;
 
 Search$1 = Search_1;
 
-util$8 = util;
+util$9 = util;
 
 var Page_1 = Page = class Page {
   //#######################################
@@ -5491,21 +5587,23 @@ var Page_1 = Page = class Page {
   }
 
   _compile() {
-    var article, cover, main, nav, page, search, side, summary;
+    var article, cover, head, main, nav, page, search, side, summary;
     //#######################################
     //|
     //|   @return {string} html
     //|
     //#######################################
     ({article, nav, cover, search, summary} = this._parse());
-    page = util$8.dom('#page');
-    side = util$8.dom('#side');
-    main = util$8.dom('#main');
-    page.append(nav.compile());
+    head = new Head$1(nav.compile());
+    page = util$9.dom('#page');
+    side = util$9.dom('#side');
+    main = util$9.dom('#main');
     page.append(cover.compile());
     side.append(search.compile());
+    side.append(util$9.dom('#h5-nav-placeholder'));
     side.append(summary.compile());
     main.append(article.compile());
+    page.append(head.compile());
     page.append(side);
     page.append(main);
     return page.htmlSelf();
@@ -5517,27 +5615,50 @@ var Page_1 = Page = class Page {
     //|   @return {DOM} page
     //|
     //#######################################
-    return util$8.dom(this._compile());
+    return util$9.dom(this._compile());
   }
 
 };
 
 Page.layout = (page) => {
-  return Page._layoutNav(page);
+  //#######################################
+  //|
+  //|   @params {DOM} page
+  //|
+  //#######################################
+  if (Breeze.isH5) {
+    Page._replaceNav(page);
+  }
+  return Page._layoutHead(page);
 };
 
-Page._layoutNav = (page) => {
-  var main, nav, side;
+Page._replaceNav = (page) => {
+  var nav, ph;
+  //#######################################
+  //|
+  //|   @params {DOM} page
+  //|
+  //#######################################
   nav = page.find('#nav');
+  ph = page.find('#h5-nav-placeholder');
+  return ph.replace(nav);
+};
+
+Page._layoutHead = (page) => {
+  var head, main, side;
+  //#######################################
+  //|
+  //|   @params {DOM} page
+  //|
+  //|   Will set the Breeze.headHeight
+  //|
+  //#######################################
+  head = page.find('#head');
   side = page.find('#side');
   main = page.find('#main');
-  if (nav && nav.hasClass('fixed')) {
-    Breeze.navHeight = nav.height();
-    side.css('paddingTop', Breeze.navHeight + 'px');
-    return main.css('paddingTop', Breeze.navHeight + 'px');
-  } else {
-    return Breeze.navHeight = 0;
-  }
+  Breeze.headHeight = head.height();
+  side.css('paddingTop', Breeze.headHeight + 'px');
+  return main.css('paddingTop', Breeze.headHeight + 'px');
 };
 
 var ObservableObject;
@@ -5831,13 +5952,13 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
 };
 
-var App, Page$1, PageEventBus$1, util$9;
+var App, Page$1, PageEventBus$1, util$10;
 
 Page$1 = Page_1;
 
 PageEventBus$1 = PageEventBus_1;
 
-util$9 = util;
+util$10 = util;
 
 var App_1 = App = class App {
   //#######################################
@@ -5881,7 +6002,7 @@ var App_1 = App = class App {
     //|
     //#######################################
     page = document.querySelector('#page');
-    page = util$9.dom(page);
+    page = util$10.dom(page);
     Page$1.layout(page);
     return new PageEventBus$1(page);
   }
@@ -6011,7 +6132,9 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$2 {
 
 };
 
-var App$1, Breeze$2, DOM$1, Loader$1, Router$1, isJIT, router;
+var App$1, Breeze$2, DOM$1, Loader$1, Router$1, isJIT, router, util$11;
+
+util$11 = util;
 
 DOM$1 = DOM_web;
 
@@ -6030,6 +6153,8 @@ router = new Router$1(isJIT = true);
 window.addEventListener('load', () => {
   return window.app = new App$1(isJIT = true);
 });
+
+Breeze$2.isH5 = util$11.isH5();
 
 Breeze$2.DOM = DOM$1;
 

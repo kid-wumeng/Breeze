@@ -29,6 +29,9 @@ html {
 
 
 #page {
+  #head {
+    background-color: #FFFFFF;
+  }
   #side {
     background-color: #FFFFFF;
     border-right: @border;
@@ -44,22 +47,33 @@ html {
 
 
 #nav {
-  background-color: #FFFFFF;
-  border-bottom: @border;
+  @media ( min-width: 1024.1px ) {
+    .menu h1         { color: #364149 }
+    .menu h1 a       { color: #364149 }
+    .menu:hover h1 a { color: #3A97FC }
 
-  .menu h1         { color: #364149 }
-  .menu h1 a       { color: #364149 }
-  .menu:hover h1 a { color: #3A97FC }
+    .menu {
+      ul {
+        background-color: #FFFFFF;
+        border-color: #DDE1E5;
 
-  .menu {
-    ul {
-      background-color: #FFFFFF;
-      border-color: #DDE1E5;
+        li a       { color: #364149 }
+        li.hint    { color: #A2AEBA }
+        li a:hover { background-color: #F8FAFB }
+        li.line    { background-color: #F6F6F6 }
+      }
+    }
+  }
 
-      li a       { color: #364149 }
-      li.hint    { color: #A2AEBA }
-      li a:hover { background-color: #F8FAFB }
-      li.line    { background-color: #F6F6F6 }
+  @media ( max-width: 1024px ) {
+    .menu h1   { color: #A2AEBA }
+    .menu h1 a { color: #364149 }
+
+    .menu {
+      ul {
+        li a    { color: #505D6B }
+        li.hint { color: #A2AEBA }
+      }
     }
   }
 }
@@ -193,4 +207,20 @@ html {
   .name             { color: #273340 }
   .type             { color: #A2AEBA }
   .desc             { color: #445669 }
+}
+
+
+
+
+
+@media ( max-width: 1024px ) {
+  #nav {
+    border-bottom: @border;
+  }
+
+  #article {
+    .example {
+      background-color: #2D3134;
+    }
+  }
 }

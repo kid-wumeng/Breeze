@@ -372,7 +372,7 @@ module.exports = class Article
       if lv <= Breeze.config('article.showOrderLevel')
          text = "#{order} #{text}"
 
-      return "<h#{lv}>#{text.trim()}</h#{lv}>"
+      return "<h#{lv} class=\"heading\">#{text.trim()}</h#{lv}>"
 
 
 
@@ -523,7 +523,7 @@ Article.scrollTo = ( article, id ) =>
 
    if section
       top = section.top()
-      window.scrollBy(0, top - Breeze.navHeight + 1)
+      window.scrollBy(0, top - Breeze.headHeight + 1)
    else
       window.scrollTo(0, 0)
 

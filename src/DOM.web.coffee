@@ -37,6 +37,7 @@ module.exports = class DOM
    #|   << The following methods exist only in web environment >>
    #|
    #|   dom.element()            -> root's $el
+   #|   dom.replace( newDom )    -> this
    #|   dom.val( value )         -> this
    #|   dom.val()                -> value
    #|   dom.parent()             -> dom
@@ -79,6 +80,7 @@ module.exports = class DOM
       @append      = @_append
 
       @element     = @_element
+      @replace     = @_replace
       @val         = @_val
       @parent      = @_parent
       @css         = @_css
@@ -364,6 +366,25 @@ module.exports = class DOM
       ########################################
 
       return @_root
+
+
+
+
+
+   _replace: ( newDom ) =>
+
+      ########################################
+      #|
+      #|   @params {DOM} newDom
+      #|   @return {DOM} newDom
+      #|
+      #|   This method only exists in DOM.web
+      #|
+      ########################################
+
+      @_root.parentNode.replaceChild( newDom.element(), @_root )
+
+      return newDom
 
 
 

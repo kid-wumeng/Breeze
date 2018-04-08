@@ -1,3 +1,4 @@
+util   = require('./util')
 DOM    = require('./DOM.web')
 Loader = require('./Loader.web')
 Router = require('./Router')
@@ -22,7 +23,7 @@ window.addEventListener 'load', =>
 
 
 
-
+Breeze.isH5          = util.isH5()
 Breeze.DOM           = DOM
 Breeze.Loader        = Loader
 Breeze.config        = Breeze.config

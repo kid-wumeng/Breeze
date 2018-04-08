@@ -188,3 +188,42 @@
     }
   }
 }
+
+
+@media ( max-width: 1024px ) {
+  #article{
+    .section > h1,
+    .section > h2,
+    .section > h3,
+    .section > h4,
+    .section > h5,
+    .section > h6 {
+      margin-bottom: 0;
+    }
+
+    .section > .content,
+    .section > .example {
+      float: none;
+      width: 100%;
+    }
+
+    .section > .heading,
+    .section > .content,
+    .section > .example {
+      padding: 20px;
+    }
+    .section > .content > *:last-child,
+    .section > .example > *:last-child {
+      margin-bottom: 0;
+    }
+
+    .section.lv1:not(:first-child) {
+      &::before {
+        width: 100%;
+      }
+      &::after {
+        display: none;
+      }
+    }
+  }
+}

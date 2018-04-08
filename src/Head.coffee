@@ -54,6 +54,9 @@ module.exports = class Head
       center = util.dom('.center')
       right  = util.dom('.right')
 
+      hamburger = util.dom('.hamburger')
+
+      left.append( hamburger )
       right.append( @nav )
 
       head.append( left )

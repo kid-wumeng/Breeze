@@ -1,14 +1,14 @@
-ObservableObject = require('./ObservableObject')
-Article          = require('./Article')
-Cover            = require('./Cover')
-Search           = require('./Search')
-Summary          = require('./Summary')
+Side    = require('./Side')
+Article = require('./Article')
+Cover   = require('./Cover')
+Search  = require('./Search')
+Summary = require('./Summary')
 
 
 
 
 
-module.exports = class PageEventBus extends ObservableObject
+module.exports = class PageEventBus
 
    ########################################
    #|
@@ -33,16 +33,17 @@ module.exports = class PageEventBus extends ObservableObject
       #|
       ########################################
 
-      super()
-
       @_page = page
 
-      @_main = @_page.find('#main')
+      @_head = @_page.find('#head')
       @_side = @_page.find('#side')
+      @_main = @_page.find('#main')
       @_nav  = @_page.find('#nav')
 
       @_cover        = @_page.find('#cover')
       @_coverButtons = @_cover.findAll('.buttons a')
+
+      @_hamburger = @_head.find('.hamburger')
 
       @_search      = @_page.find('#search')
       @_searchInput = @_search.find('input')
@@ -82,6 +83,9 @@ module.exports = class PageEventBus extends ObservableObject
       @_side.on('mouseleave', => @_isOverSide = false)
       @_main.on('mouseleave', => @_isOverMain = false)
 
+      @_main.on('click', @_onClickMain)
+      @_hamburger.on('click', @_onClickHamburger)
+
       for button in @_coverButtons
           button.on('click', @_onClickCoverButton)
 
@@ -119,6 +123,40 @@ module.exports = class PageEventBus extends ObservableObject
 
          Summary.activeTo( @_summary, id )
          Summary.scrollTo( @_summary, id )
+
+
+
+
+
+   _onClickMain: ( main ) =>
+
+      ########################################
+      #|
+      #|   @params {DOM} main
+      #|
+      #|   When click the head's hamburger ( when H5 ),
+      #|      1. if href is current page, hide the cover
+      #|
+      ########################################
+
+      Side.close( @_side )
+
+
+
+
+
+   _onClickHamburger: ( hamburger ) =>
+
+      ########################################
+      #|
+      #|   @params {DOM} hamburger
+      #|
+      #|   When click the head's hamburger ( when H5 ),
+      #|      1. if href is current page, hide the cover
+      #|
+      ########################################
+
+      Side.open( @_side )
 
 
 

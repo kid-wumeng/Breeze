@@ -68,17 +68,22 @@ Side.open = ( side ) =>
 
    ########################################
    #|
-   #|   @params {string}   key
-   #|   @params {object[]} datas - [{ id, sideing, content, example }]
-   #|
-   #|   @return {object[]} items - [{ id, sideing, content, example }]
+   #|   @params {DOM} side
    #|
    ########################################
 
-   key = key.replace('\\', '\\\\')
-   key = key.replace(/(?:\s|\n)+/g, '')
+   side.addClass('open')
 
-   items = Side._match( key, datas )
-   items = Side._sortItems( items )
 
-   return items
+
+
+
+Side.close = ( side ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} side
+   #|
+   ########################################
+
+   side.removeClass('open')

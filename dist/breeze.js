@@ -1677,7 +1677,7 @@ var Head_1 = Head = class Head {
   }
 
   _compile() {
-    var center, head, left, right;
+    var center, hamburger, head, left, right;
     //#######################################
     //|
     //|   @return {string} html
@@ -1687,6 +1687,8 @@ var Head_1 = Head = class Head {
     left = util$3.dom('.left');
     center = util$3.dom('.center');
     right = util$3.dom('.right');
+    hamburger = util$3.dom('.hamburger');
+    left.append(hamburger);
     right.append(this.nav);
     head.append(left);
     head.append(center);
@@ -1763,20 +1765,21 @@ var Side_1 = Side = class Side {
 };
 
 Side.open = (side) => {
-  var items, key;
   //#######################################
   //|
-  //|   @params {string}   key
-  //|   @params {object[]} datas - [{ id, sideing, content, example }]
-  //|
-  //|   @return {object[]} items - [{ id, sideing, content, example }]
+  //|   @params {DOM} side
   //|
   //#######################################
-  key = key.replace('\\', '\\\\');
-  key = key.replace(/(?:\s|\n)+/g, '');
-  items = Side._match(key, datas);
-  items = Side._sortItems(items);
-  return items;
+  return side.addClass('open');
+};
+
+Side.close = (side) => {
+  //#######################################
+  //|
+  //|   @params {DOM} side
+  //|
+  //#######################################
+  return side.removeClass('open');
 };
 
 var Main, util$5;
@@ -5777,65 +5780,9 @@ Page._layoutHead = (page) => {
   return main.css('paddingTop', Breeze.headHeight + 'px');
 };
 
-var ObservableObject;
+var Article$2, Cover$2, PageEventBus, Search$2, Side$2, Summary$2;
 
-var ObservableObject_1 = ObservableObject = class ObservableObject {
-  //#######################################
-  //|
-  //|   new ObservableObject()
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       binding and emitting events,
-  //|       generally be extended by other classes.
-  //|   -----------------------------------
-  //|
-  //|   observableObject.on( name, callback )
-  //|   observableObject.emit( name, params... )
-  //|
-  //#######################################
-  constructor() {
-    this._on = this._on.bind(this);
-    this._emit = this._emit.bind(this);
-    this._events = {};
-    this.on = this._on;
-    this.emit = this._emit;
-  }
-
-  _on(name, callback) {
-    if (!this._events[name]) {
-      this._events[name] = [];
-    }
-    this._events[name].push(callback);
-    return this;
-  }
-
-  _emit(name, ...params) {
-    var callback, callbacks, i, len, ref;
-    //#######################################
-    //|
-    //|   Trigger an event.
-    //|
-    //|   @params {string} event's name
-    //|   @params {*...}   params...
-    //|
-    //|   @return {ObservableObject} this
-    //|
-    //#######################################
-    callbacks = (ref = this._events[name]) != null ? ref : [];
-    for (i = 0, len = callbacks.length; i < len; i++) {
-      callback = callbacks[i];
-      callback(...params);
-    }
-    return this;
-  }
-
-};
-
-var Article$2, Cover$2, ObservableObject$1, PageEventBus, Search$2, Summary$2,
-  boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
-
-ObservableObject$1 = ObservableObject_1;
+Side$2 = Side_1;
 
 Article$2 = Article_1;
 
@@ -5845,7 +5792,7 @@ Search$2 = Search_1;
 
 Summary$2 = Summary_1;
 
-var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$1 {
+var PageEventBus_1 = PageEventBus = class PageEventBus {
   //#######################################
   //|
   //|   new PageEventBus( page-dom )
@@ -5857,21 +5804,29 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
   //|
   //#######################################
   constructor(page) {
-    super();
     this._bindEvents = this._bindEvents.bind(this);
     this._onScrollArticle = this._onScrollArticle.bind(this);
+    this._onClickMain = this._onClickMain.bind(this);
+    this._onClickHamburger = this._onClickHamburger.bind(this);
     this._onClickCoverButton = this._onClickCoverButton.bind(this);
     this._onClickSummaryLink = this._onClickSummaryLink.bind(this);
     this._onClickLink = this._onClickLink.bind(this);
     this._onInputSearchInput = this._onInputSearchInput.bind(this);
     this._onClickSearchClear = this._onClickSearchClear.bind(this);
     this._onClickSearchItem = this._onClickSearchItem.bind(this);
+    //#######################################
+    //|
+    //|   @params {DOM} page
+    //|
+    //#######################################
     this._page = page;
-    this._main = this._page.find('#main');
+    this._head = this._page.find('#head');
     this._side = this._page.find('#side');
+    this._main = this._page.find('#main');
     this._nav = this._page.find('#nav');
     this._cover = this._page.find('#cover');
     this._coverButtons = this._cover.findAll('.buttons a');
+    this._hamburger = this._head.find('.hamburger');
     this._search = this._page.find('#search');
     this._searchInput = this._search.find('input');
     this._searchClear = this._search.find('.clear');
@@ -5888,7 +5843,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _bindEvents() {
     var button, i, j, k, len, len1, len2, link, ref, ref1, ref2;
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   To bind all events of dom-tree.
@@ -5907,6 +5861,8 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     this._main.on('mouseleave', () => {
       return this._isOverMain = false;
     });
+    this._main.on('click', this._onClickMain);
+    this._hamburger.on('click', this._onClickHamburger);
     ref = this._coverButtons;
     for (i = 0, len = ref.length; i < len; i++) {
       button = ref[i];
@@ -5928,7 +5884,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onScrollArticle() {
     var href, id;
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   When scroll the article,
@@ -5947,9 +5902,32 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
     }
   }
 
+  _onClickMain(main) {
+    //#######################################
+    //|
+    //|   @params {DOM} main
+    //|
+    //|   When click the head's hamburger ( when H5 ),
+    //|      1. if href is current page, hide the cover
+    //|
+    //#######################################
+    return Side$2.close(this._side);
+  }
+
+  _onClickHamburger(hamburger) {
+    //#######################################
+    //|
+    //|   @params {DOM} hamburger
+    //|
+    //|   When click the head's hamburger ( when H5 ),
+    //|      1. if href is current page, hide the cover
+    //|
+    //#######################################
+    return Side$2.open(this._side);
+  }
+
   _onClickCoverButton(button) {
     var href;
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   @params {DOM} button
@@ -5966,7 +5944,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onClickSummaryLink(link) {
     var href, id;
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   @params {DOM} link
@@ -5986,7 +5963,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onClickLink(link) {
     var href;
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   @params {DOM} link
@@ -6002,7 +5978,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onInputSearchInput(input) {
     var i, item, items, key, len;
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   @params {DOM} input
@@ -6030,7 +6005,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
   }
 
   _onClickSearchClear(clear) {
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   @params {DOM} clear
@@ -6050,7 +6024,6 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
   _onClickSearchItem(item) {
     var href, id;
-    boundMethodCheck(this, PageEventBus);
     //#######################################
     //|
     //|   @params {DOM} item
@@ -6192,12 +6165,67 @@ var App_1 = App = class App {
 
 };
 
-var Breeze$1, ObservableObject$2,
-  boundMethodCheck$1 = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+var ObservableObject;
 
-ObservableObject$2 = ObservableObject_1;
+var ObservableObject_1 = ObservableObject = class ObservableObject {
+  //#######################################
+  //|
+  //|   new ObservableObject()
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       binding and emitting events,
+  //|       generally be extended by other classes.
+  //|   -----------------------------------
+  //|
+  //|   observableObject.on( name, callback )
+  //|   observableObject.emit( name, params... )
+  //|
+  //#######################################
+  constructor() {
+    this._on = this._on.bind(this);
+    this._emit = this._emit.bind(this);
+    this._events = {};
+    this.on = this._on;
+    this.emit = this._emit;
+  }
 
-var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$2 {
+  _on(name, callback) {
+    if (!this._events[name]) {
+      this._events[name] = [];
+    }
+    this._events[name].push(callback);
+    return this;
+  }
+
+  _emit(name, ...params) {
+    var callback, callbacks, i, len, ref;
+    //#######################################
+    //|
+    //|   Trigger an event.
+    //|
+    //|   @params {string} event's name
+    //|   @params {*...}   params...
+    //|
+    //|   @return {ObservableObject} this
+    //|
+    //#######################################
+    callbacks = (ref = this._events[name]) != null ? ref : [];
+    for (i = 0, len = callbacks.length; i < len; i++) {
+      callback = callbacks[i];
+      callback(...params);
+    }
+    return this;
+  }
+
+};
+
+var Breeze$1, ObservableObject$1,
+  boundMethodCheck = function(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new Error('Bound instance method accessed before binding'); } };
+
+ObservableObject$1 = ObservableObject_1;
+
+var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$1 {
   //#######################################
   //|
   //|   window.Breeze = new Breeze()
@@ -6227,7 +6255,7 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$2 {
   }
 
   _config(name, value) {
-    boundMethodCheck$1(this, Breeze);
+    boundMethodCheck(this, Breeze);
     //#######################################
     //|
     //|   SET   @params {string} name

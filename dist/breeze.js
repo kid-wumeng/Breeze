@@ -1653,7 +1653,7 @@ util$3 = util;
 var Head_1 = Head = class Head {
   //#######################################
   //|
-  //|   new Head( nav-html )
+  //|   new Head( nav )
   //|
   //|   -----------------------------------
   //|    Be responsible for
@@ -1713,9 +1713,117 @@ Head.renderHamburger = (head) => {
   return items;
 };
 
-var Nav, util$4;
+var Side, util$4;
 
 util$4 = util;
+
+var Side_1 = Side = class Side {
+  //#######################################
+  //|
+  //|   new Side( search, summary )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="side">
+  //|   -----------------------------------
+  //|
+  //|   side.compile() -> html
+  //|
+  //|   Side.open( side )
+  //|
+  //#######################################
+  constructor(search, summary) {
+    this._compile = this._compile.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} search-html
+    //|   @params {string} summary-html
+    //|
+    //#######################################
+    this.search = search;
+    this.summary = summary;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var navPH, side;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    side = util$4.dom('#side');
+    navPH = util$4.dom('#h5-nav-placeholder');
+    side.append(this.search);
+    side.append(navPH);
+    side.append(this.summary);
+    return side.htmlSelf();
+  }
+
+};
+
+Side.open = (side) => {
+  var items, key;
+  //#######################################
+  //|
+  //|   @params {string}   key
+  //|   @params {object[]} datas - [{ id, sideing, content, example }]
+  //|
+  //|   @return {object[]} items - [{ id, sideing, content, example }]
+  //|
+  //#######################################
+  key = key.replace('\\', '\\\\');
+  key = key.replace(/(?:\s|\n)+/g, '');
+  items = Side._match(key, datas);
+  items = Side._sortItems(items);
+  return items;
+};
+
+var Main, util$5;
+
+util$5 = util;
+
+var Main_1 = Main = class Main {
+  //#######################################
+  //|
+  //|   new Main( article )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="main">
+  //|   -----------------------------------
+  //|
+  //|   main.compile() -> html
+  //|
+  //#######################################
+  constructor(article) {
+    this._compile = this._compile.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} article-html
+    //|
+    //#######################################
+    this.article = article;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var main;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    main = util$5.dom('#main');
+    main.append(this.article);
+    return main.htmlSelf();
+  }
+
+};
+
+var Nav, util$6;
+
+util$6 = util;
 
 var Nav_1 = Nav = class Nav {
   //#######################################
@@ -1760,8 +1868,8 @@ var Nav_1 = Nav = class Nav {
     if (!this._exist()) {
       return this._compileEmpty();
     }
-    model = util$4.dom(this.html);
-    nav = util$4.dom('#nav');
+    model = util$6.dom(this.html);
+    nav = util$6.dom('#nav');
     menus = model.findAll('nav > menu');
     for (i = 0, len = menus.length; i < len; i++) {
       menu = menus[i];
@@ -1804,10 +1912,10 @@ var Nav_1 = Nav = class Nav {
     //#######################################
     name = menu.attr('name');
     href = menu.attr('href');
-    h1 = util$4.dom('h1');
-    a = util$4.dom('a').attr('href', href).text(name);
+    h1 = util$6.dom('h1');
+    a = util$6.dom('a').attr('href', href).text(name);
     h1.append(a);
-    return util$4.dom('.menu').append(h1);
+    return util$6.dom('.menu').append(h1);
   }
 
   _compileMenuByItems(menu) {
@@ -1820,8 +1928,8 @@ var Nav_1 = Nav = class Nav {
     //#######################################
     name = menu.attr('name');
     items = menu.findAll('menu > item, menu > line');
-    h1 = util$4.dom('h1').text(name).addClass('hint');
-    ul = util$4.dom('ul');
+    h1 = util$6.dom('h1').text(name).addClass('hint');
+    ul = util$6.dom('ul');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
       switch (item.tag()) {
@@ -1833,7 +1941,7 @@ var Nav_1 = Nav = class Nav {
       }
       ul.append(li);
     }
-    return util$4.dom('.menu').append(h1).append(ul);
+    return util$6.dom('.menu').append(h1).append(ul);
   }
 
   _compileItem(item) {
@@ -1860,8 +1968,8 @@ var Nav_1 = Nav = class Nav {
     //#######################################
     name = item.attr('name');
     href = item.attr('href');
-    li = util$4.dom('li');
-    a = util$4.dom('a').attr('href', href).text(name);
+    li = util$6.dom('li');
+    a = util$6.dom('a').attr('href', href).text(name);
     return li.append(a);
   }
 
@@ -1874,7 +1982,7 @@ var Nav_1 = Nav = class Nav {
     //|
     //#######################################
     name = item.attr('name');
-    li = util$4.dom('li.hint').text(name);
+    li = util$6.dom('li.hint').text(name);
     return li;
   }
 
@@ -1884,14 +1992,14 @@ var Nav_1 = Nav = class Nav {
     //|   @return {DOM} li
     //|
     //#######################################
-    return util$4.dom('li.line');
+    return util$6.dom('li.line');
   }
 
 };
 
-var Cover, util$5;
+var Cover, util$7;
 
-util$5 = util;
+util$7 = util;
 
 var Cover_1 = Cover = class Cover {
   //#######################################
@@ -1939,9 +2047,9 @@ var Cover_1 = Cover = class Cover {
     if (!this._exist()) {
       return this._compileEmpty();
     }
-    model = util$5.dom(this.html);
-    cover = util$5.dom('#cover');
-    wrap = util$5.dom('.wrap');
+    model = util$7.dom(this.html);
+    cover = util$7.dom('#cover');
+    wrap = util$7.dom('.wrap');
     logo = model.find('cover > logo');
     name = model.find('cover > name');
     descs = model.findAll('cover > desc');
@@ -1984,8 +2092,8 @@ var Cover_1 = Cover = class Cover {
     //|
     //#######################################
     src = logo.attr('src');
-    src = util$5.filePath(src);
-    logo = util$5.dom('img.logo');
+    src = util$7.filePath(src);
+    logo = util$7.dom('img.logo');
     logo.attr('src', src);
     return logo;
   }
@@ -2000,8 +2108,8 @@ var Cover_1 = Cover = class Cover {
     //#######################################
     text = name.text();
     version = (ref = name.attr('version')) != null ? ref : '';
-    name = util$5.dom('.name').text(text);
-    version = util$5.dom('.version').text(version);
+    name = util$7.dom('.name').text(text);
+    version = util$7.dom('.version').text(version);
     name.append(version);
     return name;
   }
@@ -2014,10 +2122,10 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM}   ul.descs
     //|
     //#######################################
-    ul = util$5.dom('ul.descs');
+    ul = util$7.dom('ul.descs');
     for (i = 0, len = descs.length; i < len; i++) {
       desc = descs[i];
-      li = util$5.dom('li').text(desc.text());
+      li = util$7.dom('li').text(desc.text());
       ul.append(li);
     }
     return ul;
@@ -2031,10 +2139,10 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM}   ul.items
     //|
     //#######################################
-    ul = util$5.dom('ul.items');
+    ul = util$7.dom('ul.items');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
-      li = util$5.dom('li').text(item.text());
+      li = util$7.dom('li').text(item.text());
       ul.append(li);
     }
     return ul;
@@ -2048,11 +2156,11 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM}   ul.buttons
     //|
     //#######################################
-    ul = util$5.dom('ul.buttons');
+    ul = util$7.dom('ul.buttons');
     for (i = 0, len = buttons.length; i < len; i++) {
       button = buttons[i];
-      li = util$5.dom('li');
-      a = util$5.dom('a');
+      li = util$7.dom('li');
+      a = util$7.dom('a');
       if (button.attr('active') != null) {
         li.addClass('active');
         a.addClass('active');
@@ -2073,7 +2181,7 @@ var Cover_1 = Cover = class Cover {
     //|   @return {DOM} cover
     //|
     //#######################################
-    return util$5.dom(this._compile());
+    return util$7.dom(this._compile());
   }
 
 };
@@ -2087,9 +2195,9 @@ Cover.hide = (cover) => {
   return cover.css('display', 'none');
 };
 
-var Summary, util$6;
+var Summary, util$8;
 
-util$6 = util;
+util$8 = util;
 
 var Summary_1 = Summary = class Summary {
   //#######################################
@@ -2128,9 +2236,9 @@ var Summary_1 = Summary = class Summary {
     //|   @return {string} html
     //|
     //#######################################
-    model = util$6.dom(this.html);
-    summary = util$6.dom('#summary');
-    ul = util$6.dom('ul');
+    model = util$8.dom(this.html);
+    summary = util$8.dom('#summary');
+    ul = util$8.dom('ul');
     items = model.findAll('item');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
@@ -2170,8 +2278,8 @@ var Summary_1 = Summary = class Summary {
     //|   @return {DOM}    li.lvX
     //|
     //#######################################
-    li = util$6.dom('li').attr('href', href).addClass(`lv${lv}`);
-    a = util$6.dom('a').attr('href', href);
+    li = util$8.dom('li').attr('href', href).addClass(`lv${lv}`);
+    a = util$8.dom('a').attr('href', href);
     if (name) {
       a.text(name.text());
     }
@@ -2188,7 +2296,7 @@ var Summary_1 = Summary = class Summary {
     //|   @return {DOM}    li.hint.lvX
     //|
     //#######################################
-    li = util$6.dom('li.hint').addClass(`lv${lv}`);
+    li = util$8.dom('li.hint').addClass(`lv${lv}`);
     if (name) {
       li.text(name.text());
     }
@@ -2201,7 +2309,7 @@ var Summary_1 = Summary = class Summary {
     //|   @return {DOM} summary
     //|
     //#######################################
-    return util$6.dom(this._compile());
+    return util$8.dom(this._compile());
   }
 
 };
@@ -2248,7 +2356,7 @@ Summary._mapSection = (section) => {
   //|
   //#######################################
   ({lv, text, order} = section.heading);
-  href = util$6.id(order, text);
+  href = util$8.id(order, text);
   return `<item lv="${lv}" href="#${href}">\n   <name>${text}</name>\n</item>`;
 };
 
@@ -4538,9 +4646,9 @@ Prism.languages.js = Prism.languages.javascript;
 })();
 });
 
-var API, util$7;
+var API, util$9;
 
-util$7 = util;
+util$9 = util;
 
 var Api = API = class API {
   //#######################################
@@ -4575,8 +4683,8 @@ var Api = API = class API {
     //|   @return {string} html
     //|
     //#######################################
-    model = util$7.dom(this.html);
-    api = util$7.dom('.api');
+    model = util$9.dom(this.html);
+    api = util$9.dom('.api');
     items = model.findAll('item');
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
@@ -4596,27 +4704,27 @@ var Api = API = class API {
     name = item.find('name');
     type = item.find('type');
     desc = item.find('desc');
-    left = util$7.dom('.left');
-    right = util$7.dom('.right');
+    left = util$9.dom('.left');
+    right = util$9.dom('.right');
     if (name) {
-      name = util$7.dom('.name').text(name.text());
+      name = util$9.dom('.name').text(name.text());
       left.append(name);
     }
     if (type) {
-      type = util$7.dom('.type').text(type.text());
+      type = util$9.dom('.type').text(type.text());
       left.append(type);
     }
     if (desc) {
-      desc = util$7.dom('.desc').text(desc.text());
+      desc = util$9.dom('.desc').text(desc.text());
       right.append(desc);
     }
-    item = util$7.dom('.item').append(left).append(right);
+    item = util$9.dom('.item').append(left).append(right);
     return item;
   }
 
 };
 
-var Api$1, Article, Prism, marked$1, util$8;
+var Api$1, Article, Prism, marked$1, util$10;
 
 marked$1 = marked;
 
@@ -4624,7 +4732,7 @@ Prism = prism;
 
 Api$1 = Api;
 
-util$8 = util;
+util$10 = util;
 
 marked$1.setOptions({
   gfm: true,
@@ -4885,7 +4993,7 @@ var Article_1 = Article = class Article {
     //#######################################
     sections = this._parse();
     sections = sections.map(this._compileSection).join('');
-    article = util$8.dom('#article');
+    article = util$10.dom('#article');
     article.html(sections);
     return article.htmlSelf();
   }
@@ -4904,12 +5012,12 @@ var Article_1 = Article = class Article {
     lv = heading != null ? heading.lv : void 0;
     text = heading != null ? heading.text : void 0;
     order = heading != null ? heading.order : void 0;
-    id = util$8.id(order, text);
+    id = util$10.id(order, text);
     heading = heading ? this._compileHeading(heading) : '';
     content = content ? this._compileContent(content) : '';
     example = example ? this._compileExample(example) : '';
     section = heading + content + example;
-    section = util$8.dom('.section').html(section);
+    section = util$10.dom('.section').html(section);
     if (id) {
       section.attr('id', id);
     }
@@ -4998,7 +5106,7 @@ var Article_1 = Article = class Article {
     //|   @return {string} html
     //|
     //#######################################
-    pre = util$8.dom(html);
+    pre = util$10.dom(html);
     pre.html(pre.html().trim());
     if (code = pre.find('code')) {
       code.html(code.html().trim());
@@ -5038,7 +5146,7 @@ var Article_1 = Article = class Article {
     //|   @return {DOM} article
     //|
     //#######################################
-    return util$8.dom(this._compile());
+    return util$10.dom(this._compile());
   }
 
 };
@@ -5519,11 +5627,15 @@ Search.hideClear = (clear) => {
   return clear.css('display', 'none');
 };
 
-var Article$1, Cover$1, Head$1, Markdown$1, Nav$1, Page, Search$1, Summary$1, util$9;
+var Article$1, Cover$1, Head$1, Main$1, Markdown$1, Nav$1, Page, Search$1, Side$1, Summary$1, util$11;
 
 Markdown$1 = Markdown_1;
 
 Head$1 = Head_1;
+
+Side$1 = Side_1;
+
+Main$1 = Main_1;
 
 Nav$1 = Nav_1;
 
@@ -5535,7 +5647,7 @@ Article$1 = Article_1;
 
 Search$1 = Search_1;
 
-util$9 = util;
+util$11 = util;
 
 var Page_1 = Page = class Page {
   //#######################################
@@ -5574,16 +5686,16 @@ var Page_1 = Page = class Page {
     //|
     //#######################################
     markdown = new Markdown$1(this.text);
-    ({article, nav, cover, summary} = markdown.parse());
-    article = new Article$1(article);
-    nav = new Nav$1(nav);
+    ({nav, cover, summary, article} = markdown.parse());
     cover = new Cover$1(cover);
+    nav = new Nav$1(nav);
     search = new Search$1();
+    article = new Article$1(article);
     if (!summary) {
       summary = Summary$1.parse(sections = article.parse());
     }
     summary = new Summary$1(summary);
-    return {article, nav, cover, search, summary};
+    return {cover, nav, search, summary, article};
   }
 
   _compile() {
@@ -5593,17 +5705,21 @@ var Page_1 = Page = class Page {
     //|   @return {string} html
     //|
     //#######################################
-    ({article, nav, cover, search, summary} = this._parse());
-    head = new Head$1(nav.compile());
-    page = util$9.dom('#page');
-    side = util$9.dom('#side');
-    main = util$9.dom('#main');
-    page.append(cover.compile());
-    side.append(search.compile());
-    side.append(util$9.dom('#h5-nav-placeholder'));
-    side.append(summary.compile());
-    main.append(article.compile());
-    page.append(head.compile());
+    ({cover, nav, search, summary, article} = this._parse());
+    cover = cover.compile();
+    nav = nav.compile();
+    search = search.compile();
+    summary = summary.compile();
+    article = article.compile();
+    head = new Head$1(nav);
+    side = new Side$1(search, summary);
+    main = new Main$1(article);
+    head = head.compile();
+    side = side.compile();
+    main = main.compile();
+    page = util$11.dom('#page');
+    page.append(cover);
+    page.append(head);
     page.append(side);
     page.append(main);
     return page.htmlSelf();
@@ -5615,7 +5731,7 @@ var Page_1 = Page = class Page {
     //|   @return {DOM} page
     //|
     //#######################################
-    return util$9.dom(this._compile());
+    return util$11.dom(this._compile());
   }
 
 };
@@ -5952,13 +6068,13 @@ var PageEventBus_1 = PageEventBus = class PageEventBus extends ObservableObject$
 
 };
 
-var App, Page$1, PageEventBus$1, util$10;
+var App, Page$1, PageEventBus$1, util$12;
 
 Page$1 = Page_1;
 
 PageEventBus$1 = PageEventBus_1;
 
-util$10 = util;
+util$12 = util;
 
 var App_1 = App = class App {
   //#######################################
@@ -6002,7 +6118,7 @@ var App_1 = App = class App {
     //|
     //#######################################
     page = document.querySelector('#page');
-    page = util$10.dom(page);
+    page = util$12.dom(page);
     Page$1.layout(page);
     return new PageEventBus$1(page);
   }
@@ -6132,9 +6248,9 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$2 {
 
 };
 
-var App$1, Breeze$2, DOM$1, Loader$1, Router$1, isJIT, router, util$11;
+var App$1, Breeze$2, DOM$1, Loader$1, Router$1, isJIT, router, util$13;
 
-util$11 = util;
+util$13 = util;
 
 DOM$1 = DOM_web;
 
@@ -6154,7 +6270,7 @@ window.addEventListener('load', () => {
   return window.app = new App$1(isJIT = true);
 });
 
-Breeze$2.isH5 = util$11.isH5();
+Breeze$2.isH5 = util$13.isH5();
 
 Breeze$2.DOM = DOM$1;
 

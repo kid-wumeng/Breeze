@@ -4,20 +4,20 @@ util = require('./util')
 
 
 
-module.exports = class Head
+module.exports = class Side
 
    ########################################
    #|
-   #|   new Head( nav )
+   #|   new Side( search, summary )
    #|
    #|   -----------------------------------
    #|    Be responsible for
-   #|       handling the <div id="head">
+   #|       handling the <div id="side">
    #|   -----------------------------------
    #|
-   #|   head.compile() -> html
+   #|   side.compile() -> html
    #|
-   #|   Head.renderHamburger( head )
+   #|   Side.open( side )
    #|
    ########################################
 
@@ -25,15 +25,18 @@ module.exports = class Head
 
 
 
-   constructor: ( nav ) ->
+   constructor: ( search, summary ) ->
 
       ########################################
       #|
-      #|   @params {string} nav-html
+      #|   @params {string} search-html
+      #|   @params {string} summary-html
       #|
       ########################################
 
-      @nav = nav
+      @search  = search
+      @summary = summary
+
       @compile = @_compile
 
 
@@ -48,39 +51,34 @@ module.exports = class Head
       #|
       ########################################
 
-      head   = util.dom('#head')
+      side  = util.dom('#side')
+      navPH = util.dom('#h5-nav-placeholder')
 
-      left   = util.dom('.left')
-      center = util.dom('.center')
-      right  = util.dom('.right')
+      side.append( @search )
+      side.append( navPH )
+      side.append( @summary )
 
-      right.append( @nav )
-
-      head.append( left )
-      head.append( center )
-      head.append( right )
-
-      return head.htmlSelf()
+      return side.htmlSelf()
 
 
 
 
 
-Head.renderHamburger = ( head ) =>
+Side.open = ( side ) =>
 
    ########################################
    #|
    #|   @params {string}   key
-   #|   @params {object[]} datas - [{ id, heading, content, example }]
+   #|   @params {object[]} datas - [{ id, sideing, content, example }]
    #|
-   #|   @return {object[]} items - [{ id, heading, content, example }]
+   #|   @return {object[]} items - [{ id, sideing, content, example }]
    #|
    ########################################
 
    key = key.replace('\\', '\\\\')
    key = key.replace(/(?:\s|\n)+/g, '')
 
-   items = Head._match( key, datas )
-   items = Head._sortItems( items )
+   items = Side._match( key, datas )
+   items = Side._sortItems( items )
 
    return items

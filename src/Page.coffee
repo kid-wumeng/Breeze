@@ -1,5 +1,7 @@
 Markdown         = require('./Markdown')
 Head             = require('./Head')
+Side             = require('./Side')
+Main             = require('./Main')
 Nav              = require('./Nav')
 Cover            = require('./Cover')
 Summary          = require('./Summary')
@@ -58,18 +60,18 @@ module.exports = class Page
 
       markdown = new Markdown(@text)
 
-      { article, nav, cover, summary } = markdown.parse()
+      { nav, cover, summary, article } = markdown.parse()
 
-      article = new Article(article)
-      nav     = new Nav(nav)
       cover   = new Cover(cover)
+      nav     = new Nav(nav)
       search  = new Search()
+      article = new Article(article)
 
       if !summary
         summary = Summary.parse(sections = article.parse())
       summary = new Summary(summary)
 
-      return { article, nav, cover, search, summary }
+      return { cover, nav, search, summary, article }
 
 
 
@@ -83,23 +85,28 @@ module.exports = class Page
       #|
       ########################################
 
-      { article, nav, cover, search, summary } = @_parse()
+      { cover, nav, search, summary, article } = @_parse()
 
-      head = new Head(nav.compile())
+      cover   = cover.compile()
+      nav     = nav.compile()
+      search  = search.compile()
+      summary = summary.compile()
+      article = article.compile()
+
+      head = new Head( nav )
+      side = new Side( search, summary )
+      main = new Main( article )
+
+      head = head.compile()
+      side = side.compile()
+      main = main.compile()
 
       page = util.dom('#page')
-      side = util.dom('#side')
-      main = util.dom('#main')
 
-      page.append(cover.compile())
-      side.append(search.compile())
-      side.append(util.dom('#h5-nav-placeholder'))
-      side.append(summary.compile())
-      main.append(article.compile())
-
-      page.append(head.compile())
-      page.append(side)
-      page.append(main)
+      page.append( cover )
+      page.append( head )
+      page.append( side )
+      page.append( main )
 
       return page.htmlSelf()
 

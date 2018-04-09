@@ -147,8 +147,11 @@ Page.layout = ( page ) =>
 
    Breeze.headHeight = head.height()
 
-   Side.setTop( side )
-   Main.setTop( main )
+   if Breeze.isH5
+      Main.setTop( main )
+   else
+      Side.setTop( side )
+      Main.setTop( main )
 
 
 

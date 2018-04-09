@@ -23,10 +23,10 @@ isH5 = () => {
 
 isUrl = (href) => {
   //#######################################
-  ///
-  ///   @params {string} href
-  ///   @return {boolean}
-  ///
+  //|
+  //|   @params {string} href
+  //|   @return {boolean}
+  //|
   //#######################################
   return /^(?:http)|(?:https)|(?:ftp):\/\//.test(href);
 };
@@ -34,12 +34,12 @@ isUrl = (href) => {
 filePath = (href = '') => {
   var basePath, path;
   //#######################################
-  ///
-  ///   @params {string} href
-  ///   @return {string} path
-  ///
-  ///   href  ->  basePath/href  ( won't format when href is url )
-  ///
+  //|
+  //|   @params {string} href
+  //|   @return {string} path
+  //|
+  //|   href  ->  basePath/href  ( won't format when href is url )
+  //|
   //#######################################
   if (exports.isUrl(href)) {
     return href;
@@ -79,14 +79,14 @@ id = (order, text = '') => {
 dom = (arg) => {
   var $el, classname, html, sel, tag;
   //#######################################
-  ///
-  ///   @params {string|HTMLElement} html|sel|$el
-  ///   @return {DOM}
-  ///
-  ///   <html>  ->  DOM
-  ///   sel#id  ->  DOM
-  ///   $el#id  ->  DOM
-  ///
+  //|
+  //|   @params {string|HTMLElement} html|sel|$el
+  //|   @return {DOM}
+  //|
+  //|   <html>  ->  DOM
+  //|   sel#id  ->  DOM
+  //|   $el#id  ->  DOM
+  //|
   //#######################################
   if (typeof arg === 'string') {
     if (arg[0] === '<') {
@@ -110,23 +110,23 @@ dom = (arg) => {
 parseSelector = (sel = 'div') => {
   var classname, hasClass, hasID, parts, tag;
   //#######################################
-  ///
-  ///   @params {string} sel
-  ///   @return {object} - {string} tag
-  ///                      {string} id
-  ///                      {string} classname
-  ///
-  ///
-  ///   'tag'            -> { tag: 'tag' }
-  ///   '#id'            -> { tag: 'div', id: 'id' }
-  ///   '.classname'     -> { tag: 'div', classname: 'classname' }
-  ///   'tag#id'         -> { tag: 'tag', id: 'id' }
-  ///   'tag.classname'  -> { tag: 'tag', classname: 'classname' }
-  ///
-  ///
-  ///   This sel can't includes id and classname at the same time.
-  ///   This sel can't includes classname more than two.
-  ///
+  //|
+  //|   @params {string} sel
+  //|   @return {object} - {string} tag
+  //|                      {string} id
+  //|                      {string} classname
+  //|
+  //|
+  //|   'tag'            -> { tag: 'tag' }
+  //|   '#id'            -> { tag: 'div', id: 'id' }
+  //|   '.classname'     -> { tag: 'div', classname: 'classname' }
+  //|   'tag#id'         -> { tag: 'tag', id: 'id' }
+  //|   'tag.classname'  -> { tag: 'tag', classname: 'classname' }
+  //|
+  //|
+  //|   This sel can't includes id and classname at the same time.
+  //|   This sel can't includes classname more than two.
+  //|
   //#######################################
   hasID = /#/.test(sel);
   hasClass = /\./.test(sel);
@@ -5777,8 +5777,12 @@ Page.layout = (page) => {
     Head$1.hideWhenNothing(head);
   }
   Breeze.headHeight = head.height();
-  Side$1.setTop(side);
-  return Main$1.setTop(main);
+  if (Breeze.isH5) {
+    return Main$1.setTop(main);
+  } else {
+    Side$1.setTop(side);
+    return Main$1.setTop(main);
+  }
 };
 
 Page._moveNav = (page) => {

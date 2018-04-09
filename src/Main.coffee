@@ -17,6 +17,8 @@ module.exports = class Main
    #|
    #|   main.compile() -> html
    #|
+   #|   Main.setTop( main )
+   #|
    ########################################
 
 
@@ -51,3 +53,17 @@ module.exports = class Main
       main.append( @article )
 
       return main.htmlSelf()
+
+
+
+
+
+Main.setTop = ( main ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} main
+   #|
+   ########################################
+
+   main.css('paddingTop', Breeze.headHeight + 'px')

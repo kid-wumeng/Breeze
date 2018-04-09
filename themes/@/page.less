@@ -38,6 +38,7 @@
     justify-content: space-between;
     align-items: center;
     .hamburger{
+      display: none;
       width: 16px;
       height: 16px;
       background-repeat: no-repeat;
@@ -80,6 +81,11 @@
 
 @media ( max-width: 1024px ) {
   #page {
+    #head {
+      .hamburger{
+        display: block;
+      }
+    }
     #side {
       width: 65%;
       border: none !important;

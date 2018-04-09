@@ -136,16 +136,25 @@ Page.layout = ( page ) =>
    #|
    ########################################
 
+   head = page.find('#head')
+   side = page.find('#side')
+   main = page.find('#main')
+
    if Breeze.isH5
-      Page._replaceNav( page )
+      Page._moveNav( page )
+   else
+      Head.hideWhenNothing( head )
 
-   Page._layoutHead( page )
+   Breeze.headHeight = head.height()
+
+   Side.setTop( side )
+   Main.setTop( main )
 
 
 
 
 
-Page._replaceNav = ( page ) =>
+Page._moveNav = ( page ) =>
 
    ########################################
    #|
@@ -154,28 +163,7 @@ Page._replaceNav = ( page ) =>
    ########################################
 
    nav = page.find('#nav')
-   ph  = page.find('#h5-nav-placeholder')
-   ph.replace( nav )
 
-
-
-
-
-Page._layoutHead = ( page ) =>
-
-   ########################################
-   #|
-   #|   @params {DOM} page
-   #|
-   #|   Will set the Breeze.headHeight
-   #|
-   ########################################
-
-   head = page.find('#head')
-   side = page.find('#side')
-   main = page.find('#main')
-
-   Breeze.headHeight = head.height()
-
-   side.css('paddingTop', Breeze.headHeight + 'px')
-   main.css('paddingTop', Breeze.headHeight + 'px')
+   if nav
+      ph = page.find('#h5-nav-placeholder')
+      ph.replace( nav )

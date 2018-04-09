@@ -1662,7 +1662,7 @@ var Head_1 = Head = class Head {
   //|
   //|   head.compile() -> html
   //|
-  //|   Head.renderHamburger( head )
+  //|   Head.hideWhenNothing( head )
   //|
   //#######################################
   constructor(nav) {
@@ -1689,7 +1689,9 @@ var Head_1 = Head = class Head {
     right = util$3.dom('.right');
     hamburger = util$3.dom('.hamburger');
     left.append(hamburger);
-    right.append(this.nav);
+    if (this.nav) {
+      right.append(this.nav);
+    }
     head.append(left);
     head.append(center);
     head.append(right);
@@ -1698,21 +1700,19 @@ var Head_1 = Head = class Head {
 
 };
 
-Head.renderHamburger = (head) => {
-  var items, key;
+Head.hideWhenNothing = (head) => {
+  var others;
   //#######################################
   //|
-  //|   @params {string}   key
-  //|   @params {object[]} datas - [{ id, heading, content, example }]
+  //|   @params {DOM} head
   //|
-  //|   @return {object[]} items - [{ id, heading, content, example }]
+  //|   Hide head when only has hamburger ( when H5 )
   //|
   //#######################################
-  key = key.replace('\\', '\\\\');
-  key = key.replace(/(?:\s|\n)+/g, '');
-  items = Head._match(key, datas);
-  items = Head._sortItems(items);
-  return items;
+  others = head.findAll('#head > * > *:not(.hamburger)');
+  if (others.length === 0) {
+    return head.css('display', 'none');
+  }
 };
 
 var Side, util$4;
@@ -1731,7 +1731,9 @@ var Side_1 = Side = class Side {
   //|
   //|   side.compile() -> html
   //|
+  //|   Side.setTop( side )
   //|   Side.open( side )
+  //|   Side.close( side )
   //|
   //#######################################
   constructor(search, summary) {
@@ -1762,6 +1764,15 @@ var Side_1 = Side = class Side {
     return side.htmlSelf();
   }
 
+};
+
+Side.setTop = (side) => {
+  //#######################################
+  //|
+  //|   @params {DOM} side
+  //|
+  //#######################################
+  return side.css('paddingTop', Breeze.headHeight + 'px');
 };
 
 Side.open = (side) => {
@@ -1798,6 +1809,8 @@ var Main_1 = Main = class Main {
   //|
   //|   main.compile() -> html
   //|
+  //|   Main.setTop( main )
+  //|
   //#######################################
   constructor(article) {
     this._compile = this._compile.bind(this);
@@ -1822,6 +1835,15 @@ var Main_1 = Main = class Main {
     return main.htmlSelf();
   }
 
+};
+
+Main.setTop = (main) => {
+  //#######################################
+  //|
+  //|   @params {DOM} main
+  //|
+  //#######################################
+  return main.css('paddingTop', Breeze.headHeight + 'px');
 };
 
 var Nav, util$6;
@@ -1869,7 +1891,7 @@ var Nav_1 = Nav = class Nav {
   _compile() {
     var i, len, menu, menus, model, nav;
     if (!this._exist()) {
-      return this._compileEmpty();
+      return '';
     }
     model = util$6.dom(this.html);
     nav = util$6.dom('#nav');
@@ -5740,18 +5762,26 @@ var Page_1 = Page = class Page {
 };
 
 Page.layout = (page) => {
+  var head, main, side;
   //#######################################
   //|
   //|   @params {DOM} page
   //|
   //#######################################
+  head = page.find('#head');
+  side = page.find('#side');
+  main = page.find('#main');
   if (Breeze.isH5) {
-    Page._replaceNav(page);
+    Page._moveNav(page);
+  } else {
+    Head$1.hideWhenNothing(head);
   }
-  return Page._layoutHead(page);
+  Breeze.headHeight = head.height();
+  Side$1.setTop(side);
+  return Main$1.setTop(main);
 };
 
-Page._replaceNav = (page) => {
+Page._moveNav = (page) => {
   var nav, ph;
   //#######################################
   //|
@@ -5759,25 +5789,10 @@ Page._replaceNav = (page) => {
   //|
   //#######################################
   nav = page.find('#nav');
-  ph = page.find('#h5-nav-placeholder');
-  return ph.replace(nav);
-};
-
-Page._layoutHead = (page) => {
-  var head, main, side;
-  //#######################################
-  //|
-  //|   @params {DOM} page
-  //|
-  //|   Will set the Breeze.headHeight
-  //|
-  //#######################################
-  head = page.find('#head');
-  side = page.find('#side');
-  main = page.find('#main');
-  Breeze.headHeight = head.height();
-  side.css('paddingTop', Breeze.headHeight + 'px');
-  return main.css('paddingTop', Breeze.headHeight + 'px');
+  if (nav) {
+    ph = page.find('#h5-nav-placeholder');
+    return ph.replace(nav);
+  }
 };
 
 var Article$2, Cover$2, PageEventBus, Search$2, Side$2, Summary$2;
@@ -5805,6 +5820,7 @@ var PageEventBus_1 = PageEventBus = class PageEventBus {
   //#######################################
   constructor(page) {
     this._bindEvents = this._bindEvents.bind(this);
+    this._onLoadPage = this._onLoadPage.bind(this);
     this._onScrollArticle = this._onScrollArticle.bind(this);
     this._onClickMain = this._onClickMain.bind(this);
     this._onClickHamburger = this._onClickHamburger.bind(this);
@@ -5848,6 +5864,7 @@ var PageEventBus_1 = PageEventBus = class PageEventBus {
     //|   To bind all events of dom-tree.
     //|
     //#######################################
+    this._onLoadPage();
     window.addEventListener('scroll', this._onScrollArticle);
     this._side.on('mouseenter', () => {
       return this._isOverSide = true;
@@ -5882,6 +5899,25 @@ var PageEventBus_1 = PageEventBus = class PageEventBus {
     return this._searchClear.on('click', this._onClickSearchClear);
   }
 
+  _onLoadPage() {
+    var id;
+    //#######################################
+    //|
+    //|   When load the page,
+    //|
+    //|      1. active the summary
+    //|      2. scroll the summary
+    //|      3. scroll the article
+    //|
+    //#######################################
+    id = Breeze.getQuery().id;
+    if (id) {
+      Summary$2.activeTo(this._summary, id);
+      Summary$2.scrollTo(this._summary, id);
+      return Article$2.scrollTo(this._article, id);
+    }
+  }
+
   _onScrollArticle() {
     var href, id;
     //#######################################
@@ -5907,11 +5943,13 @@ var PageEventBus_1 = PageEventBus = class PageEventBus {
     //|
     //|   @params {DOM} main
     //|
-    //|   When click the head's hamburger ( when H5 ),
-    //|      1. if href is current page, hide the cover
+    //|   When click the main ( when H5 ),
+    //|      1. close side
     //|
     //#######################################
-    return Side$2.close(this._side);
+    if (Breeze.isH5) {
+      return Side$2.close(this._side);
+    }
   }
 
   _onClickHamburger(hamburger) {
@@ -5920,10 +5958,12 @@ var PageEventBus_1 = PageEventBus = class PageEventBus {
     //|   @params {DOM} hamburger
     //|
     //|   When click the head's hamburger ( when H5 ),
-    //|      1. if href is current page, hide the cover
+    //|      1. open side
     //|
     //#######################################
-    return Side$2.open(this._side);
+    if (Breeze.isH5) {
+      return Side$2.open(this._side);
+    }
   }
 
   _onClickCoverButton(button) {

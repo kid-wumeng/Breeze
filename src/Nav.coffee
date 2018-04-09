@@ -63,7 +63,7 @@ module.exports = class Nav
       ########################################
 
       if !@_exist()
-         return @_compileEmpty()
+         return ''
 
       model = util.dom( @html )
       nav   = util.dom('#nav')

@@ -76,6 +76,8 @@ module.exports = class PageEventBus
       #|
       ########################################
 
+      @_onLoadPage()
+
       window.addEventListener('scroll', @_onScrollArticle)
 
       @_side.on('mouseenter', => @_isOverSide = true)
@@ -97,6 +99,29 @@ module.exports = class PageEventBus
 
       @_searchInput.on('input', @_onInputSearchInput)
       @_searchClear.on('click', @_onClickSearchClear)
+
+
+
+
+
+   _onLoadPage: =>
+
+      ########################################
+      #|
+      #|   When load the page,
+      #|
+      #|      1. active the summary
+      #|      2. scroll the summary
+      #|      3. scroll the article
+      #|
+      ########################################
+
+      id = Breeze.getQuery().id
+
+      if id
+         Summary.activeTo( @_summary, id )
+         Summary.scrollTo( @_summary, id )
+         Article.scrollTo( @_article, id )
 
 
 
@@ -134,12 +159,13 @@ module.exports = class PageEventBus
       #|
       #|   @params {DOM} main
       #|
-      #|   When click the head's hamburger ( when H5 ),
-      #|      1. if href is current page, hide the cover
+      #|   When click the main ( when H5 ),
+      #|      1. close side
       #|
       ########################################
 
-      Side.close( @_side )
+      if Breeze.isH5
+         Side.close( @_side )
 
 
 
@@ -152,11 +178,12 @@ module.exports = class PageEventBus
       #|   @params {DOM} hamburger
       #|
       #|   When click the head's hamburger ( when H5 ),
-      #|      1. if href is current page, hide the cover
+      #|      1. open side
       #|
       ########################################
 
-      Side.open( @_side )
+      if Breeze.isH5
+         Side.open( @_side )
 
 
 

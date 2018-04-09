@@ -17,7 +17,7 @@ module.exports = class Head
    #|
    #|   head.compile() -> html
    #|
-   #|   Head.renderHamburger( head )
+   #|   Head.hideWhenNothing( head )
    #|
    ########################################
 
@@ -57,7 +57,7 @@ module.exports = class Head
       hamburger = util.dom('.hamburger')
 
       left.append( hamburger )
-      right.append( @nav )
+      right.append( @nav ) if @nav
 
       head.append( left )
       head.append( center )
@@ -69,21 +69,17 @@ module.exports = class Head
 
 
 
-Head.renderHamburger = ( head ) =>
+Head.hideWhenNothing = ( head ) =>
 
    ########################################
    #|
-   #|   @params {string}   key
-   #|   @params {object[]} datas - [{ id, heading, content, example }]
+   #|   @params {DOM} head
    #|
-   #|   @return {object[]} items - [{ id, heading, content, example }]
+   #|   Hide head when only has hamburger ( when H5 )
    #|
    ########################################
 
-   key = key.replace('\\', '\\\\')
-   key = key.replace(/(?:\s|\n)+/g, '')
+   others = head.findAll('#head > * > *:not(.hamburger)')
 
-   items = Head._match( key, datas )
-   items = Head._sortItems( items )
-
-   return items
+   if others.length is 0
+      head.css('display', 'none')

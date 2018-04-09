@@ -17,7 +17,9 @@ module.exports = class Side
    #|
    #|   side.compile() -> html
    #|
+   #|   Side.setTop( side )
    #|   Side.open( side )
+   #|   Side.close( side )
    #|
    ########################################
 
@@ -59,6 +61,20 @@ module.exports = class Side
       side.append( @summary )
 
       return side.htmlSelf()
+
+
+
+
+
+Side.setTop = ( side ) =>
+
+   ########################################
+   #|
+   #|   @params {DOM} side
+   #|
+   ########################################
+
+   side.css('paddingTop', Breeze.headHeight + 'px')
 
 
 

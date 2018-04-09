@@ -1,4 +1,4 @@
-<nav fixed jade>
+<nav jade>
   menu(name="Translations")
     item(name="世界语" href="/world")
     line

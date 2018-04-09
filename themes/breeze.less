@@ -1,6 +1,7 @@
 @import "@/base";
 @import "@/page";
 @import "@/side";
+@import "@/main";
 @import "@/nav";
 @import "@/cover";
 @import "@/search";
@@ -51,7 +52,7 @@ html {
 
 
 #nav {
-  @media ( min-width: 1024.1px ) {
+  @media @large {
     .menu h1         { color: #364149 }
     .menu h1 a       { color: #364149 }
     .menu:hover h1 a { color: #3A97FC }
@@ -69,7 +70,7 @@ html {
     }
   }
 
-  @media ( max-width: 1024px ) {
+  @media @small {
     .menu h1   { color: #A2AEBA }
     .menu h1 a { color: #364149 }
 
@@ -217,7 +218,7 @@ html {
 
 
 
-@media ( max-width: 1024px ) {
+@media @small {
   #nav {
     border-bottom: @border;
   }

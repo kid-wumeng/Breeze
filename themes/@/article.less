@@ -1,11 +1,15 @@
 /* ----------------------------------------
 
-   The common { article } styles.
-
    #article
      .section
+       .heading
        .content
        .example
+     .section
+       .heading
+       .content
+       .example
+     ...
 
 ---------------------------------------- */
 
@@ -190,7 +194,7 @@
 }
 
 
-@media ( max-width: 1024px ) {
+@media @small {
   #article{
     .section > h1,
     .section > h2,

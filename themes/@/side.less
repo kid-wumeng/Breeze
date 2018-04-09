@@ -1,6 +1,6 @@
 /* ----------------------------------------
 
-   The common { side } styles.
+   #side
 
 ---------------------------------------- */
 
@@ -18,7 +18,6 @@
 }
 
 
-
 @media @small {
   #side {
     z-index: 3;
@@ -27,8 +26,8 @@
     box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
     transition: transform 0.3s ease;
     transform: translate3d(-120%, 0, 0);
-  }
-  #side.open {
-    transform: translate3d(0, 0, 0);
+    &.open {
+      transform: translate3d(0, 0, 0);
+    }
   }
 }

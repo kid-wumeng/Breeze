@@ -1,0 +1,34 @@
+/* ----------------------------------------
+
+   The common { side } styles.
+
+---------------------------------------- */
+
+
+#side {
+ position: fixed;
+ left: 0;
+ top: 0;
+ z-index: 1;
+ width: 240px;
+ height: 100%;
+ overflow: scroll;
+ user-select: none;
+ -webkit-overflow-scrolling: touch;
+}
+
+
+
+@media @small {
+  #side {
+    z-index: 3;
+    width: 65%;
+    border: none !important;
+    box-shadow: 0 0 2px rgba(0, 0, 0, 0.25);
+    transition: transform 0.3s ease;
+    transform: translate3d(-120%, 0, 0);
+  }
+  #side.open {
+    transform: translate3d(0, 0, 0);
+  }
+}

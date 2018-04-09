@@ -51,7 +51,10 @@ module.exports = class Loader
       @_read normalPath, ( normal ) =>
 
          if normal?
-            @_findOrReadCommon commonPaths, ( common ) => done( common + normal )
+            if Breeze.config('useCommon')
+               @_findOrReadCommon commonPaths, ( common ) => done( common + normal )
+            else
+               done( normal )
 
          else fail()
 

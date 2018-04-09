@@ -696,9 +696,13 @@ var Loader_web = Loader = class Loader {
     commonPaths = this._formatCommonPaths(path);
     return this._read(normalPath, (normal) => {
       if (normal != null) {
-        return this._findOrReadCommon(commonPaths, (common) => {
-          return done(common + normal);
-        });
+        if (Breeze.config('useCommon')) {
+          return this._findOrReadCommon(commonPaths, (common) => {
+            return done(common + normal);
+          });
+        } else {
+          return done(normal);
+        }
       } else {
         return fail();
       }
@@ -6290,8 +6294,7 @@ var Breeze_1 = Breeze$1 = class Breeze extends ObservableObject$1 {
     this._config = this._config.bind(this);
     this._options = {};
     this._config('basePath', '');
-    this._config('common.use', false);
-    this._config('common.map', {});
+    this._config('useCommon', false);
     this._config('summary.showLevel', 3);
     this._config('summary.showOrderLevel', 0);
     this._config('article.showOrderLevel', 0);

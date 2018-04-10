@@ -4801,23 +4801,27 @@ var Article_1 = Article = class Article {
     this._checkLine = this._checkLine.bind(this);
     this._parseHeadings = this._parseHeadings.bind(this);
     this._parseHeading = this._parseHeading.bind(this);
+    this._encodeEscapedChar = this._encodeEscapedChar.bind(this);
     this._parseOrder = this._parseOrder.bind(this);
     this._compile = this._compile.bind(this);
     this._compileSection = this._compileSection.bind(this);
     this._compileHeading = this._compileHeading.bind(this);
     this._compileContent = this._compileContent.bind(this);
     this._compileExample = this._compileExample.bind(this);
-    this._compileHTML = this._compileHTML.bind(this);
+    this._replaceSpecialTag = this._replaceSpecialTag.bind(this);
     this._compilePre = this._compilePre.bind(this);
     this._compileApi = this._compileApi.bind(this);
     this._isTag = this._isTag.bind(this);
     this._render = this._render.bind(this);
+    this._createRenderer = this._createRenderer.bind(this);
+    this._renderer_html = this._renderer_html.bind(this);
     //#######################################
     //|
     //|   @params {string} markdown
     //|
     //#######################################
     this.markdown = markdown;
+    this.renderer = this._createRenderer();
     this.parse = this._parse;
     this.compile = this._compile;
     this.render = this._render;
@@ -4977,11 +4981,31 @@ var Article_1 = Article = class Article {
       results = heading.match(/^(#+)\s*(.*)$/);
       lv = results[1].length;
       text = results[2];
+      text = this._replaceSpecialTag(text);
+      text = this._encodeEscapedChar(text);
       order = this._parseOrder(lv, prev != null ? prev.order : void 0);
       return {lv, order, text};
     } else {
       return null;
     }
+  }
+
+  _encodeEscapedChar(text) {
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|   @return {string} text
+    //|
+    //|   <  =>  &lt;
+    //|   >  =>  &gt;
+    //|
+    //#######################################
+    text = text.replace(/&/g, '&amp;');
+    text = text.replace(/</g, '&lt;');
+    text = text.replace(/>/g, '&gt;');
+    text = text.replace(/"/g, '&quot;');
+    text = text.replace(/'/g, '&#39;');
+    return text;
   }
 
   _parseOrder(lv, prevOrder) {
@@ -5076,55 +5100,54 @@ var Article_1 = Article = class Article {
     if (lv <= Breeze.config('article.showOrderLevel')) {
       text = `${order} ${text}`;
     }
-    return `<h${lv} class="heading">${text.trim()}</h${lv}>`;
+    text = text.trim();
+    text = this._replaceSpecialTag(text);
+    return `<h${lv} class="heading">${text}</h${lv}>`;
   }
 
   _compileContent(content) {
-    var renderer;
     //#######################################
     //|
     //|   @params {string} content ( markdown )
     //|   @return {string} content ( html )
     //|
     //#######################################
-    renderer = new marked$1.Renderer();
-    renderer.html = this._compileHTML;
-    content = marked$1(content, {renderer});
+    content = this._replaceSpecialTag(content);
+    content = marked$1(content, {
+      renderer: this.renderer
+    });
     return `<div class="content">${content}</div>`;
   }
 
   _compileExample(example) {
-    var renderer;
     //#######################################
     //|
     //|   @params {string} example ( markdown )
     //|   @return {string} example ( html )
     //|
     //#######################################
-    renderer = new marked$1.Renderer();
-    renderer.html = this._compileHTML;
-    example = marked$1(example, {renderer});
+    example = this._replaceSpecialTag(example);
+    example = marked$1(example, {
+      renderer: this.renderer
+    });
     return `<div class="example">${example}</div>`;
   }
 
-  _compileHTML(html) {
+  _replaceSpecialTag(text) {
     //#######################################
     //|
-    //|   @params {string} html
-    //|   @return {string} html
+    //|   @params {string} text
+    //|   @return {string} text
     //|
-    //|   For renderer.html
+    //|   <EXAMPLE>...</EXAMPLE>  =>  <example>...</example>
+    //|   <JADE>...</JADE>        =>  <jade>...</jade>
     //|
     //#######################################
-    html = html.trim();
-    switch (false) {
-      case !this._isTag('pre', html):
-        return this._compilePre(html);
-      case !this._isTag('api', html):
-        return this._compileApi(html);
-      default:
-        return html;
-    }
+    text = text.replace(/<EXAMPLE>/g, '<example>');
+    text = text.replace(/<\/EXAMPLE>/g, '</example>');
+    text = text.replace(/<JADE>/g, '<jade>');
+    text = text.replace(/<\/JADE>/g, '</jade>');
+    return text;
   }
 
   _compilePre(html) {
@@ -5176,6 +5199,36 @@ var Article_1 = Article = class Article {
     //|
     //#######################################
     return util$10.dom(this._compile());
+  }
+
+  _createRenderer() {
+    var renderer;
+    //#######################################
+    //|
+    //|   @return {marked.Renderer} renderer
+    //|
+    //#######################################
+    renderer = new marked$1.Renderer();
+    renderer.html = this._renderer_html;
+    return renderer;
+  }
+
+  _renderer_html(html) {
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|   @return {string} html
+    //|
+    //#######################################
+    html = html.trim();
+    switch (false) {
+      case !this._isTag('pre', html):
+        return this._compilePre(html);
+      case !this._isTag('api', html):
+        return this._compileApi(html);
+      default:
+        return html;
+    }
   }
 
 };

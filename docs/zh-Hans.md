@@ -157,28 +157,27 @@ Breeze 支持的 Markdown 语法标准：
 
 > 由于 Breeze 中解析 Markdown 语法的部分依赖 [marked.js](marked.js.org)，这个库仅支持通用语法与核心 GFM 语法，而不支持扩展 GFM 语法，例如 [Task list items](https://github.github.com/gfm/#task-list-items-extension-) 等，可以参考 [这个 issue](https://github.com/markedjs/marked/issues/956) 了解更多。
 
-> Breeze 将通过 ** < 特殊标签 > ** 弥补一些功能。
+> Breeze 将通过 ** < 标签 > ** 弥补一些功能。
 
 
 
 
 
-# 特殊标签
+# 标签
 
-Markdown 本身支持 HTML 标签，理论上，你可以使用任何符合规范的标签，并自定义CSS实现一些特别的外观。Breeze 预定义了一部分特殊标签，使他们具备独特的功能，方便你编写文档。
+Breeze 预定义了一些特别的 HTML 标签，帮助你更好地编写文档。
 
-## &lt;example&gt;
+当然，因为 Markdown 本身支持 HTML 标签，你完全可以配合 CSS 自己定制标签。
 
-任何被 &lt;example&gt; 标签包裹的内容，都会被放到右侧分栏：
+## <example>
 
+任何被 <example\> 标签包裹的内容，都会被放到右侧分栏：
 
 ####
 
-
-
 <pre>
 <code>
-&lt;example&gt;
+&lt;/example&gt;
 
 this is a method example,
 
@@ -196,7 +195,6 @@ function add (a, b) {
 </pre>
 
 
-
 <example>
 this is a method example,
 
@@ -210,64 +208,62 @@ function add (a, b) {
 ```
 </example>
 
+你能看到，<example\> 标签除了可以放代码，也可以放任何 Markdown 语句。
 
-你能看到，&lt;example&gt; 标签除了可以放代码，也可以放任何 markdown 语句。事实上，&lt;example&gt; 的功能，只是将它包裹的内容从中栏移动到右栏。
-
-Breeze 将同一个标题下的内容视为一个整体，假设有如下内容：
+Breeze 将同一个标题下的内容视为一组，例如：
 
 ####
 
-<pre><code>&#35; A heading
-this is content 1.
-this is content 2.
-&lt;example&gt;this is example 2.&lt;/example&gt;</code></pre>
+```md
+# A heading
+this is content 1
+this is content 2
+<EXAMPLE>this is example 2</EXAMPLE>
+```
 
-这段标签文本，实际上会形成以下HTML结构：
+右侧展示了编译后的 HTML 结构。
 
 <example>
 ```html
 <section>
-  <contents>
-    <h1>A heading</h1>
-    <p>this is content 1.</p>
-    <p>this is content 2.</p>
-  </contents>
-  <examples>
-    <p>this is example 2.</p>
-  </examples>
+  <h1>A heading</h1>
+  <content>
+    <p>this is content 1</p>
+    <p>this is content 2</p>
+  </content>
+  <EXAMPLE>
+    <p>this is example 2</p>
+  </EXAMPLE>
 </section>
 ```
 </example>
 
+就这个例子而言，你的本意可能是希望`example 2`能与`content 2`平行对齐，但现在`example 2`将与`content 2`对齐。为了避免这点，你可以借助一个空的 h4 ~ h6 标题：
 
-你的本意可能希望`example 2`能与`content 2`平行对齐，但现在`example 2`将与`A heading`对齐。为了避免这点，你可以借助一个空的 h4 ~ h6 标题：
+我的个人习惯是，侧栏中的概要只显示 h1 ~ h3 的链接，在需要的时候，用一个 h4 来隐式分组对齐。当然，你可以按自己的喜好决定。
 
 ####
 
-<pre><code>&#35; A heading
-this is content 1.
+```md
+# A heading
+this is content 1
 
-&#35;&#35;&#35;&#35;
-this is content 2.
-&lt;example&gt;this is example 2.&lt;/example&gt;</code></pre>
+####
+this is content 2
+<EXAMPLE>this is example 2</EXAMPLE>
+```
 
 <example>
 ```html
 <section>
-  <contents>
-    <h1>A heading</h1>
-    <p>this is content 1.</p>
-  </contents>
+  <h1>A heading</h1>
+  <content><p>this is content 1</p></content>
 </section>
 
 <section>
-  <contents>
-    <h4></h4>
-    <p>this is content 2.</p>
-  </contents>
-  <examples>
-    <p>this is example 2.</p>
-  </examples>
+  <h4></h4>
+  <content><p>this is content 2</p></content>
+  <EXAMPLE><p>this is example 2</p></EXAMPLE>
 </section>
 ```
 </example>
@@ -279,7 +275,7 @@ this is content 2.
 
 
 
-## &lt;api&gt;
+## <api>
 
 API 参数表是写文档时一个很常见的需求，比如方法的调用参数，在线服务的请求参数等。以往我们会有列表或表格的形式来表达它，现在有专门的 &lt;api&gt; 标签来处理。以下是一个参数表示例，而它的书写格式在右面。
 
@@ -328,7 +324,7 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
 
 
 
-## &lt;jade&gt;
+## <JADE>
 
 
 ####

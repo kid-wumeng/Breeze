@@ -57,7 +57,8 @@ module.exports = class Article
       #|
       ########################################
 
-      @markdown  = markdown
+      @markdown = markdown
+      @renderer = @_createRenderer()
 
       @parse   = @_parse
       @compile = @_compile
@@ -251,12 +252,39 @@ module.exports = class Article
          lv   = results[1].length
          text = results[2]
 
+         text = @_replaceSpecialTag( text )
+         text = @_encodeEscapedChar( text )
+
          order = @_parseOrder( lv, prev?.order )
 
          return { lv, order, text }
 
       else
          return null
+
+
+
+
+
+   _encodeEscapedChar: ( text ) =>
+
+      ########################################
+      #|
+      #|   @params {string} text
+      #|   @return {string} text
+      #|
+      #|   <  =>  &lt;
+      #|   >  =>  &gt;
+      #|
+      ########################################
+
+      text = text.replace(/&/g, '&amp;')
+      text = text.replace(/</g, '&lt;')
+      text = text.replace(/>/g, '&gt;')
+      text = text.replace(/"/g, '&quot;')
+      text = text.replace(/'/g, '&#39;')
+
+      return text
 
 
 
@@ -372,7 +400,10 @@ module.exports = class Article
       if lv <= Breeze.config('article.showOrderLevel')
          text = "#{order} #{text}"
 
-      return "<h#{lv} class=\"heading\">#{text.trim()}</h#{lv}>"
+      text = text.trim()
+      text = @_replaceSpecialTag( text )
+
+      return "<h#{ lv } class=\"heading\">#{ text }</h#{ lv }>"
 
 
 
@@ -387,10 +418,8 @@ module.exports = class Article
       #|
       ########################################
 
-      renderer = new marked.Renderer()
-      renderer.html = @_compileHTML
-
-      content = marked(content, { renderer })
+      content = @_replaceSpecialTag(content)
+      content = marked(content, { renderer: @renderer })
 
       return "<div class=\"content\">#{ content }</div>"
 
@@ -407,10 +436,8 @@ module.exports = class Article
       #|
       ########################################
 
-      renderer = new marked.Renderer()
-      renderer.html = @_compileHTML
-
-      example = marked(example, { renderer })
+      example = @_replaceSpecialTag(example)
+      example = marked(example, { renderer: @renderer })
 
       return "<div class=\"example\">#{ example }</div>"
 
@@ -418,23 +445,24 @@ module.exports = class Article
 
 
 
-   _compileHTML: ( html ) =>
+   _replaceSpecialTag: ( text ) =>
 
       ########################################
       #|
-      #|   @params {string} html
-      #|   @return {string} html
+      #|   @params {string} text
+      #|   @return {string} text
       #|
-      #|   For renderer.html
+      #|   <EXAMPLE>...</EXAMPLE>  =>  <example>...</example>
+      #|   <JADE>...</JADE>        =>  <jade>...</jade>
       #|
       ########################################
 
-      html = html.trim()
+      text = text.replace(/<EXAMPLE>/g,   '<example>')
+      text = text.replace(/<\/EXAMPLE>/g, '</example>')
+      text = text.replace(/<JADE>/g,      '<jade>')
+      text = text.replace(/<\/JADE>/g,    '</jade>')
 
-      switch
-         when @_isTag('pre', html) then @_compilePre( html )
-         when @_isTag('api', html) then @_compileApi( html )
-         else html
+      return text
 
 
 
@@ -505,6 +533,43 @@ module.exports = class Article
       ########################################
 
       return util.dom(@_compile())
+
+
+
+
+
+    _createRenderer: =>
+
+       ########################################
+       #|
+       #|   @return {marked.Renderer} renderer
+       #|
+       ########################################
+
+       renderer = new marked.Renderer()
+       renderer.html = @_renderer_html
+
+       return renderer
+
+
+
+
+
+    _renderer_html: ( html ) =>
+
+       ########################################
+       #|
+       #|   @params {string} html
+       #|   @return {string} html
+       #|
+       ########################################
+
+       html = html.trim()
+
+       switch
+          when @_isTag('pre', html) then @_compilePre( html )
+          when @_isTag('api', html) then @_compileApi( html )
+          else html
 
 
 

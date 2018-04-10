@@ -1,51 +1,18 @@
-<nav jade>
-  menu(name="Translations")
-    item(name="世界语" href="/world")
-    line
-    item(name="欧文")
-    item(name="English" href="/")
-    line
-    item(name="亚文")
-    item(name="简体中文与繁体中文" href="/zh-Hans")
-    item(name="日本語" href="/jp-jp")
-  menu(name="API" href="/api")
-</nav>
+嗨，朋友们 ~ ,,Ծ‸Ծ,,
+
+让我来介绍一下 Breeze，她是一个小巧的网页文档生成器，能让你用最简单的方式，制作最精美的线上 API 文档。
+
+你正在看的这份指南，便是她的手笔哟！
+
+这是一个优雅的三栏布局：左侧是导航，中间是正文，而右侧是代码示例，结构清晰。而且 Breeze 采用响应式设计，对移动端进行了适配。
+
+不同于 Hexo、GitBook、Slate 等传统工具，Breeze 遵守 **< 纯动态 >** 的设计理念：你只需写好`.md`文件，但**用不着**编译为 HTML 文档，Breeze 会在页面加载时，动态解析 Markdown 语法并渲染出来。
+
+别担心性能问题，因为现代浏览器真的非常快。相信我，当你习惯这种无缝的撰写体验，你真的会爱上写文档！
+
+让我们从一个 Quick Start 开始，让你彻底了解 Breeze 用起来是多么简单 ~
 
 
-
-<cover2>
-  <logo src="logo.svg"/>
-  <!-- <name>Breeze</name> -->
-  <desc>超简单、超漂亮的 API 文档生成器！</desc>
-
-  <item>无需 build 成 HTML，愉快的撰写体验</item>
-  <item>轻量 ( ~15kB gzipped )</item>
-  <item>多主题，易扩展</item>
-
-  <button href="https://github.com/kid-wumeng/Breeze">Github</button>
-  <button active href="#yyhh">阅读文档</button>
-</cover2>
-
-
-This is Breeze.
-
-<div>
-  <item lv="1" href="#qs">
-    <name>Quick Start</name>
-  </item>
-  <item lv="2" href="#fff">
-    <name>怎样使用怎样使用怎样使用怎样使用怎样使用</name>
-  </item>
-  <item lv="2">
-    <name>怎样使用怎样使用怎样使用怎样使用怎样使用</name>
-  </item>
-  <item lv="3" href="#md">
-    <name>Markdown</name>
-  </item>
-  <item lv="3" href="#jade">
-    <name>Jade</name>
-  </item>
-</div>
 
 
 
@@ -53,70 +20,150 @@ This is Breeze.
 
 
 
-## Breeze 是什么
-
-(｡･∀･)ﾉﾞ嗨，兄弟们 ~ 给你们介绍一下 Breeze ( 微风 )，她是一个小巧的网页文档生成器，用于制作漂亮的 API 文档或技术博客。
-
-你正在读的这份指南便是她的手笔，优雅的三栏布局：左侧是导航，中间是正文，而右侧是代码示例，结构十分清晰。
-
-不同于 Hexo、GitBook、Slate 等传统工具，Breeze 采用了**纯动态**的设计理念：你写好`.md`文件，**不用编译为HTML文档**，Breeze 会在页面加载时，动态解析语法并渲染出来。
-
-别担心性能，现代浏览器真的很快，你应该享受无缝写文档的快乐！
-
-让我们用一个 Quick Start 让你理解，使用 Breeze 写文档有多简单。
-
-
-
 ## 如何使用
 
-####
+首先建立一个`index.html`文件：
 
-你要做的第一件事是准备一个`index.html`文件，如右侧所示：
-
-<example>
 ```html
 <!DOCTYPE html>
 <html>
 <head>
-   <link rel="stylesheet" href="breeze.css">
+  <link rel="stylesheet" href="breeze.css">
 </head>
 <body>
-   <script src="breeze.js"></script>
+  <script src="breeze.js"></script>
 </body>
 </html>
 ```
-</example>
 
-####
+然后在同一个目录中建立``README.md``文件，随便写上几句：
 
-第二件事是准备一个``README.md``，随便写几句内容：
-
-<example>
-```
+```md
 # hello world
 this is my first document by Breeze ~ !
 ```
-</example>
+
+好的，全部搞定！现在你可以用浏览器打开`index.html`看看效果。
+
+使用 Breeze 就是这么简单，你要做的仅仅是引用`breeze.js`与`breeze.css`，然后便可以专心编写文档，一切杂事交给 Breeze 处理即可。
+
+
+
+
+
+## 多页文档
+
+一个网站可能由多份文档组成，比如`guide.md`、`api.md`等，Breeze 会自动处理好它们之间的路由映射。例如你创建了`api.md`，那么它对应的路由是`/#/api`。
+
+假设有以下目录结构，右侧展示了当你访问网站时，哪个 url 会加载哪个`.md`文件：
 
 ####
 
-好了，这就搞定了！你可以马上用浏览器打开`index.html`看看效果，是不是很简单？
+```
+-| index.html
+-| README.md
+-| api.md
+-| api/
+  -| README.md
+  -| math.md
+```
 
-#### 特性
+<example>
+```
+http://xxx.com             =>  README.md
+http://xxx.com/#/api       =>  api.md
+http://xxx.com/#/api/      =>  api/README.md
+http://xxx.com/#/api/math  =>  api/math.md
+```
+</example>
 
-让我们看看 Breeze 有哪些优点：
+你可能会好奇，为什么路径中会包含`#/`呢？
 
-* 便捷：无需构建，所写即所得
-* 轻量：仅需引用一份JS、一份CSS
-* 漂亮：预设多套主题，并且很容易定制样式
-* 单页架构，支持多文档结构
-* 全文检索
+因为 Breeze 默认采用单页架构 ( Single-Page Application, SPA ) ，当用户从一个页面跳转到另一个页面时，Breeze 会加载相应的`.md`文件，而不会刷新整个页面。
+
+SPA 能够带来流畅的用户体验。
+
+
+
+
+
+## 跳转规则
+
+你的文档里肯定有大量链接，Breeze 遵循以下跳转规则。
+
+
+
+### 1. 外部 URL
+
+你可以跳转到一个网络地址，必须指定包括协议在内的完整 url。
+
+<example>
+```
+[Breeze](https://github.com/kid-wumeng/Breeze)
+>>
+https://github.com/kid-wumeng/Breeze
+```
+</example>
+
+
+
+### 2. 本页 ID
+
+Breeze 会自动提取标题 ( h1 ~ h6 ) 为 ID，你可以跳转到任意 ID，ID 以`#`开头。
+
+<example>
+若当前页为`http://xxx.com/#/api/`
+
+```
+[Math](#math)  >>  http://xxx.com/#/api?id=math
+```
+</example>
+
+
+
+### 3. 其它页
+
+跳转到另一个文档页面时，开头的`/`是可选的。
+
+<example>
+```
+[Math](/api/math)  >>  http://xxx.com/#/api/math
+[Math](api/math)   >>  http://xxx.com/#/api/math
+```
+</example>
+
+
+
+### 4. 其它页 ID
+
+可以在跳转到其它页时顺便指定 ID。
+
+<example>
+```
+[Math.sqr](api/math#sqr)  >>  http://xxx.com/#/api/math?id=sqr
+```
+</example>
+
+
+
+
 
 ## Markdown
 
-Breeze 支持 [GitHub 风格的 Markdown 语法](https://github.github.com/gfm/)
+Breeze 支持的 Markdown 语法标准：
 
-# 标签
+- [CommonMark Spec](http://spec.commonmark.org/0.28/)
+- [GitHub Flavored Markdown Spec, GFM](https://github.github.com/gfm/)
+
+> 由于 Breeze 中解析 Markdown 语法的部分依赖 [marked.js](marked.js.org)，这个库仅支持通用语法与核心 GFM 语法，而不支持扩展 GFM 语法，例如 [Task list items](https://github.github.com/gfm/#task-list-items-extension-) 等，可以参考 [这个 issue](https://github.com/markedjs/marked/issues/956) 了解更多。
+
+> Breeze 将通过 ** < 特殊标签 > ** 弥补一些功能。
+
+
+
+
+
+# 特殊标签
 
 Markdown 本身支持 HTML 标签，理论上，你可以使用任何符合规范的标签，并自定义CSS实现一些特别的外观。Breeze 预定义了一部分特殊标签，使他们具备独特的功能，方便你编写文档。
 

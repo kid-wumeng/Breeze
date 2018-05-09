@@ -1240,1204 +1240,6 @@ var Router_1 = Router = class Router {
 
 };
 
-var Jade;
-
-var Jade_1 = Jade = class Jade {
-  //#######################################
-  //|
-  //|   new Jade( text )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       compiling jade-like to html.
-  //|   -----------------------------------
-  //|
-  //|   jade.compile() -> html
-  //|
-  //#######################################
-  constructor(text) {
-    this._compile = this._compile.bind(this);
-    this._parseNodes = this._parseNodes.bind(this);
-    this._parseNode = this._parseNode.bind(this);
-    this._parseDeep = this._parseDeep.bind(this);
-    this._parseTag = this._parseTag.bind(this);
-    this._parseAttr = this._parseAttr.bind(this);
-    this._parseText = this._parseText.bind(this);
-    this._parseTree = this._parseTree.bind(this);
-    this._compileTree = this._compileTree.bind(this);
-    this._compileNode = this._compileNode.bind(this);
-    //#######################################
-    //|
-    //|   @params {string} text
-    //|
-    //#######################################
-    this.text = text;
-    this.compile = this._compile;
-  }
-
-  _compile() {
-    var html, nodes, tree;
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
-    nodes = this._parseNodes(this.text);
-    tree = this._parseTree(nodes);
-    html = this._compileTree(tree);
-    return html;
-  }
-
-  _parseNodes(text) {
-    var lines, nodes;
-    //#######################################
-    //|
-    //|   @params {string}   text
-    //|   @return {object[]} nodes - [{ deep, tag, attr, text }]
-    //|
-    //#######################################
-    lines = text.split(/\n+/g);
-    nodes = lines.map((line) => {
-      if (line.trim()) {
-        return this._parseNode(line);
-      } else {
-        return null;
-      }
-    });
-    nodes = nodes.filter((node) => {
-      return node;
-    });
-    return nodes;
-  }
-
-  _parseNode(line) {
-    var attr, deep, rest, tag, text;
-    //#######################################
-    //|
-    //|   @params {string} line
-    //|   @return {object} - {number} deep
-    //|                      {string} tag
-    //|                      {string} attr
-    //|                      {string} text
-    //|
-    //#######################################
-    ({deep, rest} = this._parseDeep(line));
-    ({tag, rest} = this._parseTag(rest));
-    ({attr, rest} = this._parseAttr(rest));
-    ({text, rest} = this._parseText(rest));
-    return {deep, tag, attr, text};
-  }
-
-  _parseDeep(line) {
-    var deep, reg, rest;
-    //#######################################
-    //|
-    //|   @params {string} line
-    //|   @return {object} - {number} deep
-    //|                      {string} rest
-    //|
-    //#######################################
-    deep = 0;
-    reg = /^\s+/;
-    rest = line.replace(reg, (match) => {
-      deep = match.length;
-      return '';
-    });
-    return {deep, rest};
-  }
-
-  _parseTag(rest) {
-    var reg, tag;
-    //#######################################
-    //|
-    //|   @params {string} rest
-    //|   @return {object} - {string} tag
-    //|                      {string} rest
-    //|
-    //|   @errors when parse failed.
-    //|
-    //#######################################
-    tag = '';
-    reg = /^([A-Za-z0-9_\-]+)\s*/;
-    rest = rest.replace(reg, (_, match) => {
-      tag = match;
-      return '';
-    });
-    if (tag) {
-      return {tag, rest};
-    } else {
-      throw `Unknown jade-like syntax: ${this._line}`;
-    }
-  }
-
-  _parseAttr(rest) {
-    var attr, reg;
-    //#######################################
-    //|
-    //|   @params {string} rest
-    //|   @return {object} - {string} attr
-    //|                      {string} rest
-    //|
-    //#######################################
-    attr = '';
-    reg = /^\(([^)]*)\)/;
-    rest = rest.replace(reg, (_, match) => {
-      attr = match.trim();
-      return '';
-    });
-    return {attr, rest};
-  }
-
-  _parseText(rest) {
-    var text;
-    //#######################################
-    //|
-    //|   @params {string} rest
-    //|   @return {object} - {string} text
-    //|                      {string} rest
-    //|
-    //#######################################
-    text = rest.trim();
-    rest = '';
-    return {text, rest};
-  }
-
-  _parseTree(nodes) {
-    var deep, i, len, node, root, tree;
-    //#######################################
-    //|
-    //|   @params {object[]} nodes - [{ deep, tag, attr, text }]
-    //|   @return {object}   tree
-    //|
-    //#######################################
-    root = {};
-    tree = root;
-    deep = -1;
-    for (i = 0, len = nodes.length; i < len; i++) {
-      node = nodes[i];
-      if (node.deep > deep) {
-        if (tree.children == null) {
-          tree.children = [];
-        }
-        tree.children.push(node);
-        node.parent = tree;
-        tree = node;
-        deep = node.deep;
-      } else if (node.deep === deep) {
-        tree.parent.children.push(node);
-        node.parent = tree.parent;
-        tree = node;
-      } else if (node.deep < deep) {
-        while (node.deep <= tree.deep) {
-          tree = tree.parent;
-        }
-        tree.children.push(node);
-        node.parent = tree;
-        tree = node;
-        deep = node.deep;
-      }
-    }
-    return root;
-  }
-
-  _compileTree(tree) {
-    //#######################################
-    //|
-    //|   @params {object} tree - { tag, attr, text, children }
-    //|   @return {string} html
-    //|
-    //#######################################
-    return this._compileNode(tree);
-  }
-
-  _compileNode(node) {
-    var attr, children, end, html, start, tag, text;
-    //#######################################
-    //|
-    //|   @params {object} node - { tag, attr, text, children }
-    //|   @return {string} html
-    //|
-    //#######################################
-    ({tag, attr, text, children} = node);
-    start = tag ? `<${tag} ${attr}>` : '';
-    end = tag ? `</${tag}>` : '';
-    if (children) {
-      html = children.map(this._compileNode).join('');
-      return start + html + end;
-    } else {
-      return start + text + end;
-    }
-  }
-
-};
-
-var Jade$1, Markdown;
-
-Jade$1 = Jade_1;
-
-var Markdown_1 = Markdown = class Markdown {
-  //#######################################
-  //|
-  //|   new Markdown( text )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       compiling text to markdown and parsing some components,
-  //|       such as <nav>, <cover>, <summary> and so on.
-  //|   -----------------------------------
-  //|
-  //|   markdown.compile() -> markdown
-  //|   markdown.parse()   -> { nav, cover, summary, article }
-  //|
-  //#######################################
-  constructor(text) {
-    this._compile = this._compile.bind(this);
-    this._compileJadeByTag = this._compileJadeByTag.bind(this);
-    this._compileJadeByAttribute = this._compileJadeByAttribute.bind(this);
-    this._formatSelfClosingTag = this._formatSelfClosingTag.bind(this);
-    this._parse = this._parse.bind(this);
-    this._parseNav = this._parseNav.bind(this);
-    this._parseCover = this._parseCover.bind(this);
-    this._parseSummary = this._parseSummary.bind(this);
-    //#######################################
-    //|
-    //|   @params {string} text
-    //|
-    //#######################################
-    this.text = text;
-    this.compile = this._compile;
-    this.parse = this._parse;
-  }
-
-  _compile() {
-    var markdown, text;
-    //#######################################
-    //|
-    //|   @return {string} markdown
-    //|
-    //#######################################
-    text = this._compileJadeByTag(this.text);
-    text = this._compileJadeByAttribute(text);
-    text = this._formatSelfClosingTag(text);
-    return markdown = text;
-  }
-
-  _compileJadeByTag(text) {
-    var reg;
-    //#######################################
-    //|
-    //|   @params {string} text
-    //|   @return {string} text
-    //|
-    //|   Compile and replace the <jade>...</jade> to html.
-    //|
-    //#######################################
-    reg = /<jade>((?:.|\n)*?)<\/jade>/g;
-    return text.replace(reg, (_, text) => {
-      var html, jade;
-      jade = new Jade$1(text);
-      html = jade.compile();
-      return html;
-    });
-  }
-
-  _compileJadeByAttribute(text) {
-    var reg;
-    //#######################################
-    //|
-    //|   @params {string} text
-    //|   @return {string} text
-    //|
-    //|   Compile and replace the <tag jade>...</tag> to html.
-    //|
-    //#######################################
-    reg = /(<\s*(.+?)\s*.*\s+jade\s*.*>)((?:.|\n)*?)\s*(<\s*\/\2\s*>)/g;
-    return text.replace(reg, (_, start, name, text, end) => {
-      var html, jade;
-      jade = new Jade$1(text);
-      html = jade.compile();
-      return start + html + end;
-    });
-  }
-
-  _formatSelfClosingTag(text) {
-    var reg;
-    //#######################################
-    //|
-    //|   @params {string} text
-    //|   @return {string} text
-    //|
-    //|   Format and replace <tag/> to <tag></tag>
-    //|
-    //#######################################
-    reg = /<([A-Za-z_-]+)((?:\s|\n)+(?:[^<]|\n)*?)?\/>/g;
-    return text.replace(reg, (_, tag, attr = '') => {
-      return `<${tag} ${attr}></${tag}>`;
-    });
-  }
-
-  _parse() {
-    var article, cover, markdown, nav, summary;
-    //#######################################
-    //|
-    //|   @return {object} - {string} nav     ( html )
-    //|                      {string} cover   ( html )
-    //|                      {string} summary ( html )
-    //|                      {string} article ( markdown )
-    //|
-    //#######################################
-    markdown = this._compile();
-    ({nav, markdown} = this._parseNav(markdown));
-    ({cover, markdown} = this._parseCover(markdown));
-    ({summary, markdown} = this._parseSummary(markdown));
-    article = markdown.trim();
-    return {nav, cover, summary, article};
-  }
-
-  _parseNav(markdown) {
-    var nav, navReg;
-    //#######################################
-    //|
-    //|   @params {string} markdown
-    //|   @return {object} - {string} nav ( html )
-    //|                      {string} markdown
-    //|
-    //#######################################
-    nav = '';
-    navReg = /<nav(?:\s+.*)?>(?:.|\n)*?<\/nav>/g;
-    markdown = markdown.replace(navReg, (match) => {
-      nav = match;
-      return '';
-    });
-    return {nav, markdown};
-  }
-
-  _parseCover(markdown) {
-    var cover, coverReg;
-    //#######################################
-    //|
-    //|   @params {string} markdown
-    //|   @return {object} - {string} cover ( html )
-    //|                      {string} markdown
-    //|
-    //#######################################
-    cover = '';
-    coverReg = /<cover(?:\s+.*)?>(?:.|\n)*?<\/cover>/g;
-    markdown = markdown.replace(coverReg, (match) => {
-      cover = match;
-      return '';
-    });
-    return {cover, markdown};
-  }
-
-  _parseSummary(markdown) {
-    var summary, summaryReg;
-    //#######################################
-    //|
-    //|   @params {string} markdown
-    //|   @return {object} - {string} summary ( html )
-    //|                      {string} markdown
-    //|
-    //#######################################
-    summary = '';
-    summaryReg = /<summary.*?>(?:.|\n)*?<\/summary>/g;
-    markdown = markdown.replace(summaryReg, (match) => {
-      summary = match;
-      return '';
-    });
-    return {summary, markdown};
-  }
-
-};
-
-var Head, util$3;
-
-util$3 = util;
-
-var Head_1 = Head = class Head {
-  //#######################################
-  //|
-  //|   new Head( nav )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       handling the <div id="head">
-  //|   -----------------------------------
-  //|
-  //|   head.compile() -> html
-  //|
-  //|   Head.hideWhenNothing( head )
-  //|
-  //#######################################
-  constructor(nav) {
-    this._compile = this._compile.bind(this);
-    //#######################################
-    //|
-    //|   @params {string} nav-html
-    //|
-    //#######################################
-    this.nav = nav;
-    this.compile = this._compile;
-  }
-
-  _compile() {
-    var center, hamburger, head, left, right;
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
-    head = util$3.dom('#head');
-    left = util$3.dom('.left');
-    center = util$3.dom('.center');
-    right = util$3.dom('.right');
-    hamburger = util$3.dom('.hamburger');
-    left.append(hamburger);
-    if (this.nav) {
-      right.append(this.nav);
-    }
-    head.append(left);
-    head.append(center);
-    head.append(right);
-    return head.htmlSelf();
-  }
-
-};
-
-Head.hideWhenNothing = (head) => {
-  var others;
-  //#######################################
-  //|
-  //|   @params {DOM} head
-  //|
-  //|   Hide head when only has hamburger ( when H5 )
-  //|
-  //#######################################
-  others = head.findAll('#head > * > *:not(.hamburger)');
-  if (others.length === 0) {
-    return head.css('display', 'none');
-  }
-};
-
-var Side, util$4;
-
-util$4 = util;
-
-var Side_1 = Side = class Side {
-  //#######################################
-  //|
-  //|   new Side( search, summary )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       handling the <div id="side">
-  //|   -----------------------------------
-  //|
-  //|   side.compile() -> html
-  //|
-  //|   Side.setTop( side )
-  //|   Side.open( side )
-  //|   Side.close( side )
-  //|
-  //#######################################
-  constructor(search, summary) {
-    this._compile = this._compile.bind(this);
-    //#######################################
-    //|
-    //|   @params {string} search-html
-    //|   @params {string} summary-html
-    //|
-    //#######################################
-    this.search = search;
-    this.summary = summary;
-    this.compile = this._compile;
-  }
-
-  _compile() {
-    var navPH, side;
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
-    side = util$4.dom('#side');
-    navPH = util$4.dom('#h5-nav-placeholder');
-    side.append(this.search);
-    side.append(navPH);
-    side.append(this.summary);
-    return side.htmlSelf();
-  }
-
-};
-
-Side.setTop = (side) => {
-  //#######################################
-  //|
-  //|   @params {DOM} side
-  //|
-  //#######################################
-  return side.css('paddingTop', Breeze.headHeight + 'px');
-};
-
-Side.open = (side) => {
-  //#######################################
-  //|
-  //|   @params {DOM} side
-  //|
-  //#######################################
-  return side.addClass('open');
-};
-
-Side.close = (side) => {
-  //#######################################
-  //|
-  //|   @params {DOM} side
-  //|
-  //#######################################
-  return side.removeClass('open');
-};
-
-var Main, util$5;
-
-util$5 = util;
-
-var Main_1 = Main = class Main {
-  //#######################################
-  //|
-  //|   new Main( article )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       handling the <div id="main">
-  //|   -----------------------------------
-  //|
-  //|   main.compile() -> html
-  //|
-  //|   Main.setTop( main )
-  //|
-  //#######################################
-  constructor(article) {
-    this._compile = this._compile.bind(this);
-    //#######################################
-    //|
-    //|   @params {string} article-html
-    //|
-    //#######################################
-    this.article = article;
-    this.compile = this._compile;
-  }
-
-  _compile() {
-    var main;
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
-    main = util$5.dom('#main');
-    main.append(this.article);
-    return main.htmlSelf();
-  }
-
-};
-
-Main.setTop = (main) => {
-  //#######################################
-  //|
-  //|   @params {DOM} main
-  //|
-  //#######################################
-  return main.css('paddingTop', Breeze.headHeight + 'px');
-};
-
-var Nav, util$6;
-
-util$6 = util;
-
-var Nav_1 = Nav = class Nav {
-  //#######################################
-  //|
-  //|   new Nav( html )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       handling the <div id="nav">
-  //|   -----------------------------------
-  //|
-  //|   nav.compile() -> html
-  //|
-  //#######################################
-  constructor(html) {
-    this._exist = this._exist.bind(this);
-    this._compile = this._compile.bind(this);
-    this._compileEmpty = this._compileEmpty.bind(this);
-    this._compileMenu = this._compileMenu.bind(this);
-    this._compileMenuByLink = this._compileMenuByLink.bind(this);
-    this._compileMenuByItems = this._compileMenuByItems.bind(this);
-    this._compileItem = this._compileItem.bind(this);
-    this._compileItemByLink = this._compileItemByLink.bind(this);
-    this._compileItemByHint = this._compileItemByHint.bind(this);
-    this._compileLine = this._compileLine.bind(this);
-    //#######################################
-    //|
-    //|   @params {string} html
-    //|
-    //#######################################
-    this.html = html;
-    this.exist = this._exist;
-    this.compile = this._compile;
-  }
-
-  _exist() {
-    return !!this.html;
-  }
-
-  _compile() {
-    var i, len, menu, menus, model, nav;
-    if (!this._exist()) {
-      return '';
-    }
-    model = util$6.dom(this.html);
-    nav = util$6.dom('#nav');
-    menus = model.findAll('nav > menu');
-    for (i = 0, len = menus.length; i < len; i++) {
-      menu = menus[i];
-      menu = this._compileMenu(menu);
-      nav.append(menu);
-    }
-    return nav.htmlSelf();
-  }
-
-  _compileEmpty() {
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
-    return "<div id=\"nav\" style=\"display: none\"/>";
-  }
-
-  _compileMenu(menu) {
-    //#######################################
-    //|
-    //|   @params {DOM} menu
-    //|   @return {DOM} div.menu
-    //|
-    //#######################################
-    if (menu.attr('href') != null) {
-      return this._compileMenuByLink(menu);
-    } else {
-      return this._compileMenuByItems(menu);
-    }
-  }
-
-  _compileMenuByLink(menu) {
-    var a, h1, href, name;
-    //#######################################
-    //|
-    //|   @params {DOM} menu
-    //|   @return {DOM} div.menu
-    //|
-    //#######################################
-    name = menu.attr('name');
-    href = menu.attr('href');
-    h1 = util$6.dom('h1');
-    a = util$6.dom('a').attr('href', href).text(name);
-    h1.append(a);
-    return util$6.dom('.menu').append(h1);
-  }
-
-  _compileMenuByItems(menu) {
-    var h1, i, item, items, len, li, name, ul;
-    //#######################################
-    //|
-    //|   @params {DOM} menu
-    //|   @return {DOM} div.menu
-    //|
-    //#######################################
-    name = menu.attr('name');
-    items = menu.findAll('menu > item, menu > line');
-    h1 = util$6.dom('h1').text(name).addClass('hint');
-    ul = util$6.dom('ul');
-    for (i = 0, len = items.length; i < len; i++) {
-      item = items[i];
-      switch (item.tag()) {
-        case 'item':
-          li = this._compileItem(item);
-          break;
-        case 'line':
-          li = this._compileLine(item);
-      }
-      ul.append(li);
-    }
-    return util$6.dom('.menu').append(h1).append(ul);
-  }
-
-  _compileItem(item) {
-    //#######################################
-    //|
-    //|   @params {DOM} item
-    //|   @return {DOM} li
-    //|
-    //#######################################
-    if (item.attr('href') != null) {
-      return this._compileItemByLink(item);
-    } else {
-      return this._compileItemByHint(item);
-    }
-  }
-
-  _compileItemByLink(item) {
-    var a, href, li, name;
-    //#######################################
-    //|
-    //|   @params {DOM} item
-    //|   @return {DOM} li
-    //|
-    //#######################################
-    name = item.attr('name');
-    href = item.attr('href');
-    li = util$6.dom('li');
-    a = util$6.dom('a').attr('href', href).text(name);
-    return li.append(a);
-  }
-
-  _compileItemByHint(item) {
-    var li, name;
-    //#######################################
-    //|
-    //|   @params {DOM} item
-    //|   @return {DOM} li
-    //|
-    //#######################################
-    name = item.attr('name');
-    li = util$6.dom('li.hint').text(name);
-    return li;
-  }
-
-  _compileLine() {
-    //#######################################
-    //|
-    //|   @return {DOM} li
-    //|
-    //#######################################
-    return util$6.dom('li.line');
-  }
-
-};
-
-var Cover, util$7;
-
-util$7 = util;
-
-var Cover_1 = Cover = class Cover {
-  //#######################################
-  //|
-  //|   new Cover( html )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       handling the <div id="cover">
-  //|   -----------------------------------
-  //|
-  //|   cover.compile() -> html
-  //|   cover.render()  -> dom
-  //|
-  //|   Cover.hide( dom )
-  //|
-  //#######################################
-  constructor(html) {
-    this._exist = this._exist.bind(this);
-    this._compile = this._compile.bind(this);
-    this._compileEmpty = this._compileEmpty.bind(this);
-    this._compileLogo = this._compileLogo.bind(this);
-    this._compileName = this._compileName.bind(this);
-    this._compileDescs = this._compileDescs.bind(this);
-    this._compileItems = this._compileItems.bind(this);
-    this._compileButtons = this._compileButtons.bind(this);
-    this._render = this._render.bind(this);
-    //#######################################
-    //|
-    //|   @params {string} html
-    //|
-    //#######################################
-    this.html = html;
-    this.exist = this._exist;
-    this.compile = this._compile;
-    this.render = this._render;
-  }
-
-  _exist() {
-    return !!this.html;
-  }
-
-  _compile() {
-    var buttons, cover, descs, items, logo, model, name, wrap;
-    if (!this._exist()) {
-      return this._compileEmpty();
-    }
-    model = util$7.dom(this.html);
-    cover = util$7.dom('#cover');
-    wrap = util$7.dom('.wrap');
-    logo = model.find('cover > logo');
-    name = model.find('cover > name');
-    descs = model.findAll('cover > desc');
-    items = model.findAll('cover > item');
-    buttons = model.findAll('cover > button');
-    if (logo) {
-      wrap.append(this._compileLogo(logo));
-    }
-    if (name) {
-      wrap.append(this._compileName(name));
-    }
-    if (descs.length) {
-      wrap.append(this._compileDescs(descs));
-    }
-    if (items.length) {
-      wrap.append(this._compileItems(items));
-    }
-    if (buttons.length) {
-      wrap.append(this._compileButtons(buttons));
-    }
-    cover.append(wrap);
-    return cover.htmlSelf();
-  }
-
-  _compileEmpty() {
-    //#######################################
-    //|
-    //|   @return {string} html
-    //|
-    //#######################################
-    return "<div id=\"cover\" style=\"display: none\"/>";
-  }
-
-  _compileLogo(logo) {
-    var src;
-    //#######################################
-    //|
-    //|   @params {DOM} logo
-    //|   @return {DOM} logo
-    //|
-    //#######################################
-    src = logo.attr('src');
-    src = util$7.filePath(src);
-    logo = util$7.dom('img.logo');
-    logo.attr('src', src);
-    return logo;
-  }
-
-  _compileName(name) {
-    var ref, text, version;
-    //#######################################
-    //|
-    //|   @params {DOM} name
-    //|   @return {DOM} name
-    //|
-    //#######################################
-    text = name.text();
-    version = (ref = name.attr('version')) != null ? ref : '';
-    name = util$7.dom('.name').text(text);
-    version = util$7.dom('.version').text(version);
-    name.append(version);
-    return name;
-  }
-
-  _compileDescs(descs) {
-    var desc, i, len, li, ul;
-    //#######################################
-    //|
-    //|   @params {DOM[]} descs
-    //|   @return {DOM}   ul.descs
-    //|
-    //#######################################
-    ul = util$7.dom('ul.descs');
-    for (i = 0, len = descs.length; i < len; i++) {
-      desc = descs[i];
-      li = util$7.dom('li').text(desc.text());
-      ul.append(li);
-    }
-    return ul;
-  }
-
-  _compileItems(items) {
-    var i, item, len, li, ul;
-    //#######################################
-    //|
-    //|   @params {DOM[]} items
-    //|   @return {DOM}   ul.items
-    //|
-    //#######################################
-    ul = util$7.dom('ul.items');
-    for (i = 0, len = items.length; i < len; i++) {
-      item = items[i];
-      li = util$7.dom('li').text(item.text());
-      ul.append(li);
-    }
-    return ul;
-  }
-
-  _compileButtons(buttons) {
-    var a, button, href, i, len, li, ref, text, ul;
-    //#######################################
-    //|
-    //|   @params {DOM[]} buttons
-    //|   @return {DOM}   ul.buttons
-    //|
-    //#######################################
-    ul = util$7.dom('ul.buttons');
-    for (i = 0, len = buttons.length; i < len; i++) {
-      button = buttons[i];
-      li = util$7.dom('li');
-      a = util$7.dom('a');
-      if (button.attr('active') != null) {
-        li.addClass('active');
-        a.addClass('active');
-      }
-      href = (ref = button.attr('href')) != null ? ref : '';
-      a.attr('href', href);
-      text = button.text();
-      a.text(text);
-      li.append(a);
-      ul.append(li);
-    }
-    return ul;
-  }
-
-  _render() {
-    //#######################################
-    //|
-    //|   @return {DOM} cover
-    //|
-    //#######################################
-    return util$7.dom(this._compile());
-  }
-
-};
-
-Cover.hide = (cover) => {
-  //#######################################
-  //|
-  //|   @params {DOM} cover
-  //|
-  //#######################################
-  return cover.css('display', 'none');
-};
-
-var Summary, util$8;
-
-util$8 = util;
-
-var Summary_1 = Summary = class Summary {
-  //#######################################
-  //|
-  //|   new Summary( html )
-  //|
-  //|   -----------------------------------
-  //|    Be responsible for
-  //|       handling the <div id="summary">
-  //|   -----------------------------------
-  //|
-  //|   summary.compile() -> html
-  //|   summary.render()  -> dom
-  //|
-  //|   Summary.parse( sections ) -> html
-  //|   Summary.activeTo( summary, id )
-  //|   Summary.scrollTo( summary, id )
-  //|
-  //#######################################
-  constructor(html) {
-    this._compile = this._compile.bind(this);
-    this._compileItem = this._compileItem.bind(this);
-    this._compileItemByLink = this._compileItemByLink.bind(this);
-    this._compileItemByHint = this._compileItemByHint.bind(this);
-    this._render = this._render.bind(this);
-    this.html = html;
-    this.compile = this._compile;
-    this.render = this._render;
-  }
-
-  _compile() {
-    var i, item, items, len, li, model, summary, ul;
-    //#######################################
-    //|
-    //|   @params {string} html
-    //|   @return {string} html
-    //|
-    //#######################################
-    model = util$8.dom(this.html);
-    summary = util$8.dom('#summary');
-    ul = util$8.dom('ul');
-    items = model.findAll('item');
-    for (i = 0, len = items.length; i < len; i++) {
-      item = items[i];
-      li = this._compileItem(item);
-      ul.append(li);
-    }
-    summary.append(ul);
-    return summary.htmlSelf();
-  }
-
-  _compileItem(item) {
-    var href, lv, name;
-    //#######################################
-    //|
-    //|   @params {DOM} item
-    //|   @return {DOM} li
-    //|
-    //#######################################
-    name = item.find('name');
-    href = item.attr('href');
-    lv = item.attr('lv');
-    if (href) {
-      return this._compileItemByLink(name, href, lv);
-    } else {
-      return this._compileItemByHint(name, lv);
-    }
-  }
-
-  _compileItemByLink(name, href, lv = '1') {
-    var a, li;
-    //#######################################
-    //|
-    //|   @params {DOM}    name
-    //|   @params {string} href
-    //|   @params {string} lv
-    //|
-    //|   @return {DOM}    li.lvX
-    //|
-    //#######################################
-    li = util$8.dom('li').attr('href', href).addClass(`lv${lv}`);
-    a = util$8.dom('a').attr('href', href);
-    if (name) {
-      a.text(name.text());
-    }
-    return li.append(a);
-  }
-
-  _compileItemByHint(name, lv = '1') {
-    var li;
-    //#######################################
-    //|
-    //|   @params {DOM}    name
-    //|   @params {string} lv
-    //|
-    //|   @return {DOM}    li.hint.lvX
-    //|
-    //#######################################
-    li = util$8.dom('li.hint').addClass(`lv${lv}`);
-    if (name) {
-      li.text(name.text());
-    }
-    return li;
-  }
-
-  _render() {
-    //#######################################
-    //|
-    //|   @return {DOM} summary
-    //|
-    //#######################################
-    return util$8.dom(this._compile());
-  }
-
-};
-
-Summary.parse = (sections) => {
-  //#######################################
-  //|
-  //|   @params {object[]} sections - [{ heading, content, example }]
-  //|   @return {string}   html
-  //|
-  //#######################################
-  sections = sections.filter(Summary._filterSection);
-  sections = sections.map(Summary._mapSection);
-  return `<summary>${sections.join('')}</summary>`;
-};
-
-Summary._filterSection = (section) => {
-  //#######################################
-  //|
-  //|   @params {object} section - {object} heading - { lv, text, order }
-  //|                              {string} content
-  //|                              {string} example
-  //|
-  //|   @return {boolean}
-  //|
-  //#######################################
-  if (section.heading) {
-    if (section.heading.lv <= Breeze.config('summary.showLevel')) {
-      return true;
-    }
-  }
-  return false;
-};
-
-Summary._mapSection = (section) => {
-  var href, lv, order, text;
-  //#######################################
-  //|
-  //|   @params {object} section - {object} heading - { lv, text, order }
-  //|                              {string} content
-  //|                              {string} example
-  //|
-  //|   @return {string} html
-  //|
-  //#######################################
-  ({lv, text, order} = section.heading);
-  href = util$8.id(order, text);
-  return `<item lv="${lv}" href="#${href}">\n   <name>${text}</name>\n</item>`;
-};
-
-Summary.activeTo = (summary, id) => {
-  var current, link;
-  //#######################################
-  //|
-  //|   @params {DOM}    summary
-  //|   @params {string} id
-  //|
-  //#######################################
-  if (link = Summary._findLink(summary, id)) {
-    if (current = summary.find('li.active')) {
-      current.removeClass('active');
-    }
-    return link.parent().addClass('active');
-  }
-};
-
-Summary.scrollTo = (summary, id) => {
-  var bottom, link, side, top;
-  //#######################################
-  //|
-  //|   @params {DOM}    summary
-  //|   @params {string} id
-  //|
-  //#######################################
-  if (link = Summary._findLink(summary, id)) {
-    side = summary.parent();
-    top = link.top();
-    bottom = link.bottom();
-    if (top + 200 > window.innerHeight) {
-      return side.scroll(top + 200 - window.innerHeight);
-    } else if (bottom < 200) {
-      return side.scroll(bottom - 200);
-    }
-  }
-};
-
-Summary._findLink = (summary, id) => {
-  var href;
-  //#######################################
-  //|
-  //|   @params {DOM}    summary
-  //|   @params {string} id
-  //|   @return {DOM}    link
-  //|
-  //#######################################
-  href = '#' + id;
-  return summary.find(`a[href="${href}"]`);
-};
-
 var marked = createCommonjsModule(function (module, exports) {
 (function(root) {
 
@@ -3813,6 +2615,1204 @@ marked.parse = marked;
 })(commonjsGlobal || (typeof window !== 'undefined' ? window : commonjsGlobal));
 });
 
+var Jade;
+
+var Jade_1 = Jade = class Jade {
+  //#######################################
+  //|
+  //|   new Jade( text )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       compiling jade-like to html.
+  //|   -----------------------------------
+  //|
+  //|   jade.compile() -> html
+  //|
+  //#######################################
+  constructor(text) {
+    this._compile = this._compile.bind(this);
+    this._parseNodes = this._parseNodes.bind(this);
+    this._parseNode = this._parseNode.bind(this);
+    this._parseDeep = this._parseDeep.bind(this);
+    this._parseTag = this._parseTag.bind(this);
+    this._parseAttr = this._parseAttr.bind(this);
+    this._parseText = this._parseText.bind(this);
+    this._parseTree = this._parseTree.bind(this);
+    this._compileTree = this._compileTree.bind(this);
+    this._compileNode = this._compileNode.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|
+    //#######################################
+    this.text = text;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var html, nodes, tree;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    nodes = this._parseNodes(this.text);
+    tree = this._parseTree(nodes);
+    html = this._compileTree(tree);
+    return html;
+  }
+
+  _parseNodes(text) {
+    var lines, nodes;
+    //#######################################
+    //|
+    //|   @params {string}   text
+    //|   @return {object[]} nodes - [{ deep, tag, attr, text }]
+    //|
+    //#######################################
+    lines = text.split(/\n+/g);
+    nodes = lines.map((line) => {
+      if (line.trim()) {
+        return this._parseNode(line);
+      } else {
+        return null;
+      }
+    });
+    nodes = nodes.filter((node) => {
+      return node;
+    });
+    return nodes;
+  }
+
+  _parseNode(line) {
+    var attr, deep, rest, tag, text;
+    //#######################################
+    //|
+    //|   @params {string} line
+    //|   @return {object} - {number} deep
+    //|                      {string} tag
+    //|                      {string} attr
+    //|                      {string} text
+    //|
+    //#######################################
+    ({deep, rest} = this._parseDeep(line));
+    ({tag, rest} = this._parseTag(rest));
+    ({attr, rest} = this._parseAttr(rest));
+    ({text, rest} = this._parseText(rest));
+    return {deep, tag, attr, text};
+  }
+
+  _parseDeep(line) {
+    var deep, reg, rest;
+    //#######################################
+    //|
+    //|   @params {string} line
+    //|   @return {object} - {number} deep
+    //|                      {string} rest
+    //|
+    //#######################################
+    deep = 0;
+    reg = /^\s+/;
+    rest = line.replace(reg, (match) => {
+      deep = match.length;
+      return '';
+    });
+    return {deep, rest};
+  }
+
+  _parseTag(rest) {
+    var reg, tag;
+    //#######################################
+    //|
+    //|   @params {string} rest
+    //|   @return {object} - {string} tag
+    //|                      {string} rest
+    //|
+    //|   @errors when parse failed.
+    //|
+    //#######################################
+    tag = '';
+    reg = /^([A-Za-z0-9_\-]+)\s*/;
+    rest = rest.replace(reg, (_, match) => {
+      tag = match;
+      return '';
+    });
+    if (tag) {
+      return {tag, rest};
+    } else {
+      throw `Unknown jade-like syntax: ${this._line}`;
+    }
+  }
+
+  _parseAttr(rest) {
+    var attr, reg;
+    //#######################################
+    //|
+    //|   @params {string} rest
+    //|   @return {object} - {string} attr
+    //|                      {string} rest
+    //|
+    //#######################################
+    attr = '';
+    reg = /^\(([^)]*)\)/;
+    rest = rest.replace(reg, (_, match) => {
+      attr = match.trim();
+      return '';
+    });
+    return {attr, rest};
+  }
+
+  _parseText(rest) {
+    var text;
+    //#######################################
+    //|
+    //|   @params {string} rest
+    //|   @return {object} - {string} text
+    //|                      {string} rest
+    //|
+    //#######################################
+    text = rest.trim();
+    rest = '';
+    return {text, rest};
+  }
+
+  _parseTree(nodes) {
+    var deep, i, len, node, root, tree;
+    //#######################################
+    //|
+    //|   @params {object[]} nodes - [{ deep, tag, attr, text }]
+    //|   @return {object}   tree
+    //|
+    //#######################################
+    root = {};
+    tree = root;
+    deep = -1;
+    for (i = 0, len = nodes.length; i < len; i++) {
+      node = nodes[i];
+      if (node.deep > deep) {
+        if (tree.children == null) {
+          tree.children = [];
+        }
+        tree.children.push(node);
+        node.parent = tree;
+        tree = node;
+        deep = node.deep;
+      } else if (node.deep === deep) {
+        tree.parent.children.push(node);
+        node.parent = tree.parent;
+        tree = node;
+      } else if (node.deep < deep) {
+        while (node.deep <= tree.deep) {
+          tree = tree.parent;
+        }
+        tree.children.push(node);
+        node.parent = tree;
+        tree = node;
+        deep = node.deep;
+      }
+    }
+    return root;
+  }
+
+  _compileTree(tree) {
+    //#######################################
+    //|
+    //|   @params {object} tree - { tag, attr, text, children }
+    //|   @return {string} html
+    //|
+    //#######################################
+    return this._compileNode(tree);
+  }
+
+  _compileNode(node) {
+    var attr, children, end, html, start, tag, text;
+    //#######################################
+    //|
+    //|   @params {object} node - { tag, attr, text, children }
+    //|   @return {string} html
+    //|
+    //#######################################
+    ({tag, attr, text, children} = node);
+    start = tag ? `<${tag} ${attr}>` : '';
+    end = tag ? `</${tag}>` : '';
+    if (children) {
+      html = children.map(this._compileNode).join('');
+      return start + html + end;
+    } else {
+      return start + text + end;
+    }
+  }
+
+};
+
+var Jade$1, Markdown;
+
+Jade$1 = Jade_1;
+
+var Markdown_1 = Markdown = class Markdown {
+  //#######################################
+  //|
+  //|   new Markdown( text )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       compiling text to markdown and parsing some components,
+  //|       such as <nav>, <cover>, <summary> and so on.
+  //|   -----------------------------------
+  //|
+  //|   markdown.compile() -> markdown
+  //|   markdown.parse()   -> { nav, cover, summary, article }
+  //|
+  //#######################################
+  constructor(text) {
+    this._compile = this._compile.bind(this);
+    this._compileJadeByTag = this._compileJadeByTag.bind(this);
+    this._compileJadeByAttribute = this._compileJadeByAttribute.bind(this);
+    this._formatSelfClosingTag = this._formatSelfClosingTag.bind(this);
+    this._parse = this._parse.bind(this);
+    this._parseNav = this._parseNav.bind(this);
+    this._parseCover = this._parseCover.bind(this);
+    this._parseSummary = this._parseSummary.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|
+    //#######################################
+    this.text = text;
+    this.compile = this._compile;
+    this.parse = this._parse;
+  }
+
+  _compile() {
+    var markdown, text;
+    //#######################################
+    //|
+    //|   @return {string} markdown
+    //|
+    //#######################################
+    text = this._compileJadeByTag(this.text);
+    text = this._compileJadeByAttribute(text);
+    text = this._formatSelfClosingTag(text);
+    return markdown = text;
+  }
+
+  _compileJadeByTag(text) {
+    var reg;
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|   @return {string} text
+    //|
+    //|   Compile and replace the <jade>...</jade> to html.
+    //|
+    //#######################################
+    reg = /<jade>((?:.|\n)*?)<\/jade>/g;
+    return text.replace(reg, (_, text) => {
+      var html, jade;
+      jade = new Jade$1(text);
+      html = jade.compile();
+      return html;
+    });
+  }
+
+  _compileJadeByAttribute(text) {
+    var reg;
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|   @return {string} text
+    //|
+    //|   Compile and replace the <tag jade>...</tag> to html.
+    //|
+    //#######################################
+    reg = /(<\s*(.+?)\s*.*\s+jade\s*.*>)((?:.|\n)*?)\s*(<\s*\/\2\s*>)/g;
+    return text.replace(reg, (_, start, name, text, end) => {
+      var html, jade;
+      jade = new Jade$1(text);
+      html = jade.compile();
+      return start + html + end;
+    });
+  }
+
+  _formatSelfClosingTag(text) {
+    var reg;
+    //#######################################
+    //|
+    //|   @params {string} text
+    //|   @return {string} text
+    //|
+    //|   Format and replace <tag/> to <tag></tag>
+    //|
+    //#######################################
+    reg = /<([A-Za-z_-]+)((?:\s|\n)+(?:[^<]|\n)*?)?\/>/g;
+    return text.replace(reg, (_, tag, attr = '') => {
+      return `<${tag} ${attr}></${tag}>`;
+    });
+  }
+
+  _parse() {
+    var article, cover, markdown, nav, summary;
+    //#######################################
+    //|
+    //|   @return {object} - {string} nav     ( html )
+    //|                      {string} cover   ( html )
+    //|                      {string} summary ( html )
+    //|                      {string} article ( markdown )
+    //|
+    //#######################################
+    markdown = this._compile();
+    ({nav, markdown} = this._parseNav(markdown));
+    ({cover, markdown} = this._parseCover(markdown));
+    ({summary, markdown} = this._parseSummary(markdown));
+    article = markdown.trim();
+    return {nav, cover, summary, article};
+  }
+
+  _parseNav(markdown) {
+    var nav, navReg;
+    //#######################################
+    //|
+    //|   @params {string} markdown
+    //|   @return {object} - {string} nav ( html )
+    //|                      {string} markdown
+    //|
+    //#######################################
+    nav = '';
+    navReg = /^\s*<nav[^\\]*?>(?:.|\n)*?<\/nav>/gm;
+    markdown = markdown.replace(navReg, (match) => {
+      nav = match.trim();
+      return '';
+    });
+    return {nav, markdown};
+  }
+
+  _parseCover(markdown) {
+    var cover, coverReg;
+    //#######################################
+    //|
+    //|   @params {string} markdown
+    //|   @return {object} - {string} cover ( html )
+    //|                      {string} markdown
+    //|
+    //#######################################
+    cover = '';
+    coverReg = /^\s*<cover[^\\]*?>(?:.|\n)*?<\/cover>/gm;
+    markdown = markdown.replace(coverReg, (match) => {
+      cover = match.trim();
+      return '';
+    });
+    return {cover, markdown};
+  }
+
+  _parseSummary(markdown) {
+    var summary, summaryReg;
+    //#######################################
+    //|
+    //|   @params {string} markdown
+    //|   @return {object} - {string} summary ( html )
+    //|                      {string} markdown
+    //|
+    //#######################################
+    summary = '';
+    summaryReg = /^\s*<summary[^\\]*?>(?:.|\n)*?<\/summary>/gm;
+    markdown = markdown.replace(summaryReg, (match) => {
+      summary = match.trim();
+      return '';
+    });
+    return {summary, markdown};
+  }
+
+};
+
+var Head, util$3;
+
+util$3 = util;
+
+var Head_1 = Head = class Head {
+  //#######################################
+  //|
+  //|   new Head( nav )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="head">
+  //|   -----------------------------------
+  //|
+  //|   head.compile() -> html
+  //|
+  //|   Head.hideWhenNothing( head )
+  //|
+  //#######################################
+  constructor(nav) {
+    this._compile = this._compile.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} nav-html
+    //|
+    //#######################################
+    this.nav = nav;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var center, hamburger, head, left, right;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    head = util$3.dom('#head');
+    left = util$3.dom('.left');
+    center = util$3.dom('.center');
+    right = util$3.dom('.right');
+    hamburger = util$3.dom('.hamburger');
+    left.append(hamburger);
+    if (this.nav) {
+      right.append(this.nav);
+    }
+    head.append(left);
+    head.append(center);
+    head.append(right);
+    return head.htmlSelf();
+  }
+
+};
+
+Head.hideWhenNothing = (head) => {
+  var others;
+  //#######################################
+  //|
+  //|   @params {DOM} head
+  //|
+  //|   Hide head when only has hamburger ( when H5 )
+  //|
+  //#######################################
+  others = head.findAll('#head > * > *:not(.hamburger)');
+  if (others.length === 0) {
+    return head.css('display', 'none');
+  }
+};
+
+var Side, util$4;
+
+util$4 = util;
+
+var Side_1 = Side = class Side {
+  //#######################################
+  //|
+  //|   new Side( search, summary )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="side">
+  //|   -----------------------------------
+  //|
+  //|   side.compile() -> html
+  //|
+  //|   Side.setTop( side )
+  //|   Side.open( side )
+  //|   Side.close( side )
+  //|
+  //#######################################
+  constructor(search, summary) {
+    this._compile = this._compile.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} search-html
+    //|   @params {string} summary-html
+    //|
+    //#######################################
+    this.search = search;
+    this.summary = summary;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var navPH, side;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    side = util$4.dom('#side');
+    navPH = util$4.dom('#h5-nav-placeholder');
+    side.append(this.search);
+    side.append(navPH);
+    side.append(this.summary);
+    return side.htmlSelf();
+  }
+
+};
+
+Side.setTop = (side) => {
+  //#######################################
+  //|
+  //|   @params {DOM} side
+  //|
+  //#######################################
+  return side.css('paddingTop', Breeze.headHeight + 'px');
+};
+
+Side.open = (side) => {
+  //#######################################
+  //|
+  //|   @params {DOM} side
+  //|
+  //#######################################
+  return side.addClass('open');
+};
+
+Side.close = (side) => {
+  //#######################################
+  //|
+  //|   @params {DOM} side
+  //|
+  //#######################################
+  return side.removeClass('open');
+};
+
+var Main, util$5;
+
+util$5 = util;
+
+var Main_1 = Main = class Main {
+  //#######################################
+  //|
+  //|   new Main( article )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="main">
+  //|   -----------------------------------
+  //|
+  //|   main.compile() -> html
+  //|
+  //|   Main.setTop( main )
+  //|
+  //#######################################
+  constructor(article) {
+    this._compile = this._compile.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} article-html
+    //|
+    //#######################################
+    this.article = article;
+    this.compile = this._compile;
+  }
+
+  _compile() {
+    var main;
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    main = util$5.dom('#main');
+    main.append(this.article);
+    return main.htmlSelf();
+  }
+
+};
+
+Main.setTop = (main) => {
+  //#######################################
+  //|
+  //|   @params {DOM} main
+  //|
+  //#######################################
+  return main.css('paddingTop', Breeze.headHeight + 'px');
+};
+
+var Nav, util$6;
+
+util$6 = util;
+
+var Nav_1 = Nav = class Nav {
+  //#######################################
+  //|
+  //|   new Nav( html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="nav">
+  //|   -----------------------------------
+  //|
+  //|   nav.compile() -> html
+  //|
+  //#######################################
+  constructor(html) {
+    this._exist = this._exist.bind(this);
+    this._compile = this._compile.bind(this);
+    this._compileEmpty = this._compileEmpty.bind(this);
+    this._compileMenu = this._compileMenu.bind(this);
+    this._compileMenuByLink = this._compileMenuByLink.bind(this);
+    this._compileMenuByItems = this._compileMenuByItems.bind(this);
+    this._compileItem = this._compileItem.bind(this);
+    this._compileItemByLink = this._compileItemByLink.bind(this);
+    this._compileItemByHint = this._compileItemByHint.bind(this);
+    this._compileLine = this._compileLine.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|
+    //#######################################
+    this.html = html;
+    this.exist = this._exist;
+    this.compile = this._compile;
+  }
+
+  _exist() {
+    return !!this.html;
+  }
+
+  _compile() {
+    var i, len, menu, menus, model, nav;
+    if (!this._exist()) {
+      return '';
+    }
+    model = util$6.dom(this.html);
+    nav = util$6.dom('#nav');
+    menus = model.findAll('nav > menu');
+    for (i = 0, len = menus.length; i < len; i++) {
+      menu = menus[i];
+      menu = this._compileMenu(menu);
+      nav.append(menu);
+    }
+    return nav.htmlSelf();
+  }
+
+  _compileEmpty() {
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    return "<div id=\"nav\" style=\"display: none\"/>";
+  }
+
+  _compileMenu(menu) {
+    //#######################################
+    //|
+    //|   @params {DOM} menu
+    //|   @return {DOM} div.menu
+    //|
+    //#######################################
+    if (menu.attr('href') != null) {
+      return this._compileMenuByLink(menu);
+    } else {
+      return this._compileMenuByItems(menu);
+    }
+  }
+
+  _compileMenuByLink(menu) {
+    var a, h1, href, name;
+    //#######################################
+    //|
+    //|   @params {DOM} menu
+    //|   @return {DOM} div.menu
+    //|
+    //#######################################
+    name = menu.attr('name');
+    href = menu.attr('href');
+    h1 = util$6.dom('h1');
+    a = util$6.dom('a').attr('href', href).text(name);
+    h1.append(a);
+    return util$6.dom('.menu').append(h1);
+  }
+
+  _compileMenuByItems(menu) {
+    var h1, i, item, items, len, li, name, ul;
+    //#######################################
+    //|
+    //|   @params {DOM} menu
+    //|   @return {DOM} div.menu
+    //|
+    //#######################################
+    name = menu.attr('name');
+    items = menu.findAll('menu > item, menu > line');
+    h1 = util$6.dom('h1').text(name).addClass('hint');
+    ul = util$6.dom('ul');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      switch (item.tag()) {
+        case 'item':
+          li = this._compileItem(item);
+          break;
+        case 'line':
+          li = this._compileLine(item);
+      }
+      ul.append(li);
+    }
+    return util$6.dom('.menu').append(h1).append(ul);
+  }
+
+  _compileItem(item) {
+    //#######################################
+    //|
+    //|   @params {DOM} item
+    //|   @return {DOM} li
+    //|
+    //#######################################
+    if (item.attr('href') != null) {
+      return this._compileItemByLink(item);
+    } else {
+      return this._compileItemByHint(item);
+    }
+  }
+
+  _compileItemByLink(item) {
+    var a, href, li, name;
+    //#######################################
+    //|
+    //|   @params {DOM} item
+    //|   @return {DOM} li
+    //|
+    //#######################################
+    name = item.attr('name');
+    href = item.attr('href');
+    li = util$6.dom('li');
+    a = util$6.dom('a').attr('href', href).text(name);
+    return li.append(a);
+  }
+
+  _compileItemByHint(item) {
+    var li, name;
+    //#######################################
+    //|
+    //|   @params {DOM} item
+    //|   @return {DOM} li
+    //|
+    //#######################################
+    name = item.attr('name');
+    li = util$6.dom('li.hint').text(name);
+    return li;
+  }
+
+  _compileLine() {
+    //#######################################
+    //|
+    //|   @return {DOM} li
+    //|
+    //#######################################
+    return util$6.dom('li.line');
+  }
+
+};
+
+var Cover, util$7;
+
+util$7 = util;
+
+var Cover_1 = Cover = class Cover {
+  //#######################################
+  //|
+  //|   new Cover( html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="cover">
+  //|   -----------------------------------
+  //|
+  //|   cover.compile() -> html
+  //|   cover.render()  -> dom
+  //|
+  //|   Cover.hide( dom )
+  //|
+  //#######################################
+  constructor(html) {
+    this._exist = this._exist.bind(this);
+    this._compile = this._compile.bind(this);
+    this._compileEmpty = this._compileEmpty.bind(this);
+    this._compileLogo = this._compileLogo.bind(this);
+    this._compileName = this._compileName.bind(this);
+    this._compileDescs = this._compileDescs.bind(this);
+    this._compileItems = this._compileItems.bind(this);
+    this._compileButtons = this._compileButtons.bind(this);
+    this._render = this._render.bind(this);
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|
+    //#######################################
+    this.html = html;
+    this.exist = this._exist;
+    this.compile = this._compile;
+    this.render = this._render;
+  }
+
+  _exist() {
+    return !!this.html;
+  }
+
+  _compile() {
+    var buttons, cover, descs, items, logo, model, name, wrap;
+    if (!this._exist()) {
+      return this._compileEmpty();
+    }
+    model = util$7.dom(this.html);
+    cover = util$7.dom('#cover');
+    wrap = util$7.dom('.wrap');
+    logo = model.find('cover > logo');
+    name = model.find('cover > name');
+    descs = model.findAll('cover > desc');
+    items = model.findAll('cover > item');
+    buttons = model.findAll('cover > button');
+    if (logo) {
+      wrap.append(this._compileLogo(logo));
+    }
+    if (name) {
+      wrap.append(this._compileName(name));
+    }
+    if (descs.length) {
+      wrap.append(this._compileDescs(descs));
+    }
+    if (items.length) {
+      wrap.append(this._compileItems(items));
+    }
+    if (buttons.length) {
+      wrap.append(this._compileButtons(buttons));
+    }
+    cover.append(wrap);
+    return cover.htmlSelf();
+  }
+
+  _compileEmpty() {
+    //#######################################
+    //|
+    //|   @return {string} html
+    //|
+    //#######################################
+    return "<div id=\"cover\" style=\"display: none\"/>";
+  }
+
+  _compileLogo(logo) {
+    var src;
+    //#######################################
+    //|
+    //|   @params {DOM} logo
+    //|   @return {DOM} logo
+    //|
+    //#######################################
+    src = logo.attr('src');
+    src = util$7.filePath(src);
+    logo = util$7.dom('img.logo');
+    logo.attr('src', src);
+    return logo;
+  }
+
+  _compileName(name) {
+    var ref, text, version;
+    //#######################################
+    //|
+    //|   @params {DOM} name
+    //|   @return {DOM} name
+    //|
+    //#######################################
+    text = name.text();
+    version = (ref = name.attr('version')) != null ? ref : '';
+    name = util$7.dom('.name').text(text);
+    version = util$7.dom('.version').text(version);
+    name.append(version);
+    return name;
+  }
+
+  _compileDescs(descs) {
+    var desc, i, len, li, ul;
+    //#######################################
+    //|
+    //|   @params {DOM[]} descs
+    //|   @return {DOM}   ul.descs
+    //|
+    //#######################################
+    ul = util$7.dom('ul.descs');
+    for (i = 0, len = descs.length; i < len; i++) {
+      desc = descs[i];
+      li = util$7.dom('li').text(desc.text());
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _compileItems(items) {
+    var i, item, len, li, ul;
+    //#######################################
+    //|
+    //|   @params {DOM[]} items
+    //|   @return {DOM}   ul.items
+    //|
+    //#######################################
+    ul = util$7.dom('ul.items');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      li = util$7.dom('li').text(item.text());
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _compileButtons(buttons) {
+    var a, button, href, i, len, li, ref, text, ul;
+    //#######################################
+    //|
+    //|   @params {DOM[]} buttons
+    //|   @return {DOM}   ul.buttons
+    //|
+    //#######################################
+    ul = util$7.dom('ul.buttons');
+    for (i = 0, len = buttons.length; i < len; i++) {
+      button = buttons[i];
+      li = util$7.dom('li');
+      a = util$7.dom('a');
+      if (button.attr('active') != null) {
+        li.addClass('active');
+        a.addClass('active');
+      }
+      href = (ref = button.attr('href')) != null ? ref : '';
+      a.attr('href', href);
+      text = button.text();
+      a.text(text);
+      li.append(a);
+      ul.append(li);
+    }
+    return ul;
+  }
+
+  _render() {
+    //#######################################
+    //|
+    //|   @return {DOM} cover
+    //|
+    //#######################################
+    return util$7.dom(this._compile());
+  }
+
+};
+
+Cover.hide = (cover) => {
+  //#######################################
+  //|
+  //|   @params {DOM} cover
+  //|
+  //#######################################
+  return cover.css('display', 'none');
+};
+
+var Summary, util$8;
+
+util$8 = util;
+
+var Summary_1 = Summary = class Summary {
+  //#######################################
+  //|
+  //|   new Summary( html )
+  //|
+  //|   -----------------------------------
+  //|    Be responsible for
+  //|       handling the <div id="summary">
+  //|   -----------------------------------
+  //|
+  //|   summary.compile() -> html
+  //|   summary.render()  -> dom
+  //|
+  //|   Summary.parse( sections ) -> html
+  //|   Summary.activeTo( summary, id )
+  //|   Summary.scrollTo( summary, id )
+  //|
+  //#######################################
+  constructor(html) {
+    this._compile = this._compile.bind(this);
+    this._compileItem = this._compileItem.bind(this);
+    this._compileItemByLink = this._compileItemByLink.bind(this);
+    this._compileItemByHint = this._compileItemByHint.bind(this);
+    this._render = this._render.bind(this);
+    this.html = html;
+    this.compile = this._compile;
+    this.render = this._render;
+  }
+
+  _compile() {
+    var i, item, items, len, li, model, summary, ul;
+    //#######################################
+    //|
+    //|   @params {string} html
+    //|   @return {string} html
+    //|
+    //#######################################
+    model = util$8.dom(this.html);
+    summary = util$8.dom('#summary');
+    ul = util$8.dom('ul');
+    items = model.findAll('item');
+    for (i = 0, len = items.length; i < len; i++) {
+      item = items[i];
+      li = this._compileItem(item);
+      ul.append(li);
+    }
+    summary.append(ul);
+    return summary.htmlSelf();
+  }
+
+  _compileItem(item) {
+    var href, lv, name, ref, ref1;
+    //#######################################
+    //|
+    //|   @params {DOM} item
+    //|   @return {DOM} li
+    //|
+    //#######################################
+    name = item.text().trim();
+    href = (ref = item.attr('href')) != null ? ref : '';
+    lv = (ref1 = item.attr('lv')) != null ? ref1 : '1';
+    if (href) {
+      return this._compileItemByLink(name, href, lv);
+    } else {
+      return this._compileItemByHint(name, lv);
+    }
+  }
+
+  _compileItemByLink(name, href, lv) {
+    var a, li;
+    //#######################################
+    //|
+    //|   @params {string} name
+    //|   @params {string} href
+    //|   @params {string} lv
+    //|
+    //|   @return {DOM}    li.lvX
+    //|
+    //#######################################
+    li = util$8.dom('li').attr('href', href).addClass(`lv${lv}`);
+    a = util$8.dom('a').attr('href', href);
+    if (name) {
+      a.text(name);
+    }
+    return li.append(a);
+  }
+
+  _compileItemByHint(name, lv) {
+    var li;
+    //#######################################
+    //|
+    //|   @params {string} name
+    //|   @params {string} lv
+    //|
+    //|   @return {DOM}    li.hint.lvX
+    //|
+    //#######################################
+    li = util$8.dom('li.hint').addClass(`lv${lv}`);
+    if (name) {
+      li.text(name);
+    }
+    return li;
+  }
+
+  _render() {
+    //#######################################
+    //|
+    //|   @return {DOM} summary
+    //|
+    //#######################################
+    return util$8.dom(this._compile());
+  }
+
+};
+
+Summary.parse = (sections) => {
+  //#######################################
+  //|
+  //|   @params {object[]} sections - [{ heading, content, example }]
+  //|   @return {string}   html
+  //|
+  //#######################################
+  sections = sections.filter(Summary._filterSection);
+  sections = sections.map(Summary._mapSection);
+  return `<summary>${sections.join('')}</summary>`;
+};
+
+Summary._filterSection = (section) => {
+  //#######################################
+  //|
+  //|   @params {object} section - {object} heading - { lv, text, order }
+  //|                              {string} content
+  //|                              {string} example
+  //|
+  //|   @return {boolean}
+  //|
+  //#######################################
+  if (section.heading) {
+    if (section.heading.lv <= Breeze.config('summary.showLevel')) {
+      return true;
+    }
+  }
+  return false;
+};
+
+Summary._mapSection = (section) => {
+  var href, lv, order, text;
+  //#######################################
+  //|
+  //|   @params {object} section - {object} heading - { lv, text, order }
+  //|                              {string} content
+  //|                              {string} example
+  //|
+  //|   @return {string} html
+  //|
+  //#######################################
+  ({lv, text, order} = section.heading);
+  href = util$8.id(order, text);
+  return `<item lv="${lv}" href="#${href}">\n  ${text}\n</item>`;
+};
+
+Summary.activeTo = (summary, id) => {
+  var current, link;
+  //#######################################
+  //|
+  //|   @params {DOM}    summary
+  //|   @params {string} id
+  //|
+  //#######################################
+  if (link = Summary._findLink(summary, id)) {
+    if (current = summary.find('li.active')) {
+      current.removeClass('active');
+    }
+    return link.parent().addClass('active');
+  }
+};
+
+Summary.scrollTo = (summary, id) => {
+  var bottom, link, side, top;
+  //#######################################
+  //|
+  //|   @params {DOM}    summary
+  //|   @params {string} id
+  //|
+  //#######################################
+  if (link = Summary._findLink(summary, id)) {
+    side = summary.parent();
+    top = link.top();
+    bottom = link.bottom();
+    if (top + 200 > window.innerHeight) {
+      return side.scroll(top + 200 - window.innerHeight);
+    } else if (bottom < 200) {
+      return side.scroll(bottom - 200);
+    }
+  }
+};
+
+Summary._findLink = (summary, id) => {
+  var href;
+  //#######################################
+  //|
+  //|   @params {DOM}    summary
+  //|   @params {string} id
+  //|   @return {DOM}    link
+  //|
+  //#######################################
+  href = '#' + id;
+  return summary.find(`a[href="${href}"]`);
+};
+
 var prism = createCommonjsModule(function (module) {
 /* **********************************************
      Begin prism-core.js
@@ -4753,9 +4753,9 @@ var Api = API = class API {
 
 };
 
-var Api$1, Article, Prism, marked$1, util$10;
+var Api$1, Article, Prism, marked$2, util$10;
 
-marked$1 = marked;
+marked$2 = marked;
 
 Prism = prism;
 
@@ -4763,7 +4763,7 @@ Api$1 = Api;
 
 util$10 = util;
 
-marked$1.setOptions({
+marked$2.setOptions({
   gfm: true,
   tables: true,
   highlight: (code, lang) => {
@@ -5113,7 +5113,7 @@ var Article_1 = Article = class Article {
     //|
     //#######################################
     content = this._replaceSpecialTag(content);
-    content = marked$1(content, {
+    content = marked$2(content, {
       renderer: this.renderer
     });
     return `<div class="content">${content}</div>`;
@@ -5127,13 +5127,14 @@ var Article_1 = Article = class Article {
     //|
     //#######################################
     example = this._replaceSpecialTag(example);
-    example = marked$1(example, {
+    example = marked$2(example, {
       renderer: this.renderer
     });
     return `<div class="example">${example}</div>`;
   }
 
   _replaceSpecialTag(text) {
+    var keywords, reg;
     //#######################################
     //|
     //|   @params {string} text
@@ -5143,10 +5144,36 @@ var Article_1 = Article = class Article {
     //|   <JADE>...</JADE>        =>  <jade>...</jade>
     //|
     //#######################################
-    text = text.replace(/<EXAMPLE>/g, '<example>');
-    text = text.replace(/<\/EXAMPLE>/g, '</example>');
-    text = text.replace(/<JADE>/g, '<jade>');
-    text = text.replace(/<\/JADE>/g, '</jade>');
+    keywords = ['EXAMPLE', 'JADE', 'NAV', 'COVER', 'SUMMARY'];
+    keywords = keywords.map((keyword) => {
+      return '(?:<\/?' + keyword + '>)';
+    });
+    keywords = keywords.join('|');
+    reg = new RegExp(keywords, 'g');
+    text = text.replace(reg, (match) => {
+      switch (match) {
+        case '<EXAMPLE>':
+          return '<example>';
+        case '<JADE>':
+          return '<jade>';
+        case '<NAV>':
+          return '<nav>';
+        case '<COVER>':
+          return '<cover>';
+        case '<SUMMARY>':
+          return '<summary>';
+        case '</EXAMPLE>':
+          return '</example>';
+        case '</JADE>':
+          return '</jade>';
+        case '</NAV>':
+          return '</nav>';
+        case '</COVER>':
+          return '</cover>';
+        case '</SUMMARY>':
+          return '</summary>';
+      }
+    });
     return text;
   }
 
@@ -5208,7 +5235,7 @@ var Article_1 = Article = class Article {
     //|   @return {marked.Renderer} renderer
     //|
     //#######################################
-    renderer = new marked$1.Renderer();
+    renderer = new marked$2.Renderer();
     renderer.html = this._renderer_html;
     return renderer;
   }

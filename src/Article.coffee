@@ -457,10 +457,24 @@ module.exports = class Article
       #|
       ########################################
 
-      text = text.replace(/<EXAMPLE>/g,   '<example>')
-      text = text.replace(/<\/EXAMPLE>/g, '</example>')
-      text = text.replace(/<JADE>/g,      '<jade>')
-      text = text.replace(/<\/JADE>/g,    '</jade>')
+      keywords = ['EXAMPLE', 'JADE', 'NAV', 'COVER', 'SUMMARY']
+      keywords = keywords.map ( keyword ) => '(?:<\/?' + keyword + '>)'
+      keywords = keywords.join('|')
+
+      reg = new RegExp( keywords, 'g' )
+
+      text = text.replace reg, ( match ) =>
+         switch match
+           when '<EXAMPLE>'  then '<example>'
+           when '<JADE>'     then '<jade>'
+           when '<NAV>'      then '<nav>'
+           when '<COVER>'    then '<cover>'
+           when '<SUMMARY>'  then '<summary>'
+           when '</EXAMPLE>' then '</example>'
+           when '</JADE>'    then '</jade>'
+           when '</NAV>'     then '</nav>'
+           when '</COVER>'   then '</cover>'
+           when '</SUMMARY>' then '</summary>'
 
       return text
 

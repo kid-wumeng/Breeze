@@ -75,9 +75,9 @@ module.exports = class Summary
       #|
       ########################################
 
-      name = item.find('name')
-      href = item.attr('href')
-      lv   = item.attr('lv')
+      name = item.text().trim()
+      href = item.attr('href') ? ''
+      lv   = item.attr('lv')   ? '1'
 
       if href
          return @_compileItemByLink( name, href, lv )
@@ -88,11 +88,11 @@ module.exports = class Summary
 
 
 
-   _compileItemByLink: ( name, href, lv = '1' ) =>
+   _compileItemByLink: ( name, href, lv ) =>
 
       ########################################
       #|
-      #|   @params {DOM}    name
+      #|   @params {string} name
       #|   @params {string} href
       #|   @params {string} lv
       #|
@@ -104,7 +104,7 @@ module.exports = class Summary
       a  = util.dom('a').attr('href', href)
 
       if name
-         a.text(name.text())
+         a.text(name)
 
       return li.append(a)
 
@@ -112,11 +112,11 @@ module.exports = class Summary
 
 
 
-   _compileItemByHint: ( name, lv = '1' ) =>
+   _compileItemByHint: ( name, lv ) =>
 
       ########################################
       #|
-      #|   @params {DOM}    name
+      #|   @params {string} name
       #|   @params {string} lv
       #|
       #|   @return {DOM}    li.hint.lvX
@@ -126,7 +126,7 @@ module.exports = class Summary
       li = util.dom('li.hint').addClass("lv#{lv}")
 
       if name
-         li.text(name.text())
+         li.text(name)
 
       return li
 
@@ -206,7 +206,7 @@ Summary._mapSection = ( section ) =>
 
    return """
       <item lv="#{ lv }" href="##{ href }">
-         <name>#{ text }</name>
+        #{ text }
       </item>
    """
 

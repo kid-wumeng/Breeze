@@ -1,4 +1,5 @@
-Jade = require('./Jade')
+marked = require('marked')
+Jade   = require('./Jade')
 
 
 
@@ -145,7 +146,6 @@ module.exports = class Markdown
       { cover,   markdown } = @_parseCover( markdown )
       { summary, markdown } = @_parseSummary( markdown )
 
-
       article = markdown.trim()
 
       return { nav, cover, summary, article }
@@ -165,10 +165,10 @@ module.exports = class Markdown
       ########################################
 
       nav    = ''
-      navReg = /<nav(?:\s+.*)?>(?:.|\n)*?<\/nav>/g
+      navReg = /^\s*<nav[^\\]*?>(?:.|\n)*?<\/nav>/gm
 
       markdown = markdown.replace navReg, ( match ) =>
-         nav = match
+         nav = match.trim()
          return ''
 
       return { nav, markdown }
@@ -188,10 +188,10 @@ module.exports = class Markdown
       ########################################
 
       cover    = ''
-      coverReg = /<cover(?:\s+.*)?>(?:.|\n)*?<\/cover>/g
+      coverReg = /^\s*<cover[^\\]*?>(?:.|\n)*?<\/cover>/gm
 
       markdown = markdown.replace coverReg, ( match ) =>
-         cover = match
+         cover = match.trim()
          return ''
 
       return { cover, markdown }
@@ -211,10 +211,10 @@ module.exports = class Markdown
       ########################################
 
       summary    = ''
-      summaryReg = /<summary.*?>(?:.|\n)*?<\/summary>/g
+      summaryReg = /^\s*<summary[^\\]*?>(?:.|\n)*?<\/summary>/gm
 
       markdown = markdown.replace summaryReg, ( match ) =>
-         summary = match
+         summary = match.trim()
          return ''
 
       return { summary, markdown }

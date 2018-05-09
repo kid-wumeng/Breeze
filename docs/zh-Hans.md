@@ -165,13 +165,15 @@ Breeze 支持的 Markdown 语法标准：
 
 # 标签
 
-Breeze 预定义了一些特别的 HTML 标签，帮助你更好地编写文档。
+Markdown 支持直接写 HTML 标签，借助这点，Breeze 预置了一些实用组件，帮助你更好地编写文档。
 
-当然，因为 Markdown 本身支持 HTML 标签，你完全可以配合 CSS 自己定制标签。
+
+
+
 
 ## <example>
 
-任何被 <example\> 标签包裹的内容，都会被放到右侧分栏：
+任何被 <example\> 包裹的内容，都会被放到右侧分栏：
 
 ####
 
@@ -208,9 +210,11 @@ function add (a, b) {
 ```
 </example>
 
-你能看到，<example\> 标签除了可以放代码，也可以放任何 Markdown 语句。
+如你所见，<example\> 里不止可以放代码示例，也可以放任何 Markdown 语句。
 
-Breeze 将同一个标题下的内容视为一组，例如：
+#### 自由分组
+
+因为 Breeze 会将同一个标题下的所有内容视为一组，利用这个特性，我们可以很轻易地实现普通内容与 <example\> 内容的对齐，比如：
 
 ####
 
@@ -220,8 +224,6 @@ this is content 1
 this is content 2
 <EXAMPLE>this is example 2</EXAMPLE>
 ```
-
-右侧展示了编译后的 HTML 结构。
 
 <example>
 ```html
@@ -238,9 +240,13 @@ this is content 2
 ```
 </example>
 
-就这个例子而言，你的本意可能是希望`example 2`能与`content 2`平行对齐，但现在`example 2`将与`content 2`对齐。为了避免这点，你可以借助一个空的 h4 ~ h6 标题：
+上面的内容被 h1 分到了一组，右侧展示了通过 Breeze 实时编译后的 HTML 结构。
 
-我的个人习惯是，侧栏中的概要只显示 h1 ~ h3 的链接，在需要的时候，用一个 h4 来隐式分组对齐。当然，你可以按自己的喜好决定。
+然而就这个例子而言，你的本意可能是希望`example 2`能与`content 2`平行对齐，但现在`example 2`将与`content 1`对齐。
+
+为了避免这点，你可以借助一个空标题强行分组。
+
+我的个人习惯是侧栏中仅显示 h1 ~ h3 的概要，那么文本中的 h4 ~ h6 都可以当空标题用，而不会对侧栏产生任何影响。当然，你可以按自己的喜好决定。
 
 ####
 
@@ -268,8 +274,18 @@ this is content 2
 ```
 </example>
 
+现在我只要简单地记住，在需要水平对齐的地方，使用4个井号即可。
 
-你可以单纯地记住，在需要水平对齐左右两侧的地方使用4个井号
+
+
+
+
+## <JADE>
+
+####
+
+
+
 
 
 
@@ -277,7 +293,9 @@ this is content 2
 
 ## <api>
 
-API 参数表是写文档时一个很常见的需求，比如方法的调用参数，在线服务的请求参数等。以往我们会有列表或表格的形式来表达它，现在有专门的 &lt;api&gt; 标签来处理。以下是一个参数表示例，而它的书写格式在右面。
+API 参数表是一个写文档时很常见的需求，比如方法的调用参数，在线服务的请求参数等。以往我们会用列表或表格的形式来表达，但现在有专门的 <api\> 来处理。
+
+下面这个例子表达了 JavaScript 中`Array.prototype.splice`方法的参数，右侧是在`.md`中的写法：
 
 ####
 
@@ -298,7 +316,6 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
     <desc>The elements to add to the array, beginning at the start index. If you don't specify any elements, splice() will only remove elements from the array.</desc>
   </item>
 </api>
-
 
 <example>
 ```html
@@ -322,69 +339,157 @@ API 参数表是写文档时一个很常见的需求，比如方法的调用参�
 ```
 </example>
 
+####
 
-
-## <JADE>
-
+这个则是 [GitHub](https://developer.github.com/v3/repos/commits/) 上某个 API 的请求参数表：
 
 ####
 
-以下是 [GitHub](https://developer.github.com/v3/repos/commits/) 上某个 API 的请求参数表，我用 Jade 风格书写的：
-
-####
-
-<jade>
-  api
-    item
-      name sha
-      type string
-      desc SHA or branch to start listing commits from. Default: the repository’s default branch (usually master).
-    item
-      name path
-      type string
-      desc Only commits containing this file path will be returned.
-    item
-      name author
-      type string
-      desc GitHub login or email address by which to filter by commit author.
-    item
-      name since
-      type string
-      desc Only commits after this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
-    item
-      name until
-      type string
-      desc Only commits before this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
-</jade>
-
+<api>
+  <item>
+    <name>sha</name>
+    <type>string</type>
+    <desc>SHA or branch to start listing commits from. Default: the repository’s default branch (usually master).</desc>
+  </item>
+  <item>
+    <name>path</name>
+    <type>string</type>
+    <desc>Only commits containing this file path will be returned.</desc>
+  </item>
+  <item>
+    <name>author</name>
+    <type>string</type>
+    <desc>GitHub login or email address by which to filter by commit author.</desc>
+  </item>
+  <item>
+    <name>since</name>
+    <type>string</type>
+    <desc>Only commits after this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.</desc>
+  </item>
+  <item>
+    <name>until</name>
+    <type>string</type>
+    <desc>Only commits before this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.</desc>
+  </item>
+</api>
 
 <example>
 ```html
-<JADE>
-  api
-    item
-      name sha
-      type string
-      desc SHA or branch to start listing commits from. Default: the repository’s default branch (usually master).
-    item
-      name path
-      type string
-      desc Only commits containing this file path will be returned.
-    item
-      name author
-      type string
-      desc GitHub login or email address by which to filter by commit author.
-    item
-      name since
-      type string
-      desc Only commits after this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
-    item
-      name until
-      type string
-      desc Only commits before this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.
-</JADE>
+<api>
+  <item>
+    <name>sha</name>
+    <type>string</type>
+    <desc>SHA or branch to start listing commits from. Default: the repository’s default branch (usually master).</desc>
+  </item>
+  <item>
+    <name>path</name>
+    <type>string</type>
+    <desc>Only commits containing this file path will be returned.</desc>
+  </item>
+  <item>
+    <name>author</name>
+    <type>string</type>
+    <desc>GitHub login or email address by which to filter by commit author.</desc>
+  </item>
+  <item>
+    <name>since</name>
+    <type>string</type>
+    <desc>Only commits after this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.</desc>
+  </item>
+  <item>
+    <name>until</name>
+    <type>string</type>
+    <desc>Only commits before this date will be returned. This is a timestamp in ISO 8601 format: YYYY-MM-DDTHH:MM:SSZ.</desc>
+  </item>
+</api>
 ```
 </example>
+
+####
+
+也许你能更加物尽其用？
+
+
+
+
+
+## <nav>
+
+也许你已经注意到了，这份文档提供了多语言版本，它的切换以导航条菜单的形式存在，以下是它的写法：
+
+```html
+<NAV>
+  <menu name="Translations">
+    <item name="English" href=""/>
+    <item name="简体中文" href="/zh-Hans"/>
+    <item name="日本語" href="/jp-jp"/>
+  </menu>
+</NAV>
+```
+
+下面的例子是个更复杂的导航栏，它有两个菜单：
+```html
+<NAV>
+  <menu name="Translations">
+    <item name="English" href=""/>
+    <item name="简体中文" href="/zh-Hans"/>
+    <item name="日本語" href="/jp-jp"/>
+  </menu>
+  <menu name="Others">
+    <item name="About Me" href="/about-me"/>
+    <line/>
+    <item name="Links"/>
+    <item name="Github" href="https://github.com"/>
+    <item name="Chat Room" href="https://chat-room.com"/>
+  </menu>
+</NAV>
+```
+
+不设`href`的 <item\> 会被视为提示文本，而 <line\> 则会显示一条分隔线。
+
+
+
+
+
+## <cover>
+
+
+<cover\> 能让你快速制作一张简洁的网站封面：
+
+```html
+<COVER>
+  <logo src="logo.svg"/>
+  <name version="1.0">Breeze</name>
+  <desc>A Dead Simple and Beautiful API documentation site generator ~ !</desc>
+
+  <item>No build to html, happy write.</item>
+  <item>Light as a feather( ~15kB gzipped )</item>
+
+  <button href="https://github.com/kid-wumeng/Breeze">Github</button>
+  <button active href="">阅读文档</button>
+</COVER>
+```
+
+* <logo\> - 可以使用任何浏览器支持的图片格式，比如`png`、`jpg`、`webp`、`svg`等。
+* <name\> - 文档名，`version`属性是版本号。
+* <desc\> - 比较大的文本描述，可以写多个。
+* <item\> - 比较小的文本描述，可以写多个。
+* <button\> - 按钮，默认是幽灵风格，`active`属性可以设置它为实心风格。
+
+
+
+
+
+## <summary>
+
+默认情况下，Breeze 从 Markdown 文章中读取标题，以形成侧栏的概要链接。你也可以通过 <summary\> 手动设置一些概要：
+
+```html
+<SUMMARY>
+  <item href="/home">Home2</item>
+</SUMMARY>
+```
+
 
 
 

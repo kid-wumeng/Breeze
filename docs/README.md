@@ -13,7 +13,7 @@
 
 
 <cover2>
-  <logo src="logo.svg"/>
+  <logo src="assets/logo.svg"/>
   <!-- <name>Breeze</name> -->
   <desc>超简单、超漂亮的 API 文档生成器！</desc>
 

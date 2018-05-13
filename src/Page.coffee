@@ -66,10 +66,7 @@ module.exports = class Page
       nav     = new Nav(nav)
       search  = new Search()
       article = new Article(article)
-
-      if !summary
-        summary = Summary.parse(sections = article.parse())
-      summary = new Summary(summary)
+      summary = new Summary(summary, sections = article.parse())
 
       return { cover, nav, search, summary, article }
 

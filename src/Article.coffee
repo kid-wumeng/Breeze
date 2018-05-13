@@ -252,9 +252,7 @@ module.exports = class Article
          lv   = results[1].length
          text = results[2]
 
-         text = @_replaceSpecialTag( text )
-         text = @_encodeEscapedChar( text )
-
+         text  = @_replaceSpecialTag( text )
          order = @_parseOrder( lv, prev?.order )
 
          return { lv, order, text }
@@ -401,7 +399,7 @@ module.exports = class Article
          text = "#{order} #{text}"
 
       text = text.trim()
-      text = @_replaceSpecialTag( text )
+      text = @_encodeEscapedChar( text )
 
       return "<h#{ lv } class=\"heading\">#{ text }</h#{ lv }>"
 
@@ -530,7 +528,7 @@ module.exports = class Article
       #|
       ########################################
 
-      reg = new RegExp("^<\\s*#{name}\\s*>(.|\n)*?<\\s*/\\s*#{name}\\s*>$")
+      reg = new RegExp("^<\\s*#{name}[^>]*?>(.|\n)*?<\\s*/\\s*#{name}\\s*>$")
 
       return reg.test( html )
 
@@ -552,38 +550,38 @@ module.exports = class Article
 
 
 
-    _createRenderer: =>
+   _createRenderer: =>
 
-       ########################################
-       #|
-       #|   @return {marked.Renderer} renderer
-       #|
-       ########################################
+      ########################################
+      #|
+      #|   @return {marked.Renderer} renderer
+      #|
+      ########################################
 
-       renderer = new marked.Renderer()
-       renderer.html = @_renderer_html
+      renderer = new marked.Renderer()
+      renderer.html = @_renderer_html
 
-       return renderer
-
-
+      return renderer
 
 
 
-    _renderer_html: ( html ) =>
 
-       ########################################
-       #|
-       #|   @params {string} html
-       #|   @return {string} html
-       #|
-       ########################################
 
-       html = html.trim()
+   _renderer_html: ( html ) =>
 
-       switch
-          when @_isTag('pre', html) then @_compilePre( html )
-          when @_isTag('api', html) then @_compileApi( html )
-          else html
+      ########################################
+      #|
+      #|   @params {string} html
+      #|   @return {string} html
+      #|
+      ########################################
+
+      html = html.trim()
+
+      switch
+         when @_isTag('pre', html) then @_compilePre( html )
+         when @_isTag('api', html) then @_compileApi( html )
+         else html
 
 
 

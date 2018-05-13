@@ -15,10 +15,10 @@ module.exports = class Summary
    #|       handling the <div id="summary">
    #|   -----------------------------------
    #|
-   #|   summary.compile() -> html
-   #|   summary.render()  -> dom
+   #|   summary.parseSectionItems() -> items
+   #|   summary.compile()           -> html
+   #|   summary.render()            -> dom
    #|
-   #|   Summary.parse( sections ) -> html
    #|   Summary.activeTo( summary, id )
    #|   Summary.scrollTo( summary, id )
    #|
@@ -28,12 +28,88 @@ module.exports = class Summary
 
 
 
-   constructor: ( html ) ->
+   constructor: ( html, sections ) ->
 
-      @html = html
+      ########################################
+      #|
+      #|   @params {string}   html
+      #|   @params {object[]} sections - [{ heading, content, example }]
+      #|
+      ########################################
 
+      @html     = html
+      @sections = sections
+
+      @parse   = @_parse
       @compile = @_compile
       @render  = @_render
+
+
+
+
+
+   _parseSectionItems: ( sections ) =>
+
+      ########################################
+      #|
+      #|   @params {object[]} sections - [{ heading, content, example }]
+      #|   @return {DOM[]}    items
+      #|
+      ########################################
+
+      sections = sections.filter( @_filterSectionItem )
+      items    = sections.map( @_createSectionItem )
+
+      return items
+
+
+
+
+
+   _filterSectionItem: ( section ) =>
+
+      ########################################
+      #|
+      #|   @params {object} section - {object} heading - { lv, text, order }
+      #|                              {string} content
+      #|                              {string} example
+      #|
+      #|   @return {boolean}
+      #|
+      ########################################
+
+      if section.heading
+         if section.heading.lv <= Breeze.config('summary.showLevel')
+            return true
+
+      return false
+
+
+
+
+
+   _createSectionItem: ( section ) =>
+
+      ########################################
+      #|
+      #|   @params {object} section - {object} heading - { lv, text, order }
+      #|                              {string} content
+      #|                              {string} example
+      #|
+      #|   @return {DOM} item
+      #|
+      ########################################
+
+      { lv, text, order } = section.heading
+
+      href = util.id( order, text )
+
+      item = util.dom('item')
+                 .attr('lv', lv)
+                 .attr('href', '#' + href)
+                 .text(text)
+
+      return item
 
 
 
@@ -43,16 +119,18 @@ module.exports = class Summary
 
       ########################################
       #|
-      #|   @params {string} html
       #|   @return {string} html
       #|
       ########################################
 
-      model   = util.dom(@html)
+      model   = util.dom( @html )
       summary = util.dom('#summary')
       ul      = util.dom('ul')
 
-      items = model.findAll('item')
+      itemsByUser     = model.findAll('item')
+      itemsBySections = @_parseSectionItems( @sections )
+
+      items = itemsByUser.concat( itemsBySections )
 
       for item in items
           li = @_compileItem( item )
@@ -143,72 +221,6 @@ module.exports = class Summary
       ########################################
 
       return util.dom(@_compile())
-
-
-
-
-
-Summary.parse = ( sections ) =>
-
-   ########################################
-   #|
-   #|   @params {object[]} sections - [{ heading, content, example }]
-   #|   @return {string}   html
-   #|
-   ########################################
-
-   sections = sections.filter( Summary._filterSection )
-   sections = sections.map( Summary._mapSection )
-
-   return "<summary>#{sections.join('')}</summary>"
-
-
-
-
-
-Summary._filterSection = ( section ) =>
-
-   ########################################
-   #|
-   #|   @params {object} section - {object} heading - { lv, text, order }
-   #|                              {string} content
-   #|                              {string} example
-   #|
-   #|   @return {boolean}
-   #|
-   ########################################
-
-   if section.heading
-      if section.heading.lv <= Breeze.config('summary.showLevel')
-         return true
-
-   return false
-
-
-
-
-
-Summary._mapSection = ( section ) =>
-
-   ########################################
-   #|
-   #|   @params {object} section - {object} heading - { lv, text, order }
-   #|                              {string} content
-   #|                              {string} example
-   #|
-   #|   @return {string} html
-   #|
-   ########################################
-
-   { lv, text, order } = section.heading
-
-   href = util.id( order, text )
-
-   return """
-      <item lv="#{ lv }" href="##{ href }">
-        #{ text }
-      </item>
-   """
 
 
 

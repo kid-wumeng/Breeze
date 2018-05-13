@@ -3613,37 +3613,97 @@ var Summary_1 = Summary = class Summary {
   //|       handling the <div id="summary">
   //|   -----------------------------------
   //|
-  //|   summary.compile() -> html
-  //|   summary.render()  -> dom
+  //|   summary.parseSectionItems() -> items
+  //|   summary.compile()           -> html
+  //|   summary.render()            -> dom
   //|
-  //|   Summary.parse( sections ) -> html
   //|   Summary.activeTo( summary, id )
   //|   Summary.scrollTo( summary, id )
   //|
   //#######################################
-  constructor(html) {
+  constructor(html, sections) {
+    this._parseSectionItems = this._parseSectionItems.bind(this);
+    this._filterSectionItem = this._filterSectionItem.bind(this);
+    this._createSectionItem = this._createSectionItem.bind(this);
     this._compile = this._compile.bind(this);
     this._compileItem = this._compileItem.bind(this);
     this._compileItemByLink = this._compileItemByLink.bind(this);
     this._compileItemByHint = this._compileItemByHint.bind(this);
     this._render = this._render.bind(this);
+    //#######################################
+    //|
+    //|   @params {string}   html
+    //|   @params {object[]} sections - [{ heading, content, example }]
+    //|
+    //#######################################
     this.html = html;
+    this.sections = sections;
+    this.parse = this._parse;
     this.compile = this._compile;
     this.render = this._render;
   }
 
-  _compile() {
-    var i, item, items, len, li, model, summary, ul;
+  _parseSectionItems(sections) {
+    var items;
     //#######################################
     //|
-    //|   @params {string} html
+    //|   @params {object[]} sections - [{ heading, content, example }]
+    //|   @return {DOM[]}    items
+    //|
+    //#######################################
+    sections = sections.filter(this._filterSectionItem);
+    items = sections.map(this._createSectionItem);
+    return items;
+  }
+
+  _filterSectionItem(section) {
+    //#######################################
+    //|
+    //|   @params {object} section - {object} heading - { lv, text, order }
+    //|                              {string} content
+    //|                              {string} example
+    //|
+    //|   @return {boolean}
+    //|
+    //#######################################
+    if (section.heading) {
+      if (section.heading.lv <= Breeze.config('summary.showLevel')) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  _createSectionItem(section) {
+    var href, item, lv, order, text;
+    //#######################################
+    //|
+    //|   @params {object} section - {object} heading - { lv, text, order }
+    //|                              {string} content
+    //|                              {string} example
+    //|
+    //|   @return {DOM} item
+    //|
+    //#######################################
+    ({lv, text, order} = section.heading);
+    href = util$8.id(order, text);
+    item = util$8.dom('item').attr('lv', lv).attr('href', '#' + href).text(text);
+    return item;
+  }
+
+  _compile() {
+    var i, item, items, itemsBySections, itemsByUser, len, li, model, summary, ul;
+    //#######################################
+    //|
     //|   @return {string} html
     //|
     //#######################################
     model = util$8.dom(this.html);
     summary = util$8.dom('#summary');
     ul = util$8.dom('ul');
-    items = model.findAll('item');
+    itemsByUser = model.findAll('item');
+    itemsBySections = this._parseSectionItems(this.sections);
+    items = itemsByUser.concat(itemsBySections);
     for (i = 0, len = items.length; i < len; i++) {
       item = items[i];
       li = this._compileItem(item);
@@ -3716,52 +3776,6 @@ var Summary_1 = Summary = class Summary {
     return util$8.dom(this._compile());
   }
 
-};
-
-Summary.parse = (sections) => {
-  //#######################################
-  //|
-  //|   @params {object[]} sections - [{ heading, content, example }]
-  //|   @return {string}   html
-  //|
-  //#######################################
-  sections = sections.filter(Summary._filterSection);
-  sections = sections.map(Summary._mapSection);
-  return `<summary>${sections.join('')}</summary>`;
-};
-
-Summary._filterSection = (section) => {
-  //#######################################
-  //|
-  //|   @params {object} section - {object} heading - { lv, text, order }
-  //|                              {string} content
-  //|                              {string} example
-  //|
-  //|   @return {boolean}
-  //|
-  //#######################################
-  if (section.heading) {
-    if (section.heading.lv <= Breeze.config('summary.showLevel')) {
-      return true;
-    }
-  }
-  return false;
-};
-
-Summary._mapSection = (section) => {
-  var href, lv, order, text;
-  //#######################################
-  //|
-  //|   @params {object} section - {object} heading - { lv, text, order }
-  //|                              {string} content
-  //|                              {string} example
-  //|
-  //|   @return {string} html
-  //|
-  //#######################################
-  ({lv, text, order} = section.heading);
-  href = util$8.id(order, text);
-  return `<item lv="${lv}" href="#${href}">\n  ${text}\n</item>`;
 };
 
 Summary.activeTo = (summary, id) => {
@@ -4982,7 +4996,6 @@ var Article_1 = Article = class Article {
       lv = results[1].length;
       text = results[2];
       text = this._replaceSpecialTag(text);
-      text = this._encodeEscapedChar(text);
       order = this._parseOrder(lv, prev != null ? prev.order : void 0);
       return {lv, order, text};
     } else {
@@ -5101,7 +5114,7 @@ var Article_1 = Article = class Article {
       text = `${order} ${text}`;
     }
     text = text.trim();
-    text = this._replaceSpecialTag(text);
+    text = this._encodeEscapedChar(text);
     return `<h${lv} class="heading">${text}</h${lv}>`;
   }
 
@@ -5215,7 +5228,7 @@ var Article_1 = Article = class Article {
     //|   @return {boolean}
     //|
     //#######################################
-    reg = new RegExp(`^<\\s*${name}\\s*>(.|\n)*?<\\s*/\\s*${name}\\s*>$`);
+    reg = new RegExp(`^<\\s*${name}[^>]*?>(.|\n)*?<\\s*/\\s*${name}\\s*>$`);
     return reg.test(html);
   }
 
@@ -5800,10 +5813,7 @@ var Page_1 = Page = class Page {
     nav = new Nav$1(nav);
     search = new Search$1();
     article = new Article$1(article);
-    if (!summary) {
-      summary = Summary$1.parse(sections = article.parse());
-    }
-    summary = new Summary$1(summary);
+    summary = new Summary$1(summary, sections = article.parse());
     return {cover, nav, search, summary, article};
   }
 

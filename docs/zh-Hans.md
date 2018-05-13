@@ -482,42 +482,47 @@ API 参数表是一个写文档时很常见的需求，比如方法的调用参�
 
 ## <summary>
 
-默认情况下，Breeze 从 Markdown 文章中读取标题，以形成侧栏的概要链接。你也可以通过 <summary\> 手动设置一些概要：
+默认情况下，Breeze 从 Markdown 文章中读取标题，以形成侧栏的概要链接。你也可以通过 <summary\> 在其之前手动插入一些条目：
 
 ```html
 <SUMMARY>
-  <item href="/home">Home2</item>
+  <item href="/">Home</item>
+  <item>More Links</item>
+  <item href="https://github.com/kid-wumeng/Breeze">GitHub</item>
+  <item href="#about-me" lv="2">About Me</item>
 </SUMMARY>
 ```
 
+<item\> 支持的属性如下：
+
+* href - 若不设，则视为一个不可点击的标题。
+* lv - 范围 1 ~ 6，默认为1，手动设定条目的层级。
 
 
 
 
-# 风格
 
-## 预设主题
+# 选项
 
-## 定制样式
-
-### 大结构
-### 文章 / article
-### 参数 / api
-### 导航 / summary
-### 搜索 / search
-
-## 代码高亮
-
-
-# 高级特性
-
-## 配置项
-### basePath
-
-## 多页架构
-
-# 其他
-
-## GitHub
-
-## 许可协议
+<api jade>
+  item
+    name basePath
+    type string, = ''
+    desc 路径前缀
+  item
+    name useCommon
+    type boolean, = false
+    desc 是否使用通用模块
+  item
+    name summary.showLevel
+    type number, = 3
+    desc 展示几级标题内的概要
+  item
+    name summary.showOrderLevel
+    type number, = 0
+    desc 几级概要需要显示数字前缀
+  item
+    name article.showOrderLevel
+    type number, = 0
+    desc 几级文章标题需要显示数字前缀
+</api>

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "author": "KID <kid.wumeng@gmail.com>",
   "scripts": {
-    "build": "rollup -c",
+    "build": "rollup -c && gulp less",
     "dev": "serve -p 8080 & rollup -c -w"
   },
   "dependencies": {

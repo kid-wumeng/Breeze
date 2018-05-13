@@ -11,5 +11,5 @@ task('less', ()=>{
    return gulp.src('themes/*.less')
       .pipe(less())
       .pipe(mini())
-      .pipe(dest('dist/themes'))
+      .pipe(dest('dist'))
 })

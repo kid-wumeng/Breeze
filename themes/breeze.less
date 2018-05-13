@@ -7,15 +7,14 @@
 @import "@/summary";
 @import "@/article";
 @import "@/api";
+@import "@/prism";
 
 
 
 
 
 @default-font-family: "Ubuntu", "Helvetica Neue", "Arial", "Verdana", "Roboto", "PingFang SC", "Hiragino Sans GB", sans-serif;
-
-@border: 1px solid @border-color;
-@border-color: #F6F6F6;
+@default-border-color: #F6F6F6;
 
 
 
@@ -38,7 +37,7 @@ html {
   }
   #side {
     background-color: #FFFFFF;
-    border-right: @border;
+    border-right-color: @default-border-color;
   }
   #main {
     &::before { background-color: #FFFFFF }
@@ -110,7 +109,7 @@ html {
 
 
 #search {
-  border-bottom: @border;
+  border-bottom-color: @default-border-color;
 
   .input-box {
     input {
@@ -164,7 +163,7 @@ html {
 
 #article {
   .section {
-    &::before { border-top-color: @border-color }
+    &::before { border-top-color: @default-border-color }
     &::after  { border-top-color: #33383B }
   }
 
@@ -218,7 +217,7 @@ html {
 
 @media @small {
   #nav {
-    border-bottom: @border;
+    border-bottom-color: @default-border-color;
   }
 
   #article {

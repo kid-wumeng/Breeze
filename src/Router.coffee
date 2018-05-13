@@ -457,14 +457,19 @@ module.exports = class Router
       #|
       #|   Assume current is at '/path/subPath?id=abc&flag'
       #|
-      #|      _goID('#')     ->  /?flag
-      #|      _goID('#def')  ->  /?id=def&flag
+      #|      _goID('#')     ->  /path/subPath?flag
+      #|      _goID('#def')  ->  /path/subPath?id=def&flag
       #|
       ########################################
 
       id    = @_resolveID( href )
       path  = @_getPath()
       query = @_getQuery()
+
+      console.log '-----'
+      console.log id
+      console.log path
+      console.log query
 
       if id
          query.id = id

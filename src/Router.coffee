@@ -473,7 +473,4 @@ module.exports = class Router
 
       fullPath = @_formatFullPath( path, query )
 
-      console.log fullPath
-      console.log '--==='
-
-      history.pushState( null, null, fullPath )
+      history.replaceState( null, null, fullPath )

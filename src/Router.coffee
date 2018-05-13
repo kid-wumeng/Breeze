@@ -466,16 +466,13 @@ module.exports = class Router
       path  = @_getPath()
       query = @_getQuery()
 
-      console.log '-----'
-      console.log id
-      console.log path
-      console.log query
-
       if id
          query.id = id
       else
          delete query.id
 
       fullPath = @_formatFullPath( path, query )
+
+      console.log fullPath
 
       history.replaceState( null, null, fullPath )

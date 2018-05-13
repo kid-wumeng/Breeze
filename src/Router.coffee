@@ -182,9 +182,9 @@ module.exports = class Router
       queryString = @_formatQueryString( query )
 
       if @_isJIT and path isnt '/'
-         return '/#' + path + queryString
+         return '#' + path + queryString
       else
-         return        path + queryString
+         return       path + queryString
 
 
 
@@ -472,7 +472,5 @@ module.exports = class Router
          delete query.id
 
       fullPath = @_formatFullPath( path, query )
-
-      console.log fullPath
 
       history.replaceState( null, null, fullPath )
